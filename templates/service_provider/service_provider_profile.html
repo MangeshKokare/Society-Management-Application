@@ -1,0 +1,446 @@
+{% extends "service_provider\service_provider_base.html" %}
+
+{% block title %}My Profile{% endblock %}
+{% block nav_profile %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: #e74c3c;
+    }
+    .locked-field {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .form-hint {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    .switch-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .switch {
+        position: relative;
+        width: 60px;
+        height: 30px;
+        background: #ccc;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .switch.active {
+        background: #28a745;
+    }
+
+    .switch-slider {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+    }
+
+    .switch.active .switch-slider {
+        transform: translateX(30px);
+    }
+
+    .verification-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .verification-badge.verified {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .verification-badge.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button"
+                id="editProfileBtn"
+                class="btn btn-primary"
+                onclick="enableEditMode()">
+            ✏️ Edit Profile
+        </button>
+
+        <div>
+            <h1 style="font-size: 28px; margin-bottom: 6px;">My Profile ⚙️</h1>
+            <p style="color: #666; font-size: 14px;">
+                Update your professional information and availability
+            </p>
+        </div>
+        <div>
+            {% if provider.verification_status == 'verified' %}
+                <span class="verification-badge verified">✅ Verified</span>
+            {% else %}
+                <span class="verification-badge pending">⏳ Pending Verification</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Profile Form -->
+<form method="POST" action="{% url 'service_provider_profile' %}">
+    {% csrf_token %}
+
+<!-- Personal Information -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">👤 Personal Information</h2>
+    </div>
+
+    <div class="form-grid">
+        <!-- Full Name -->
+        <div class="form-group">
+            <label class="form-label required">Full Name</label>
+            <input type="text"
+                   name="name"
+                   class="form-input"
+                   value="{{ provider.name }}"
+                   required
+                   disabled>
+        </div>
+
+        <!-- Service Type (PERMANENTLY LOCKED) -->
+        <div class="form-group">
+            <label class="form-label required">Service Type</label>
+            <input type="text"
+                   class="form-input locked-field"
+                   value="{{ provider.service.name }}"
+                   disabled>
+            <div class="form-hint">Service type cannot be changed</div>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group">
+            <label class="form-label required">Gender</label>
+            <select name="gender"
+                    class="form-select"
+                    required
+                    disabled>
+                <option value="male" {% if provider.gender == 'male' %}selected{% endif %}>Male</option>
+                <option value="female" {% if provider.gender == 'female' %}selected{% endif %}>Female</option>
+                <option value="other" {% if provider.gender == 'other' %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+
+        <!-- Age -->
+        <div class="form-group">
+            <label class="form-label">Age</label>
+            <input type="number"
+                   name="age"
+                   class="form-input"
+                   value="{{ provider.age }}"
+                   min="18"
+                   max="80"
+                   disabled>
+        </div>
+
+        <!-- Primary Mobile -->
+        <div class="form-group">
+            <label class="form-label required">Primary Mobile</label>
+            <input type="tel"
+                   name="mobile"
+                   class="form-input"
+                   value="{{ provider.mobile }}"
+                   required
+                   pattern="[0-9]{10}"
+                   disabled>
+        </div>
+
+        <!-- Alternate Mobile -->
+        <div class="form-group">
+            <label class="form-label">Alternate Mobile</label>
+            <input type="tel"
+                   name="alternate_mobile"
+                   class="form-input"
+                   value="{{ provider.alternate_mobile }}"
+                   pattern="[0-9]{10}"
+                   disabled>
+        </div>
+    </div>
+
+
+    <!-- Location Details -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📍 Location Details</h2>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label required">Area</label>
+                <input type="text" name="area" class="form-input" 
+                       value="{{ provider.area }}" required 
+                       placeholder="e.g., Nanded City, Sinhagad Road">
+                <div class="form-hint">Helps residents find you based on location</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">City</label>
+                <input type="text" name="city" class="form-input" 
+                       value="{{ provider.city }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Pincode</label>
+                <input type="text" name="pincode" class="form-input" 
+                       value="{{ provider.pincode }}" required pattern="[0-9]{6}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Full Address</label>
+            <textarea name="full_address" class="form-textarea" 
+                      placeholder="Complete address with landmarks">{{ provider.full_address }}</textarea>
+        </div>
+    </div>
+
+    <!-- Professional Details -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">💼 Professional Details</h2>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label required">Experience (Years)</label>
+                <input type="number" name="experience_years" class="form-input" 
+                       value="{{ provider.experience_years }}" required min="0" max="50">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Hourly Rate (₹)</label>
+                <input type="number" name="hourly_rate" class="form-input" 
+                       value="{{ provider.hourly_rate }}" step="0.01" min="0">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Monthly Rate (₹)</label>
+                <input type="number" name="monthly_rate" class="form-input" 
+                       value="{{ provider.monthly_rate }}" step="0.01" min="0">
+            </div>
+        </div>
+    </div>
+
+    <!-- Availability -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📅 Availability</h2>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label required">Available Days</label>
+                <input type="text" name="available_days" class="form-input" 
+                       value="{{ provider.available_days }}" required 
+                       placeholder="e.g., Mon-Fri, All Days, Mon-Sat">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Preferred Timings</label>
+                <input type="text" name="preferred_timings" class="form-input" 
+                       value="{{ provider.preferred_timings }}" required 
+                       placeholder="e.g., 6 AM - 10 AM, Evening">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Available for New Hires</label>
+            <div class="switch-container">
+                <div class="switch {% if provider.is_available %}active{% endif %}"
+                    id="availabilitySwitch"
+                    style="pointer-events:none; opacity:0.6;">
+
+                    <div class="switch-slider"></div>
+                </div>
+                <input type="hidden" name="is_available" 
+                       value="{% if provider.is_available %}on{% endif %}" 
+                       id="availability-input">
+                <span id="availability-text">
+                    {% if provider.is_available %}
+                        🟢 Currently accepting new clients
+                    {% else %}
+                        🔴 Not accepting new clients
+                    {% endif %}
+                </span>
+            </div>
+            <div class="form-hint">Toggle this off if you're at full capacity</div>
+        </div>
+    </div>
+
+    <!-- Verification Info (Read-only) -->
+    <div class="card" style="background: #f8f9ff;">
+        <div class="card-header">
+            <h2 class="card-title">✅ Verification Information</h2>
+        </div>
+
+        <div style="display: grid; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        padding: 12px; background: white; border-radius: 8px;">
+                <span style="font-weight: 600;">Verification Status:</span>
+                {% if provider.verification_status == 'verified' %}
+                    <span class="badge badge-success">✅ Verified</span>
+                {% elif provider.verification_status == 'pending' %}
+                    <span class="badge badge-warning">⏳ Pending</span>
+                {% else %}
+                    <span class="badge badge-danger">❌ Rejected</span>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        padding: 12px; background: white; border-radius: 8px;">
+                <span style="font-weight: 600;">Police Verification:</span>
+                {% if provider.police_verification %}
+                    <span class="badge badge-success">✅ Completed</span>
+                {% else %}
+                    <span class="badge badge-warning">⏳ Pending</span>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        padding: 12px; background: white; border-radius: 8px;">
+                <span style="font-weight: 600;">Rating:</span>
+                <span style="font-weight: 700; color: #ffa726;">⭐ {{ provider.rating }}</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        padding: 12px; background: white; border-radius: 8px;">
+                <span style="font-weight: 600;">Total Reviews:</span>
+                <span style="font-weight: 700;">{{ provider.total_reviews }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="card">
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <a href="{% url 'service_provider_dashboard' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+            <button type="submit"
+                    id="saveBtn"
+                    class="btn btn-primary"
+                    style="min-width:200px; display:none;">
+                💾 Save Changes
+            </button>
+
+        </div>
+    </div>
+
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleSwitch(element) {
+    element.classList.toggle('active');
+    const input = document.getElementById('availability-input');
+    const text = document.getElementById('availability-text');
+    
+    if (element.classList.contains('active')) {
+        input.value = 'on';
+        text.innerHTML = '🟢 Currently accepting new clients';
+    } else {
+        input.value = '';
+        text.innerHTML = '🔴 Not accepting new clients';
+    }
+}
+</script>
+
+<script>
+function enableEditMode() {
+
+    // Enable only editable fields (EXCLUDES locked fields)
+    document.querySelectorAll(
+        '.form-input:not(.locked-field), .form-select, .form-textarea'
+    ).forEach(el => el.disabled = false);
+
+    // Enable availability toggle
+    const switchEl = document.getElementById('availabilitySwitch');
+    switchEl.style.pointerEvents = 'auto';
+    switchEl.style.opacity = '1';
+    switchEl.setAttribute('onclick', 'toggleSwitch(this)');
+
+    // Show Save button
+    document.getElementById('saveBtn').style.display = 'inline-block';
+
+    // Lock Edit button
+    const btn = document.getElementById('editProfileBtn');
+    btn.disabled = true;
+    btn.innerText = '✏️ Editing…';
+}
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGate - Deliveries</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-size: 20px;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .stat-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .delivery-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .delivery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .delivery-main-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .delivery-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+        }
+
+        .delivery-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .delivery-company {
+            font-size: 13px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-in-transit {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-at-gate {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-collected {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .delivery-details {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .detail-icon {
+            font-size: 18px;
+            width: 25px;
+        }
+
+        .tracking-timeline {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot.inactive {
+            background: #ccc;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .timeline-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .delivery-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 18px;
+            color: #999;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 5px 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="back-btn">←</a>
+            <div class="logo">
+                <span>📦</span>
+                <span>Deliveries</span>
+            </div>
+            <div style="width: 40px;"></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1 class="page-title">My Deliveries</h1>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value">3</div>
+                <div class="stat-label">In Transit</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">2</div>
+                <div class="stat-label">At Gate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">18</div>
+                <div class="stat-label">This Month</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('active')">Active</div>
+            <div class="tab" onclick="switchTab('collected')">Collected</div>
+            <div class="tab" onclick="switchTab('all')">All</div>
+        </div>
+
+        <div id="active-section">
+            <div class="delivery-card">
+                <div class="delivery-header">
+                    <div class="delivery-main-info">
+                        <div class="delivery-icon">📦</div>
+                        <div class="delivery-info">
+                            <h3>Package #AMZ123456</h3>
+                            <span class="delivery-company">Amazon</span>
+                        </div>
+                    </div>
+                    <span class="status-badge status-at-gate">At Gate</span>
+                </div>
+                <div class="delivery-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">📅</span>
+                        <span>Arrived: Today at 11:45 AM</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">👤</span>
+                        <span>Delivery Person: Rajesh Kumar</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📝</span>
+                        <span>OTP: 4582</span>
+                    </div>
+                </div>
+                <div class="delivery-actions">
+                    <button class="btn btn-primary">Collect Now</button>
+                    <button class="btn btn-secondary">View Details</button>
+                </div>
+            </div>
+
+            <div class="delivery-card">
+                <div class="delivery-header">
+                    <div class="delivery-main-info">
+                        <div class="delivery-icon">📦</div>
+                        <div class="delivery-info">
+                            <h3>Package #FLP789012</h3>
+                            <span class="delivery-company">Flipkart</span>
+                        </div>
+                    </div>
+                    <span class="status-badge status-at-gate">At Gate</span>
+                </div>
+                <div class="delivery-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">📅</span>
+                        <span>Arrived: Today at 2:30 PM</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📝</span>
+                        <span>OTP: 7823</span>
+                    </div>
+                </div>
+                <div class="delivery-actions">
+                    <button class="btn btn-primary">Collect Now</button>
+                    <button class="btn btn-secondary">View Details</button>
+                </div>
+            </div>
+
+            <div class="delivery-card">
+                <div class="delivery-header">
+                    <div class="delivery-main-info">
+                        <div class="delivery-icon">🍕</div>
+                        <div class="delivery-info">
+                            <h3>Food Order</h3>
+                            <span class="delivery-company">Swiggy</span>
+                        </div>
+                    </div>
+                    <span class="status-badge status-in-transit">In Transit</span>
+                </div>
+                <div class="delivery-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">🕐</span>
+                        <span>Expected: 6:30 PM (15 mins)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">👤</span>
+                        <span>Delivery Partner: Amit Shah</span>
+                    </div>
+                </div>
+                <div class="tracking-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Out for Delivery</div>
+                            <div class="timeline-time">6:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Order Picked Up</div>
+                            <div class="timeline-time">5:45 PM</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Order Confirmed</div>
+                            <div class="timeline-time">5:30 PM</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="delivery-actions">
+                    <button class="btn btn-primary">Track Live</button>
+                    <button class="btn btn-secondary">Call Delivery Partner</button>
+                </div>
+            </div>
+
+            <div class="delivery-card">
+                <div class="delivery-header">
+                    <div class="delivery-main-info">
+                        <div class="delivery-icon">📦</div>
+                        <div class="delivery-info">
+                            <h3>Package #MYN456789</h3>
+                            <span class="delivery-company">Myntra</span>
+                        </div>
+                    </div>
+                    <span class="status-badge status-in-transit">In Transit</span>
+                </div>
+                <div class="delivery-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">🕐</span>
+                        <span>Expected: Tomorrow by 6:00 PM</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📍</span>
+                        <span>Last Location: Pune Hub</span>
+                    </div>
+                </div>
+                <div class="delivery-actions">
+                    <button class="btn btn-primary">Track Package</button>
+                    <button class="btn btn-secondary">View Details</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="collected-section" style="display: none;">
+            <div class="delivery-card">
+                <div class="delivery-header">
+                    <div class="delivery-main-info">
+                        <div class="delivery-icon">📦</div>
+                        <div class="delivery-info">
+                            <h3>Package #AMZ987654</h3>
+                            <span class="delivery-company">Amazon</span>
+                        </div>
+                    </div>
+                    <span class="status-badge status-collected">Collected</span>
+                </div>
+                <div class="delivery-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">📅</span>
+                        <span>Collected: Yesterday at 4:20 PM</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">✓</span>
+                        <span>Verified with OTP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="delivery-card">
+                <div class="delivery-header">
+                    <div class="delivery-main-info">
+                        <div class="delivery-icon">🛒</div>
+                        <div class="delivery-info">
+                            <h3>Grocery Delivery</h3>
+                            <span class="delivery-company">BigBasket</span>
+                        </div>
+                    </div>
+                    <span class="status-badge status-collected">Collected</span>
+                </div>
+                <div class="delivery-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">📅</span>
+                        <span>Collected: 2 days ago at 10:15 AM</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">✓</span>
+                        <span>Hand delivered</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="all-section" style="display: none;">
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-text">Showing all deliveries from last 30 days...</div>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <span>Home</span>
+        </a>
+        <a href="visitors.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <span>Visitors</span>
+        </a>
+        <a href="services.html" class="nav-item">
+            <div class="nav-icon">🛠️</div>
+            <span>Services</span>
+        </a>
+        <a href="community.html" class="nav-item">
+            <div class="nav-icon">💬</div>
+            <span>Community</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <div class="nav-icon">⚙️</div>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('active-section').style.display = 'none';
+            document.getElementById('collected-section').style.display = 'none';
+            document.getElementById('all-section').style.display = 'none';
+
+            if (tab === 'active') {
+                document.getElementById('active-section').style.display = 'block';
+            } else if (tab === 'collected') {
+                document.getElementById('collected-section').style.display = 'block';
+            } else if (tab === 'all') {
+                document.getElementById('all-section').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

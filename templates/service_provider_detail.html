@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Service Provider Details{% endblock %}
+
+{% block content %}
+<div class="main-content" style="max-width:900px;margin:30px auto;">
+
+    <div style="
+        background:white;
+        padding:24px;
+        border-radius:14px;
+        box-shadow:0 4px 14px rgba(0,0,0,0.12);
+    ">
+
+        <!-- HEADER -->
+        <div style="display:flex;align-items:center;gap:20px;">
+            <div style="
+                width:80px;height:80px;
+                border-radius:50%;
+                background:linear-gradient(135deg,#667eea,#764ba2);
+                color:white;
+                font-size:36px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+            ">
+                🛠️
+            </div>
+
+            <div>
+                <h2 style="margin-bottom:6px;">{{ provider.name }}</h2>
+                <span style="
+                    background:#f0f0f0;
+                    padding:6px 14px;
+                    border-radius:20px;
+                    font-size:14px;
+                ">
+                    {{ provider.service.name }}
+                </span>
+            </div>
+        </div>
+
+        <!-- AVG RATING -->
+        <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+            <div style="color:#ffa726;font-size:20px;">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= provider.rating|floatformat:0 %}
+                        ★
+                    {% else %}
+                        ☆
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <strong>{{ provider.rating }} / 5</strong>
+            <span style="color:#999;">({{ provider.total_reviews }} reviews)</span>
+        </div>
+
+        <hr style="margin:20px 0;">
+
+        <!-- DETAILS -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>📱 <strong>Mobile:</strong> {{ provider.mobile }}</div>
+            <div>📍 <strong>Location:</strong> {{ provider.area }}, {{ provider.city }}</div>
+            <div>⏰ <strong>Timings:</strong> {{ provider.preferred_timings }}</div>
+            <div>📅 <strong>Days:</strong> {{ provider.available_days }}</div>
+            <div>⭐ <strong>Experience:</strong> {{ provider.experience_years }} years</div>
+            <div>💰 <strong>Monthly Rate:</strong> ₹{{ provider.monthly_rate }}</div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div style="margin-top:30px;display:flex;gap:12px;">
+            {% if is_hired %}
+                <button style="
+                    padding:12px 20px;
+                    background:#4caf50;
+                    color:white;
+                    border:none;
+                    border-radius:8px;
+                    font-weight:600;
+                ">
+                    ✓ Already Hired
+                </button>
+            {% else %}
+                <a href="{% url 'hire_service_provider' provider.id %}" style="
+                    padding:12px 20px;
+                    background:#667eea;
+                    color:white;
+                    border-radius:8px;
+                    text-decoration:none;
+                    font-weight:600;
+                ">
+                    Hire Service
+                </a>
+            {% endif %}
+
+            <a href="{% url 'resident_services' %}" style="
+                padding:12px 20px;
+                background:#f0f0f0;
+                color:#333;
+                border-radius:8px;
+                text-decoration:none;
+                font-weight:600;
+            ">
+                ← Back
+            </a>
+        </div>
+
+        <!-- REVIEW FORM -->
+        {% if is_hired and not user_review %}
+        <hr style="margin:30px 0;">
+        <h3>Rate & Review</h3>
+
+        <form method="POST" action="{% url 'add_service_review' hired_service.id %}">
+            {% csrf_token %}
+
+            <div id="starRating"
+                 style="font-size:30px;color:#ccc;cursor:pointer;">
+                <span data-value="1">★</span>
+                <span data-value="2">★</span>
+                <span data-value="3">★</span>
+                <span data-value="4">★</span>
+                <span data-value="5">★</span>
+            </div>
+
+            <input type="hidden" name="rating" id="ratingInput">
+
+            <textarea name="review_text" required
+                placeholder="Write your experience..."
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin-top:10px;
+                    border-radius:8px;
+                    border:1px solid #ddd;
+                "></textarea>
+
+            <button type="submit"
+                onclick="return validateRating()"
+                style="
+                    margin-top:12px;
+                    padding:10px 18px;
+                    background:#667eea;
+                    color:white;
+                    border:none;
+                    border-radius:8px;
+                    font-weight:600;
+                ">
+                Submit Review
+            </button>
+        </form>
+        {% endif %}
+
+        <!-- REVIEWS LIST -->
+        {% if reviews %}
+        <hr style="margin:40px 0;">
+        <h3>Customer Reviews</h3>
+
+        {% for r in reviews %}
+        <div style="
+            background:#fafafa;
+            padding:14px;
+            border-radius:10px;
+            margin-bottom:12px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.08);
+        ">
+            <strong>{{ r.hired_service.resident.username }}</strong>
+            <div style="color:#ffa726;font-size:18px;">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+            </div>
+            <p style="margin-top:6px;">{{ r.review_text }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- SIMILAR PROVIDERS -->
+        {% if similar_providers %}
+        <hr style="margin:40px 0;">
+        <h3>Similar {{ provider.service.name }} Services</h3>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;">
+            {% for sp in similar_providers %}
+            <div style="
+                background:white;
+                padding:16px;
+                border-radius:12px;
+                box-shadow:0 2px 8px rgba(0,0,0,0.1);
+                cursor:pointer;
+            "
+            onclick="window.location.href='{% url 'service_provider_detail' sp.id %}'">
+
+                <strong>{{ sp.name }}</strong>
+                <div style="color:#666;font-size:14px;">📍 {{ sp.area }}, {{ sp.city }}</div>
+
+                <div style="color:#ffa726;margin-top:6px;">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= sp.rating|floatformat:0 %}
+                            ★
+                        {% else %}
+                            ☆
+                        {% endif %}
+                    {% endfor %}
+                    <strong>{{ sp.rating }}/5</strong>
+                </div>
+
+                {% if sp.monthly_rate %}
+                <div style="margin-top:8px;font-weight:600;color:#2e7d32;">
+                    ₹{{ sp.monthly_rate }}/month
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- STAR JS -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const stars = document.querySelectorAll("#starRating span");
+    const input = document.getElementById("ratingInput");
+
+    stars.forEach(star => {
+        star.addEventListener("click", () => {
+            const val = star.dataset.value;
+            input.value = val;
+            stars.forEach(s => {
+                s.style.color = s.dataset.value <= val ? "#ffa726" : "#ccc";
+            });
+        });
+    });
+});
+
+function validateRating() {
+    if (!document.getElementById("ratingInput").value) {
+        alert("Please select a star rating ⭐");
+        return false;
+    }
+    return true;
+}
+</script>
+
+{% endblock %}

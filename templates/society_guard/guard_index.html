@@ -1,0 +1,1739 @@
+{% extends "society_guard/guard_base.html" %}
+
+{% block title %}Guard Dashboard - MyGate{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    /* ================= HERO SHIFT CARD ================= */
+    .shift-hero {
+        background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+        color: white;
+        padding: 28px 24px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 24px rgba(26, 35, 126, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .shift-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .shift-hero-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .shift-greeting {
+        flex: 1;
+    }
+    
+    .shift-greeting h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+    }
+    
+    .shift-greeting p {
+        font-size: 14px;
+        opacity: 0.85;
+        font-weight: 500;
+    }
+    
+    .shift-status-badge {
+        background: rgba(76, 175, 80, 0.95);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .status-pulse {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .shift-details-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .shift-detail-item {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .shift-detail-icon {
+        font-size: 18px;
+        margin-bottom: 6px;
+    }
+    
+    .shift-detail-label {
+        font-size: 11px;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+    
+    .shift-detail-value {
+        font-size: 14px;
+        font-weight: 700;
+    }
+    
+    /* ================= VOICE COMMAND BUTTON ================= */
+    .voice-command-wrapper {
+        margin-bottom: 24px;
+    }
+    
+    .voice-btn {
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        color: white;
+        padding: 18px 24px;
+        border-radius: 14px;
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .voice-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .voice-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+    }
+    
+    .voice-btn:active::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .voice-btn.listening {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        animation: pulse-listening 1.5s infinite;
+    }
+    
+    @keyframes pulse-listening {
+        0%, 100% { box-shadow: 0 4px 16px rgba(244, 67, 54, 0.4); }
+        50% { box-shadow: 0 4px 24px rgba(244, 67, 54, 0.6); }
+    }
+    
+    .voice-icon {
+        font-size: 24px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .voice-text {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* ================= STATS ROW ================= */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px 16px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .stat-number {
+        font-size: 32px;
+        font-weight: 800;
+        color: #1a237e;
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* ================= SECTION HEADERS ================= */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+        letter-spacing: -0.3px;
+    }
+    
+    .section-badge {
+        background: #fff3e0;
+        color: #e65100;
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+    
+    /* ================= QUICK ENTRY GRID ================= */
+    .quick-entry-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin-bottom: 28px;
+    }
+    
+    .entry-card {
+        background: white;
+        border-radius: 14px;
+        padding: 24px 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .entry-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2196F3, #1976D2);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .entry-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        border-color: #2196F3;
+    }
+    
+    .entry-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .entry-card:active {
+        transform: translateY(-2px);
+    }
+    
+    .entry-icon {
+        font-size: 44px;
+        margin-bottom: 12px;
+        display: block;
+        filter: grayscale(0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .entry-card:hover .entry-icon {
+        filter: grayscale(0);
+        transform: scale(1.1);
+    }
+    
+    .entry-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+    }
+    
+    .entry-subtitle {
+        font-size: 12px;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    /* ================= APPROVAL CARDS ================= */
+    .card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+    
+    .card-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    
+    .badge {
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    
+    .badge-pending {
+        background: #fff3e0;
+        color: #e65100;
+    }
+    
+    .badge-approved {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+    
+    .badge-active {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+    
+    /* ================= APPROVAL ITEMS ================= */
+    .approval-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .approval-item {
+        background: #f8f9fa;
+        padding: 16px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+    
+    .approval-item:hover {
+        background: #f0f2f5;
+        border-color: #e3f2fd;
+    }
+    
+    .approval-info {
+        flex: 1;
+    }
+    
+    .approval-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 6px;
+    }
+    
+    .approval-detail {
+        font-size: 13px;
+        color: #666;
+        margin: 3px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .approval-detail-icon {
+        font-size: 14px;
+    }
+    
+    .approval-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn {
+        padding: 10px 18px;
+        border-radius: 10px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    
+    .btn-primary {
+        background: #2196F3;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #1976D2;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+    
+    .btn-success {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #388E3C;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .btn-small {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+    
+    .btn:active {
+        transform: translateY(0);
+    }
+    
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    /* ================= TEMPERATURE CHECK ================= */
+    .temperature-check {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        border: 2px solid #4CAF50;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .temp-icon {
+        font-size: 40px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    
+    .temp-info h4 {
+        font-weight: 700;
+        margin-bottom: 6px;
+        font-size: 15px;
+        color: #1a1a1a;
+    }
+    
+    .temp-info p {
+        font-size: 13px;
+        color: #555;
+        font-weight: 500;
+    }
+    
+    /* ================= LEADERBOARD ================= */
+    .leaderboard-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+    
+    .leaderboard-item.current-user {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-color: #2196F3;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+    }
+    
+    .leaderboard-item:hover {
+        transform: translateX(4px);
+    }
+    
+    .leaderboard-rank {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1a237e;
+        width: 36px;
+        text-align: center;
+    }
+    
+    .leaderboard-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+    }
+    
+    .leaderboard-info {
+        flex: 1;
+    }
+    
+    .leaderboard-name {
+        font-weight: 700;
+        margin-bottom: 4px;
+        font-size: 14px;
+        color: #1a1a1a;
+    }
+    
+    .leaderboard-points {
+        font-size: 12px;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .leaderboard-badge {
+        font-size: 28px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    
+    /* ================= EMPTY STATE ================= */
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: #95a5a6;
+    }
+    
+    .empty-state-icon {
+        font-size: 56px;
+        margin-bottom: 12px;
+        opacity: 0.6;
+        filter: grayscale(0.3);
+    }
+    
+    .empty-state p {
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    /* ================= TASKS ================= */
+    .task-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .task-item:hover {
+        border-color: #e3f2fd;
+        background: #f0f2f5;
+    }
+    
+    .task-info h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #1a1a1a;
+    }
+    
+    .task-info p {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 6px;
+    }
+    
+    .task-time {
+        font-size: 11px;
+        color: #999;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 480px) {
+        .shift-hero {
+            padding: 24px 20px;
+        }
+        
+        .shift-greeting h1 {
+            font-size: 22px;
+        }
+        
+        .shift-details-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .shift-detail-item {
+            padding: 10px 8px;
+        }
+        
+        .shift-detail-icon {
+            font-size: 16px;
+        }
+        
+        .shift-detail-label {
+            font-size: 10px;
+        }
+        
+        .shift-detail-value {
+            font-size: 12px;
+        }
+        
+        .stats-grid {
+            gap: 10px;
+        }
+        
+        .stat-card {
+            padding: 16px 12px;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+        }
+        
+        .quick-entry-grid {
+            gap: 12px;
+        }
+        
+        .entry-card {
+            padding: 20px 16px;
+        }
+        
+        .entry-icon {
+            font-size: 38px;
+        }
+    }
+    
+    /* ================= ANIMATIONS ================= */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .shift-hero {
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .stat-card {
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    
+    .entry-card {
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .entry-card:nth-child(1) { animation-delay: 0.1s; }
+    .entry-card:nth-child(2) { animation-delay: 0.2s; }
+    .entry-card:nth-child(3) { animation-delay: 0.3s; }
+    .entry-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .attendance-section {
+        margin-bottom: 24px;
+    }
+
+    .attendance-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-success:active {
+        transform: translateY(0);
+    }
+
+
+    /* ================= LEAVE MODAL ================= */
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        width: 100%;
+        max-width: 500px;
+        border-radius: 16px;
+        overflow: hidden;
+        animation: fadeInUp 0.3s ease;
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        padding: 16px 20px;
+        border-top: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 2px solid #E2E8F0;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Shift Card -->
+<div class="shift-hero">
+    <div class="shift-hero-top">
+        <div class="shift-greeting">
+            <h1>Good {{ greeting }}, {{ request.user.first_name|default:request.user.username }}! 👋</h1>
+            <p>Your dedication keeps our community safe</p>
+        </div>
+        <div class="shift-status-badge
+            {% if current_shift and current_shift.check_in %}
+                active
+            {% else %}
+                pending
+            {% endif %}
+        ">
+            <span class="status-pulse"></span>
+            <span>
+                {% if current_shift %}
+                    {% if current_shift.check_in %}
+                        On Duty
+                    {% else %}
+                        Shift Assigned
+                    {% endif %}
+                {% else %}
+                    No Shift
+                {% endif %}
+            </span>
+        </div>
+
+    </div>
+    
+    <div class="shift-details-grid">
+        <div class="shift-detail-item">
+            <div class="shift-detail-icon">⏰</div>
+            <div class="shift-detail-label">Shift</div>
+            <div class="shift-detail-value">
+                {% if current_shift %}
+                    {{ current_shift.start_time|time:"g:i A" }} –
+                    {{ current_shift.end_time|time:"g:i A" }}
+                {% else %}
+                    Not Assigned
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="shift-detail-item">
+            <div class="shift-detail-icon">📍</div>
+            <div class="shift-detail-label">Type</div>
+            <div class="shift-detail-value">
+                {% if current_shift %}
+                    {{ current_shift.get_shift_type_display }}
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="shift-detail-item">
+            <div class="shift-detail-icon">🕐</div>
+            <div class="shift-detail-label">Time</div>
+            <div class="shift-detail-value">{{ current_time }}</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Voice Command Button -->
+<div class="voice-command-wrapper">
+    <button class="voice-btn" id="voiceBtn">
+        <span class="voice-icon">🎤</span>
+        <span class="voice-text">Voice Entry Command</span>
+    </button>
+</div>
+
+<!-- Check-in/Check-out Section -->
+<div class="attendance-section">
+    <div class="card">
+        <div class="card-header" style="padding: 20px; background: linear-gradient(135deg, #F8FAFC, #F1F5F9); border-bottom: 1px solid #E2E8F0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="card-title" style="font-size: 18px; font-weight: 700; color: #1E293B;">
+                    ⏰ Attendance
+                </div>
+                <div id="attendance-status-badge" class="shift-badge badge-upcoming">
+                    Not Checked In
+                </div>
+            </div>
+        </div>
+        <div class="card-body" style="padding: 24px;">
+            <!-- Check-in Info Display -->
+            <div id="attendance-info" style="display: none; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div style="background: #F8FAFC; padding: 16px; border-radius: 10px;">
+                        <div style="font-size: 12px; color: #64748B; margin-bottom: 4px; font-weight: 600;">CHECK-IN TIME</div>
+                        <div id="check-in-display" style="font-size: 20px; font-weight: 700; color: #10B981;">—</div>
+                    </div>
+                    <div style="background: #F8FAFC; padding: 16px; border-radius: 10px;">
+                        <div style="font-size: 12px; color: #64748B; margin-bottom: 4px; font-weight: 600;">CHECK-OUT TIME</div>
+                        <div id="check-out-display" style="font-size: 20px; font-weight: 700; color: #EF4444;">—</div>
+                    </div>
+                </div>
+                <div id="duration-display" style="margin-top: 16px; text-align: center; font-size: 14px; color: #64748B; font-weight: 600;">
+                    <!-- Duration will be shown here -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="attendance-actions">
+                <button id="check-in-btn" class="btn btn-success" style="width: 100%; padding: 16px; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <span style="font-size: 24px;">✓</span>
+                    <span>Check In</span>
+                </button>
+                
+                <button id="check-out-btn" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px; display: none; flex; align-items: center; justify-content: center; gap: 10px;">
+                    <span style="font-size: 24px;">→</span>
+                    <span>Check Out</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-icon">📊</span>
+        <div class="stat-number">{{ today_entries }}</div>
+        <div class="stat-label">Today's Entries</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">⏳</span>
+        <div class="stat-number">{{ pending_count }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">📦</span>
+        <div class="stat-number">{{ parcels_today }}</div>
+        <div class="stat-label">Parcels</div>
+    </div>
+</div>
+
+<!-- Quick Entry Section -->
+<div class="section-header">
+    <h2 class="section-title">Quick Entry</h2>
+</div>
+
+<!-- Leave & Communication Actions -->
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px;">
+    
+    <div class="entry-card" onclick="openLeaveModal()" style="cursor: pointer;">
+        <span class="entry-icon">📅</span>
+        <div class="entry-title">Apply Leave</div>
+        <div class="entry-subtitle">Request time off</div>
+    </div>
+
+    <a href="{% url 'guard_notifications' %}" class="entry-card">
+        <span class="entry-icon">💬</span>
+        <div class="entry-title">Chat with Admin</div>
+        <div class="entry-subtitle">Send message</div>
+    </a>
+
+
+</div>
+
+<div class="quick-entry-grid">
+    <a href="{% url 'guard_entry' %}?type=visitor" class="entry-card">
+        <span class="entry-icon">👤</span>
+        <div class="entry-title">Visitor Entry</div>
+        <div class="entry-subtitle">Log new visitor</div>
+    </a>
+    
+    <a href="{% url 'guard_entry' %}?type=daily_help" class="entry-card">
+        <span class="entry-icon">🏃</span>
+        <div class="entry-title">Daily Help</div>
+        <div class="entry-subtitle">Staff check-in</div>
+    </a>
+    
+    <a href="{% url 'guard_entry' %}?type=vehicle" class="entry-card">
+        <span class="entry-icon">🚗</span>
+        <div class="entry-title">Vehicle Entry</div>
+        <div class="entry-subtitle">Log vehicle</div>
+    </a>
+    
+    <a href="{% url 'guard_parcels' %}" class="entry-card">
+        <span class="entry-icon">📦</span>
+        <div class="entry-title">Parcel</div>
+        <div class="entry-subtitle">Delivery received</div>
+    </a>
+</div>
+
+<!-- Pending Approvals Card -->
+<!-- <div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Pending Approvals</h3>
+        <span class="badge badge-pending">{{ pending_count }} Waiting</span>
+    </div>
+
+    {% if pending_visitors %}
+        <div class="approval-list">
+            {% for v in pending_visitors %}
+            <div class="approval-item">
+                <div class="approval-info">
+                    <div class="approval-name">{{ v.name }} • {{ v.get_visitor_type_display }}</div>
+                    <div class="approval-detail">
+                        <span class="approval-detail-icon">📝</span>
+                        {{ v.purpose|default:"General Visit" }}
+                    </div>
+                    <div class="approval-detail">
+                        <span class="approval-detail-icon">📱</span>
+                        {{ v.mobile }}
+                    </div>
+                    <div class="approval-detail">
+                        <span class="approval-detail-icon">🏢</span>
+                        {{ v.apartment.block }}-{{ v.apartment.flat_number }}
+                    </div>
+                </div>
+                <div class="approval-actions">
+                    <button class="btn btn-success btn-small" onclick="callResident({{ v.id }}, '{{ v.apartment.block }}', '{{ v.apartment.flat_number }}')">
+                        📞 Call
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">✓</div>
+            <p>No pending approvals</p>
+        </div>
+    {% endif %}
+</div> -->
+
+<!-- Recent Check-ins Card -->
+<!-- <div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Recent Check-ins</h3>
+        <span class="badge badge-active">{{ recent_checkins|length }} Active</span>
+    </div>
+
+    {% if recent_checkins %}
+        <div class="temperature-check">
+            <div class="temp-icon">🌡️</div>
+            <div class="temp-info">
+                <h4>Health & Safety Protocol</h4>
+                <p>Temperature recorded • Mask verified • Sanitized</p>
+            </div>
+        </div>
+
+        <div class="approval-list">
+            {% for checkin in recent_checkins %}
+            <div class="approval-item">
+                <div class="approval-info">
+                    <div class="approval-name">
+                        {{ checkin.name }} • {{ checkin.get_visitor_type_display }}
+                    </div>
+                    <div class="approval-detail">
+                        🏢 {{ checkin.apartment.block }}-{{ checkin.apartment.flat_number }}
+                    </div>
+                    <div class="approval-detail">
+                        🕐 {{ checkin.check_in_time|time:"g:i A" }}
+                    </div>
+                </div>
+                <span class="badge badge-approved">Inside</span>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p>No recent check-ins today</p>
+        </div>
+    {% endif %}
+</div> -->
+
+
+<!-- Guard Leaderboard Card -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">🏆 Guard Leaderboard</h3>
+        <span class="badge badge-active">This Week</span>
+    </div>
+    
+    {% if leaderboard %}
+        <div class="leaderboard-list">
+            {% for guard in leaderboard %}
+            <div class="leaderboard-item {% if guard.user == request.user %}current-user{% endif %}">
+                <div class="leaderboard-rank">{{ forloop.counter }}</div>
+                <div class="leaderboard-avatar">
+                    {{ guard.user.first_name|default:guard.user.username|first|upper }}
+                </div>
+                <div class="leaderboard-info">
+                    <div class="leaderboard-name">
+                        {% if guard.user == request.user %}
+                            You ({{ guard.user.first_name|default:guard.user.username }})
+                        {% else %}
+                            {{ guard.user.first_name|default:guard.user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="leaderboard-points">
+                        {{ guard.points }} points • {{ guard.entries }} entries logged
+                    </div>
+                </div>
+                <div class="leaderboard-badge">
+                    {% if forloop.counter == 1 %}🥇
+                    {% elif forloop.counter == 2 %}🥈
+                    {% elif forloop.counter == 3 %}🥉
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🏆</div>
+            <p>No leaderboard data available</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Today's Tasks -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Today's Tasks</h3>
+    </div>
+
+    <!-- Morning Patrol -->
+    <div class="task-item">
+        <div class="task-info">
+            <h4>🚶 Morning Patrol</h4>
+            <p>Check all common areas and parking zones</p>
+            <span class="task-time">Scheduled: 10:00 AM</span>
+        </div>
+
+        {% if tasks.patrol_completed %}
+            <span class="badge badge-approved">Completed</span>
+        {% else %}
+            <a href="{% url 'guard_patrol' %}" class="btn btn-primary btn-small">
+                Start Patrol
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Shift Handover -->
+    <div class="task-item">
+        <div class="task-info">
+            <h4>🔄 Shift Handover</h4>
+            <p>Transfer duties to afternoon shift guard</p>
+            <span class="task-time">Due: 2:00 PM</span>
+        </div>
+
+        {% if tasks.handover_done %}
+            <span class="badge badge-approved">Done</span>
+        {% elif tasks.patrol_completed %}
+            <a href="{% url 'complete_handover' %}" class="btn btn-success btn-small">
+                Complete Handover
+            </a>
+        {% else %}
+            <span class="badge badge-pending">Pending Patrol</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Leave Application Modal -->
+<div class="modal" id="leaveModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">📅 Apply for Leave</div>
+            <button class="modal-close" onclick="closeLeaveModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="leaveForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Leave Type</label>
+                    <select name="leave_type" class="form-select" required>
+                        <option value="">Select leave type</option>
+                        <option value="sick">Sick Leave</option>
+                        <option value="casual">Casual Leave</option>
+                        <option value="emergency">Emergency Leave</option>
+                        <option value="vacation">Vacation</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reason</label>
+                    <textarea name="reason" class="form-textarea" placeholder="Please explain your reason..." required></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeLeaveModal()">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-primary" onclick="submitLeave()" style="width:auto;padding:10px 20px;">
+                Submit Request
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ================= VOICE COMMAND HANDLER =================
+    const voiceBtn = document.getElementById('voiceBtn');
+    let isListening = false;
+    
+    voiceBtn.addEventListener('click', function() {
+        if (!isListening) {
+            // Start listening
+            isListening = true;
+            this.classList.add('listening');
+            this.innerHTML = '<span class="voice-icon">🔴</span><span class="voice-text">Listening... Speak now</span>';
+            
+            // Simulate voice recognition
+            setTimeout(() => {
+                // Show processing
+                this.innerHTML = '<span class="voice-icon">⏳</span><span class="voice-text">Processing...</span>';
+                
+                setTimeout(() => {
+                    // Show result
+                    showVoiceResult();
+                    resetVoiceButton();
+                }, 1500);
+            }, 2000);
+        }
+    });
+    
+    function showVoiceResult() {
+        const commands = [
+            'Visitor entry for apartment B-504',
+            'Log delivery for A-203',
+            'Vehicle entry - MH12AB1234',
+            'Daily help check-in for C-101'
+        ];
+        
+        const randomCommand = commands[Math.floor(Math.random() * commands.length)];
+        
+        // Create custom alert
+        const alertDiv = document.createElement('div');
+        alertDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            z-index: 10000;
+            max-width: 320px;
+            text-align: center;
+        `;
+        
+        alertDiv.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 12px;">✓</div>
+            <h3 style="margin-bottom: 8px; font-weight: 700;">Command Recognized</h3>
+            <p style="color: #666; margin-bottom: 20px;">"${randomCommand}"</p>
+            <button onclick="this.parentElement.remove()" style="
+                background: #2196F3;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+            ">OK</button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 3000);
+    }
+    
+    function resetVoiceButton() {
+        isListening = false;
+        voiceBtn.classList.remove('listening');
+        voiceBtn.innerHTML = '<span class="voice-icon">🎤</span><span class="voice-text">Voice Entry Command</span>';
+    }
+    
+    // ================= CALL RESIDENT FUNCTIONALITY =================
+    function callResident(visitorId, block, flat) {
+        if (!confirm(`Call resident at ${block}-${flat} for visitor approval?`)) {
+            return;
+        }
+        
+        // Get CSRF token
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value 
+                       || getCookie('csrftoken');
+        
+        // Show loading state
+        const button = event.target;
+        const originalHTML = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '📞 Calling...';
+        
+        // Make AJAX call to notify resident
+        fetch(`/guard/visitor/call/${visitorId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('success', `✅ Notification sent to residents of ${block}-${flat}`);
+            } else {
+                showNotification('error', `❌ Error: ${data.error || 'Failed to notify resident'}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('error', '❌ Failed to notify resident. Please try again.');
+        })
+        .finally(() => {
+            button.disabled = false;
+            button.innerHTML = originalHTML;
+        });
+    }
+    
+    // ================= NOTIFICATION TOAST =================
+    function showNotification(type, message) {
+        const colors = {
+            'success': '#4CAF50',
+            'error': '#f44336',
+            'warning': '#FF9800',
+            'info': '#2196F3'
+        };
+        
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${colors[type] || colors.info};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            z-index: 10001;
+            font-weight: 600;
+            animation: slideDown 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+        `;
+        
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideUp 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000); // Show longer for warnings
+    }
+    
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 0); opacity: 1; }
+            to { transform: translate(-50%, -100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // ================= CSRF TOKEN HELPER =================
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // ================= REAL-TIME CLOCK UPDATE =================
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+        });
+        
+        const timeElements = document.querySelectorAll('.shift-detail-value');
+        if (timeElements.length >= 3) {
+            timeElements[2].textContent = timeString;
+        }
+    }
+    
+    // Update clock every minute
+    setInterval(updateClock, 60000);
+    
+    // ================= AUTO-REFRESH (OPTIONAL) =================
+    // Uncomment to enable auto-refresh every 2 minutes
+    // setInterval(() => {
+    //     location.reload();
+    // }, 120000);
+    
+    // ================= PAGE LOAD ANIMATIONS =================
+    window.addEventListener('load', function() {
+        // Trigger animations on load
+        document.querySelectorAll('.stat-card, .entry-card').forEach((el, index) => {
+            el.style.opacity = '0';
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, index * 50);
+        });
+    });
+
+    setInterval(() => {
+        fetch("/guard/api/current-shift/")
+            .then(res => res.json())
+            .then(data => {
+                if (data.updated) {
+                    location.reload();
+                }
+            });
+    }, 60000);
+
+// ================= ATTENDANCE CHECK-IN/CHECK-OUT =================
+const checkInBtn = document.getElementById('check-in-btn');
+const checkOutBtn = document.getElementById('check-out-btn');
+const attendanceInfo = document.getElementById('attendance-info');
+const attendanceStatusBadge = document.getElementById('attendance-status-badge');
+const checkInDisplay = document.getElementById('check-in-display');
+const checkOutDisplay = document.getElementById('check-out-display');
+const durationDisplay = document.getElementById('duration-display');
+
+// Load current shift status
+function loadShiftStatus() {
+    fetch('{% url "get_shift_status" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.checked_in) {
+                // Already checked in
+                attendanceInfo.style.display = 'block';
+                checkInBtn.style.display = 'none';
+                
+                // Display check-in time with late indicator
+                let checkInText = data.check_in_time;
+                if (data.is_late) {
+                    checkInText += ' <span style="color: #D97706; font-size: 12px; font-weight: 600;">⏰ LATE</span>';
+                }
+                checkInDisplay.innerHTML = checkInText;
+                
+                if (data.checked_out) {
+                    // Checked out
+                    checkOutBtn.style.display = 'none';
+                    checkOutDisplay.textContent = data.check_out_time;
+                    attendanceStatusBadge.textContent = 'Shift Completed';
+                    attendanceStatusBadge.className = 'shift-badge badge-completed';
+                } else {
+                    // Checked in but not out
+                    checkOutBtn.style.display = 'flex';
+                    
+                    if (data.is_late) {
+                        attendanceStatusBadge.textContent = 'On Duty (Late)';
+                        attendanceStatusBadge.className = 'shift-badge badge-late';
+                        attendanceStatusBadge.style.background = '#FEF3C7';
+                        attendanceStatusBadge.style.color = '#92400E';
+                    } else {
+                        attendanceStatusBadge.textContent = 'On Duty';
+                        attendanceStatusBadge.className = 'shift-badge badge-active';
+                    }
+                    
+                    // Calculate and show duration
+                    updateDuration(data.check_in_time);
+                }
+            } else {
+                // Not checked in
+                attendanceInfo.style.display = 'none';
+                checkInBtn.style.display = 'flex';
+                checkOutBtn.style.display = 'none';
+
+                attendanceStatusBadge.textContent = 'Not Checked In';
+                attendanceStatusBadge.className = 'shift-badge badge-upcoming';
+
+                // ================= CHECK-IN WINDOW CONTROL =================
+                if (!data.is_checkin_allowed) {
+                    checkInBtn.disabled = true;
+
+                    if (data.has_shift) {
+                        checkInBtn.innerHTML = '<span>⏳</span><span>Check-in Not Open</span>';
+                    } else {
+                        checkInBtn.innerHTML = '<span>🚫</span><span>No Shift Assigned</span>';
+                    }
+                } else {
+                    checkInBtn.disabled = false;
+                    checkInBtn.innerHTML = '<span>✓</span><span>Check In</span>';
+                }
+            }
+
+        })
+        .catch(error => {
+            console.error('Error loading shift status:', error);
+        });
+}
+
+
+// Update duration display
+function updateDuration(checkInTime) {
+    const checkIn = new Date();
+    const [time, period] = checkInTime.split(' ');
+    const [hours, minutes] = time.split(':');
+    
+    let hour = parseInt(hours);
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    
+    checkIn.setHours(hour, parseInt(minutes), 0, 0);
+    
+    const now = new Date();
+    const diff = now - checkIn;
+    const totalMinutes = Math.floor(diff / 1000 / 60);
+    const hours_diff = Math.floor(totalMinutes / 60);
+    const minutes_diff = totalMinutes % 60;
+    
+    durationDisplay.innerHTML = `<strong>Duration:</strong> ${hours_diff}h ${minutes_diff}m`;
+}
+
+// Check-in handler (updated to show late warning)
+checkInBtn.addEventListener('click', function() {
+    if (!confirm('Confirm check-in for your shift?')) return;
+    
+    this.disabled = true;
+    this.innerHTML = '<span>⏳</span><span>Checking in...</span>';
+    
+    fetch('{% url "guard_check_in" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let message = data.message;
+            
+            // Show warning for late check-in
+            if (data.is_late) {
+                showNotification('warning', `⚠️ ${message}`);
+            } else {
+                showNotification('success', `✅ ${message}`);
+            }
+            
+            loadShiftStatus();
+        } else {
+            showNotification('error', data.error || 'Failed to check in');
+            this.disabled = false;
+            this.innerHTML = '<span>✓</span><span>Check In</span>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Error during check-in');
+        this.disabled = false;
+        this.innerHTML = '<span>✓</span><span>Check In</span>';
+    });
+});
+
+
+// Check-out handler
+checkOutBtn.addEventListener('click', function() {
+    if (!confirm('Confirm check-out from your shift?')) return;
+    
+    this.disabled = true;
+    this.innerHTML = '<span>⏳</span><span>Checking out...</span>';
+    
+    fetch('{% url "guard_check_out" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', `${data.message} • Duration: ${data.duration}`);
+            loadShiftStatus();
+        } else {
+            showNotification('error', data.error || 'Failed to check out');
+            this.disabled = false;
+            this.innerHTML = '<span>→</span><span>Check Out</span>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Error during check-out');
+        this.disabled = false;
+        this.innerHTML = '<span>→</span><span>Check Out</span>';
+    });
+});
+
+// Load status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadShiftStatus();
+    
+    // Update duration every minute if checked in
+    setInterval(function() {
+        const statusText = attendanceStatusBadge.textContent;
+        if (statusText === 'On Duty') {
+            const checkInTime = checkInDisplay.textContent;
+            if (checkInTime !== '—') {
+                updateDuration(checkInTime);
+            }
+        }
+    }, 60000); // Every minute
+});
+
+// ================= LEAVE APPLICATION =================
+
+function openLeaveModal() {
+    document.getElementById('leaveModal').classList.add('active');
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
+
+    document.querySelector('input[name="start_date"]').min = minDate;
+    document.querySelector('input[name="end_date"]').min = minDate;
+}
+
+function closeLeaveModal() {
+    document.getElementById('leaveModal').classList.remove('active');
+    document.getElementById('leaveForm').reset();
+}
+
+function submitLeave() {
+    const form = document.getElementById('leaveForm');
+    const formData = new FormData(form);
+
+    if (!form.checkValidity()) {
+        showNotification('error', '⚠️ Please fill all required fields');
+        return;
+    }
+
+    fetch('{% url "guard_apply_leave" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('success', `✅ ${data.message}`);
+            closeLeaveModal();
+        } else {
+            showNotification('error', `❌ ${data.error}`);
+        }
+    })
+    .catch(() => {
+        showNotification('error', '❌ Failed to submit leave request');
+    });
+}
+
+// Close modal when clicking outside
+document.getElementById('leaveModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeLeaveModal();
+    }
+});
+
+</script>
+{% endblock %}
+

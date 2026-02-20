@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Residents</h2>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Apartment</th>
+    </tr>
+
+    {% for r in residents %}
+    <tr>
+        <td>{{ r.user.username }}</td>
+        <td>{{ r.apartment }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

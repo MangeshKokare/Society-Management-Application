@@ -1,0 +1,972 @@
+{% extends "society_guard/guard_base.html" %}
+
+{% block title %}Patrol - MyGate Guard{% endblock %}
+{% block page_title %}Security Patrol{% endblock %}
+
+{% block extra_styles %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* ================= PATROL STATUS CARD ================= */
+    .patrol-status {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 32px 24px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .patrol-status::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .patrol-status.inactive {
+        background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+        box-shadow: 0 8px 24px rgba(100, 116, 139, 0.3);
+    }
+
+    .patrol-label {
+        font-size: 14px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+
+    .patrol-timer {
+        font-size: 56px;
+        font-weight: 800;
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 4px;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .patrol-sublabel {
+        font-size: 13px;
+        opacity: 0.85;
+        font-weight: 500;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ================= PATROL CONTROL BUTTONS ================= */
+    .patrol-control-btn {
+        width: 100%;
+        padding: 18px;
+        border: none;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-bottom: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .start-patrol-btn {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .start-patrol-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .start-patrol-btn:active {
+        transform: translateY(0);
+    }
+
+    .stop-patrol-btn {
+        background: linear-gradient(135deg, #EF4444, #DC2626);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .stop-patrol-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    /* ================= QR SCAN CARD ================= */
+    .scan-qr-btn {
+        width: 100%;
+        padding: 56px 24px;
+        background: linear-gradient(135deg, #3B82F6, #1E40AF);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .scan-qr-btn::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .scan-qr-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    }
+
+    .scan-qr-btn:active {
+        transform: translateY(-2px);
+    }
+
+    .qr-icon {
+        font-size: 72px;
+        display: block;
+        margin-bottom: 12px;
+        animation: qrPulse 2s ease-in-out infinite;
+        position: relative;
+        z-index: 1;
+    }
+
+    @keyframes qrPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+    }
+
+    .scan-qr-btn div {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ================= QUICK CHECKS GRID ================= */
+    .quick-checks {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .quick-check-card {
+        background: white;
+        padding: 24px 16px;
+        border-radius: 14px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 2px solid #F1F5F9;
+        transition: all 0.3s ease;
+    }
+
+    .quick-check-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        border-color: #3B82F6;
+    }
+
+    .check-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .check-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748B;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .check-count {
+        font-size: 24px;
+        font-weight: 800;
+        color: #3B82F6;
+        margin-top: 4px;
+    }
+
+    /* ================= INCIDENT REPORT BUTTON ================= */
+    .incident-report-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #EF4444, #DC2626);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-bottom: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .incident-report-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .incident-report-btn:active {
+        transform: translateY(0);
+    }
+
+    /* ================= CARD STYLES ================= */
+    .card {
+        background: white;
+        border-radius: 14px;
+        padding: 0;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid #E2E8F0;
+        background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header span {
+        font-size: 17px;
+        font-weight: 700;
+        color: #1E293B;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* ================= CHECKPOINT LIST ================= */
+    .checkpoint-list {
+        padding: 0;
+    }
+
+    .checkpoint-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #F1F5F9;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .checkpoint-item:last-child {
+        border-bottom: none;
+    }
+
+    .checkpoint-item:hover {
+        background: #F8FAFC;
+    }
+
+    .checkpoint-icon {
+        font-size: 36px;
+        flex-shrink: 0;
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .checkpoint-info {
+        flex: 1;
+    }
+
+    .checkpoint-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 4px;
+    }
+
+    .checkpoint-time {
+        font-size: 13px;
+        color: #64748B;
+        font-weight: 500;
+    }
+
+    .checkpoint-status {
+        flex-shrink: 0;
+    }
+
+    .checkpoint-status.completed {
+        color: #10B981;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .checkpoint-status.pending {
+        background: #F1F5F9;
+        color: #64748B;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ================= BADGES ================= */
+    .badge {
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-approved {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .badge-active {
+        background: #DBEAFE;
+        color: #1E40AF;
+    }
+
+    /* ================= PATROL HISTORY ================= */
+    .patrol-history {
+        padding: 0;
+    }
+
+    .history-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #F1F5F9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    .history-item:last-child {
+        border-bottom: none;
+    }
+
+    .history-item:hover {
+        background: #F8FAFC;
+    }
+
+    .history-info h4 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 6px;
+    }
+
+    .history-info p {
+        font-size: 13px;
+        color: #64748B;
+        margin-bottom: 3px;
+        font-weight: 500;
+    }
+
+    /* ================= EMPTY STATE ================= */
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: #94A3B8;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 14px;
+        opacity: 0.6;
+        filter: grayscale(0.3);
+    }
+
+    .empty-state p {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    /* ================= PULSE ANIMATION ================= */
+    .status-pulse {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: pulse 2s ease-in-out infinite;
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+        }
+    }
+
+    /* ================= ANIMATIONS ================= */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .patrol-status {
+        animation: fadeInUp 0.5s ease;
+    }
+
+    .quick-check-card {
+        animation: fadeInUp 0.5s ease;
+    }
+
+    .quick-check-card:nth-child(1) { animation-delay: 0.05s; }
+    .quick-check-card:nth-child(2) { animation-delay: 0.1s; }
+    .quick-check-card:nth-child(3) { animation-delay: 0.15s; }
+    .quick-check-card:nth-child(4) { animation-delay: 0.2s; }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 480px) {
+        .patrol-timer {
+            font-size: 48px;
+        }
+
+        .quick-checks {
+            gap: 10px;
+        }
+
+        .quick-check-card {
+            padding: 20px 12px;
+        }
+
+        .check-icon {
+            font-size: 36px;
+        }
+
+        .check-count {
+            font-size: 22px;
+        }
+
+        .qr-icon {
+            font-size: 64px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Patrol Status Card -->
+<div class="patrol-status {% if not patrol_active %}inactive{% endif %}" id="patrolStatus">
+    <div class="patrol-label">
+        {% if patrol_active %}
+            <span class="status-pulse"></span>Patrol in Progress
+        {% else %}
+            Ready to Patrol
+        {% endif %}
+    </div>
+    <div class="patrol-timer" id="patrolTimer">00:00:00</div>
+    <div class="patrol-sublabel">
+        {% if patrol_active %}
+            Started at {{ patrol_start_time|default:"--:--" }}
+        {% else %}
+            Click below to start your patrol round
+        {% endif %}
+    </div>
+</div>
+
+<!-- Start/Stop Patrol Button -->
+{% if not patrol_active %}
+<button class="patrol-control-btn start-patrol-btn" onclick="startPatrol()">
+    🚶 Start Patrol Round
+</button>
+
+{% else %}
+<button class="patrol-control-btn stop-patrol-btn" onclick="stopPatrol()">
+    <span style="font-size: 24px;">🛑</span>
+    End Patrol Round
+</button>
+{% endif %}
+
+<!-- QR Scan Card -->
+<div class="card">
+    <div class="card-header">
+        <span>📱 Scan Checkpoint</span>
+    </div>
+    
+    <div class="card-body" style="padding: 20px;">
+        <button class="scan-qr-btn" onclick="scanCheckpoint()">
+            <span class="qr-icon">📱</span>
+            <div>Scan QR Code at Checkpoint</div>
+        </button>
+    </div>
+</div>
+
+<div style="margin-top:16px;">
+    <select id="manualCheckpoint"
+            style="width:100%;padding:12px;border-radius:10px;border:1px solid #CBD5E1;">
+        <option value="">Select Checkpoint</option>
+        {% for cp in checkpoints %}
+            {% if not cp.completed %}
+                <option value="{{ cp.id }}">{{ cp.name }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <button onclick="manualMarkCheckpoint()"
+            class="patrol-control-btn start-patrol-btn"
+            style="margin-top:10px;">
+        ✔️ Mark Checkpoint Manually
+    </button>
+</div>
+
+
+<!-- Quick Checks Grid -->
+<div class="quick-checks">
+
+    <div class="quick-check-card">
+        <span class="check-icon">🚪</span>
+        <div class="check-label">Gates</div>
+        <div class="check-count">{{ gates_checked }}/{{ gate_total }}</div>
+    </div>
+
+    <div class="quick-check-card">
+        <span class="check-icon">🅿️</span>
+        <div class="check-label">Parking</div>
+        <div class="check-count">{{ parking_checked }}/{{ parking_total }}</div>
+    </div>
+
+    <div class="quick-check-card">
+        <span class="check-icon">🏊</span>
+        <div class="check-label">Amenities</div>
+        <div class="check-count">{{ amenities_checked }}/{{ amenity_total }}</div>
+    </div>
+
+    <div class="quick-check-card">
+        <span class="check-icon">💡</span>
+        <div class="check-label">Perimeter</div>
+        <div class="check-count">{{ perimeter_checked }}/{{ perimeter_total }}</div>
+    </div>
+
+    <div class="quick-check-card">
+        <span class="check-icon">🏢</span>
+        <div class="check-label">Buildings</div>
+        <div class="check-count">{{ building_checked }}/{{ building_total }}</div>
+    </div>
+
+</div>
+
+
+<!-- Incident Report Button -->
+<button class="incident-report-btn" onclick="reportIncident()">
+    <span style="font-size: 20px;">🚨</span>
+    Report Incident
+</button>
+
+<!-- Register Checkpoint Card -->
+<div class="card">
+    <div class="card-header">
+        <span>➕ Register Checkpoint</span>
+    </div>
+    <div class="card-body">
+        <input id="cp_name"
+               placeholder="Checkpoint name (e.g. Main Gate)"
+               style="width:100%;padding:12px;border-radius:10px;border:1px solid #CBD5E1;margin-bottom:10px;">
+
+        <select id="cp_type"
+                style="width:100%;padding:12px;border-radius:10px;border:1px solid #CBD5E1;margin-bottom:10px;">
+            <option value="">Select type</option>
+            <option value="gate">Gate</option>
+            <option value="parking">Parking</option>
+            <option value="amenity">Amenity</option>
+            <option value="perimeter">Perimeter</option>
+            <option value="building">Building</option>
+        </select>
+
+        <button class="patrol-control-btn start-patrol-btn"
+                onclick="addCheckpoint()">
+            ➕ Add Checkpoint
+        </button>
+    </div>
+</div>
+
+<!-- Patrol Checkpoints Card -->
+<div class="card checkpoint-list">
+    <div class="card-header">
+        <span>Patrol Checkpoints</span>
+        <span class="badge badge-approved">{{ completed_checkpoints|default:0 }}/{{ total_checkpoints|default:10 }}</span>
+    </div>
+
+    {% if checkpoints %}
+        {% for checkpoint in checkpoints %}
+        <div class="checkpoint-item">
+            <div class="checkpoint-icon">{{ checkpoint.icon }}</div>
+
+            <div class="checkpoint-info">
+                <div class="checkpoint-name">{{ checkpoint.name }}</div>
+                <div class="checkpoint-time">
+                    {% if checkpoint.completed_at %}
+                        ✓ Checked at {{ checkpoint.completed_at|time:"g:i A" }}
+                    {% else %}
+                        Not checked yet
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="checkpoint-status">
+                {% if checkpoint.completed %}
+                    ✓
+                {% elif patrol_active %}
+                    <button onclick="markCheckpoint({{ checkpoint.id }})"
+                            class="badge badge-active">
+                        Mark Checked
+                    </button>
+                {% else %}
+                    <span class="badge">Pending</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📍</div>
+            <p>No checkpoints configured for this society</p>
+        </div>
+    {% endif %}
+
+</div>
+
+<!-- Patrol History Card -->
+<div class="card patrol-history">
+    <div class="card-header">
+        <span>Recent Patrol Logs</span>
+        <span class="badge badge-active">Today</span>
+    </div>
+
+    {% if patrol_logs %}
+        {% for log in patrol_logs %}
+        <div class="history-item">
+            <div class="history-info">
+                <h4>
+                    🕒 Patrol at {{ log.start_time|time:"g:i A" }}
+                </h4>
+                <p>
+                    Duration:
+                    {{ log.duration_minutes }} minutes
+                </p>
+                <p>
+                    Checkpoints:
+                    {{ log.checkpoints_completed }} / {{ log.total_checkpoints }}
+                </p>
+            </div>
+
+            <span class="badge badge-approved">
+                Completed
+            </span>
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🕘</div>
+            <p>No patrols logged today</p>
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let patrolStartTime = null;
+    let timerInterval = null;
+
+    function startPatrol() {
+        if (!confirm("🚶 Start patrol round?")) return;
+
+        fetch("{% url 'start_patrol' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // 🔥 reload to sync backend + timer
+            } else {
+                alert(data.error || "Failed to start patrol");
+            }
+        });
+    }
+
+
+    function stopPatrol() {
+        if (!confirm("🛑 End patrol round?")) return;
+
+        fetch("{% url 'stop_patrol' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || "Failed to stop patrol");
+            }
+        });
+    }
+
+
+    function updateTimer() {
+        if(!patrolStartTime) return;
+        
+        const now = new Date();
+        const diff = Math.floor((now - patrolStartTime) / 1000);
+        
+        const hours = Math.floor(diff / 3600);
+        const minutes = Math.floor((diff % 3600) / 60);
+        const seconds = diff % 60;
+        
+        const timeString = 
+            String(hours).padStart(2, '0') + ':' +
+            String(minutes).padStart(2, '0') + ':' +
+            String(seconds).padStart(2, '0');
+        
+        document.getElementById('patrolTimer').textContent = timeString;
+    }
+
+    function scanCheckpoint() {
+        showLoading();
+        
+        setTimeout(() => {
+            hideLoading();
+            
+            // Show scanner simulation
+            const checkpointNames = ['Main Gate', 'Parking Area A', 'Swimming Pool', 'Sports Complex', 'Side Gate'];
+            const randomCheckpoint = checkpointNames[Math.floor(Math.random() * checkpointNames.length)];
+            const currentTime = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            
+            showNotification('success', `✓ Checkpoint Scanned!\n\nLocation: ${randomCheckpoint}\nTime: ${currentTime}`);
+            
+            // In production:
+            // - Open device camera
+            // - Scan checkpoint QR code
+            // - Send to backend with location & timestamp
+            // - Update checkpoint status in real-time
+        }, 1500);
+    }
+
+    
+    function reportIncident() {
+        const incidentTypes = [
+            'Suspicious Activity',
+            'Equipment Malfunction',
+            'Safety Hazard',
+            'Unauthorized Access',
+            'Other'
+        ];
+        
+        const type = prompt('Select incident type:\n\n' + incidentTypes.map((t, i) => `${i + 1}. ${t}`).join('\n') + '\n\nEnter number (1-5):');
+        
+        if(type && type >= 1 && type <= 5) {
+            const details = prompt('Describe the incident:');
+            
+            if(details) {
+                showLoading();
+                
+                setTimeout(() => {
+                    hideLoading();
+                    showNotification('success', `✓ Incident Reported!\n\nType: ${incidentTypes[type - 1]}\nAdmin has been notified.\nIncident ID: #${Math.floor(Math.random() * 10000)}`);
+                    
+                    // In production, send to backend
+                }, 1000);
+            }
+        }
+    }
+
+    // Notification Toast
+    function showNotification(type, message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${type === 'success' ? '#10B981' : '#EF4444'};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 10001;
+            font-weight: 600;
+            font-size: 14px;
+            max-width: 90%;
+            text-align: center;
+            white-space: pre-line;
+            animation: slideDown 0.3s ease;
+        `;
+        
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideUp 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+
+    function manualMarkCheckpoint() {
+        const checkpointId = document.getElementById("manualCheckpoint").value;
+        if (!checkpointId) {
+            alert("Please select a checkpoint");
+            return;
+        }
+
+        fetch("{% url 'mark_checkpoint' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "checkpoint_id=" + checkpointId
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // refresh stats + list
+            } else {
+                alert(data.error || "Failed to mark checkpoint");
+            }
+        });
+    }
+
+    function markCheckpoint(id) {
+        fetch("{% url 'mark_checkpoint' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "checkpoint_id=" + id
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) location.reload();
+        });
+    }
+
+    function addCheckpoint() {
+        const name = document.getElementById("cp_name").value.trim();
+        const type = document.getElementById("cp_type").value;
+
+        if (!name || !type) {
+            alert("Please enter checkpoint name and type");
+            return;
+        }
+
+        fetch("{% url 'add_checkpoint' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `name=${encodeURIComponent(name)}&checkpoint_type=${type}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // 🔥 refresh list
+            } else {
+                alert(data.error || "Failed to add checkpoint");
+            }
+        });
+    }
+
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 0); opacity: 1; }
+            to { transform: translate(-50%, -100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize timer if patrol is active (check from backend data)
+    {% if patrol_active %}
+    patrolStartTime = new Date("{{ patrol_start_time|date:'c' }}");
+    timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+    {% endif %}
+
+
+    // Auto-update clock
+    setInterval(() => {
+        const sublabel = document.querySelector('.patrol-sublabel');
+        if(patrolStartTime && sublabel) {
+            const startTime = new Date(patrolStartTime).toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            sublabel.textContent = 'Started at ' + startTime;
+        }
+    }, 60000);
+</script>
+{% endblock %}

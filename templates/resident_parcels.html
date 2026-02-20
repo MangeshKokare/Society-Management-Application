@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Parcels{% endblock %}
+{% block nav_parcels %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .page-subtitle {
+        opacity: 0.9;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+
+    .filter-tab {
+        padding: 10px 20px;
+        background: white;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        border: 2px solid #e0e0e0;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+
+    .filter-tab.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .filter-tab:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .parcel-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 15px;
+        transition: all 0.3s;
+    }
+
+    .parcel-card:hover {
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .parcel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+    }
+
+    .parcel-icon {
+        font-size: 40px;
+        margin-right: 15px;
+    }
+
+    .parcel-main {
+        flex: 1;
+    }
+
+    .parcel-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .parcel-subtitle {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .parcel-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-icon {
+        font-size: 18px;
+    }
+
+    .detail-content {
+        flex: 1;
+    }
+
+    .detail-label {
+        font-size: 11px;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-collected {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-received {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .badge-returned {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .parcel-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+    }
+
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+
+    .stat-text {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state-text {
+        font-size: 16px;
+        color: #666;
+    }
+
+    .search-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .image-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 2px solid #e0e0e0;
+    }
+
+    .image-preview:hover {
+        border-color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="page-title">📦 Parcels & Deliveries</div>
+        <div class="page-subtitle">Track all your packages and deliveries</div>
+    </div>
+</div>
+
+<div class="stats-bar">
+    <div class="stat-box">
+        <div class="stat-number">{{ pending_count }}</div>
+        <div class="stat-text">Pending Pickup</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ collected_count }}</div>
+        <div class="stat-text">Collected This Month</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ total_count }}</div>
+        <div class="stat-text">Total Deliveries</div>
+    </div>
+</div>
+
+<div class="search-box">
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search by courier, tracking number, or description...">
+</div>
+
+<div class="filter-tabs">
+    <div class="filter-tab active" onclick="filterParcels('all')">All Parcels</div>
+    <div class="filter-tab" onclick="filterParcels('pending')">📦 Pending Pickup</div>
+    <div class="filter-tab" onclick="filterParcels('collected')">✅ Collected</div>
+    <div class="filter-tab" onclick="filterParcels('returned')">↩️ Returned</div>
+</div>
+
+<div id="parcelsContainer">
+    {% for parcel in parcels %}
+    <div class="parcel-card" data-status="{{ parcel.status }}">
+        <div class="parcel-header">
+            <div style="display: flex; align-items: start; flex: 1;">
+                <div class="parcel-icon">
+                    {% if parcel.parcel_type == 'letter' %}✉️
+                    {% elif parcel.parcel_type == 'package' %}📦
+                    {% elif parcel.parcel_type == 'food' %}🍔
+                    {% elif parcel.parcel_type == 'grocery' %}🛒
+                    {% else %}📫{% endif %}
+                </div>
+                <div class="parcel-main">
+                    <div class="parcel-title">{{ parcel.courier_name }}</div>
+                    <div class="parcel-subtitle">
+                        {% if parcel.tracking_number %}
+                            Tracking: {{ parcel.tracking_number }}
+                        {% else %}
+                            {{ parcel.description|default:"No description" }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <span class="badge badge-{{ parcel.status }}">{{ parcel.get_status_display }}</span>
+        </div>
+
+        {% if parcel.photo %}
+        <div style="margin-bottom: 15px;">
+            <img src="{{ parcel.photo.url }}" alt="Parcel photo" class="image-preview" onclick="viewImage('{{ parcel.photo.url }}')">
+        </div>
+        {% endif %}
+
+        <div class="parcel-details">
+            <div class="detail-item">
+                <span class="detail-icon">📅</span>
+                <div class="detail-content">
+                    <div class="detail-label">Received</div>
+                    <div class="detail-value">{{ parcel.received_at|date:"M d, Y h:i A" }}</div>
+                </div>
+            </div>
+
+            <div class="detail-item">
+                <span class="detail-icon">👤</span>
+                <div class="detail-content">
+                    <div class="detail-label">Received By</div>
+                    <div class="detail-value">{{ parcel.received_by|default:"Security" }}</div>
+                </div>
+            </div>
+
+            {% if parcel.status == 'collected' %}
+            <div class="detail-item">
+                <span class="detail-icon">✅</span>
+                <div class="detail-content">
+                    <div class="detail-label">Collected On</div>
+                    <div class="detail-value">{{ parcel.collected_at|date:"M d, Y h:i A" }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="detail-item">
+                <span class="detail-icon">📦</span>
+                <div class="detail-content">
+                    <div class="detail-label">Type</div>
+                    <div class="detail-value">{{ parcel.get_parcel_type_display }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% if parcel.status == 'pending' %}
+        <div class="parcel-actions">
+            <button class="btn btn-primary" onclick="collectParcel({{ parcel.id }})">
+                ✅ Mark as Collected
+            </button>
+            <button class="btn btn-secondary" onclick="viewDetails({{ parcel.id }})">
+                👁️ View Details
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📦</div>
+        <div class="empty-state-text">No parcels found</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterParcels(status) {
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Filter parcels
+    const parcels = document.querySelectorAll('.parcel-card');
+    parcels.forEach(parcel => {
+        if (status === 'all' || parcel.dataset.status === status) {
+            parcel.style.display = 'block';
+        } else {
+            parcel.style.display = 'none';
+        }
+    });
+}
+
+function collectParcel(parcelId) {
+    if (!confirm('Mark this parcel as collected?')) return;
+
+    fetch(`/api/parcels/${parcelId}/collect/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Parcel marked as collected!');
+            location.reload();
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    })
+    .catch(err => {
+        alert('❌ Error marking parcel as collected');
+    });
+}
+
+function viewDetails(parcelId) {
+    window.location.href = `/parcels/${parcelId}/`;
+}
+
+function viewImage(url) {
+    window.open(url, '_blank');
+}
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const parcels = document.querySelectorAll('.parcel-card');
+    
+    parcels.forEach(parcel => {
+        const text = parcel.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            parcel.style.display = 'block';
+        } else {
+            parcel.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,341 @@
+{% extends "society_guard/guard_base.html" %}
+{% load custom_filters %}
+
+{% block title %}Chats{% endblock %}
+{% block page_title %}Chats{% endblock %}
+
+{% block extra_styles %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg: #f0f2f5;
+    --white: #ffffff;
+    --primary: #128c7e;
+    --primary-dark: #075e54;
+    --accent: #25d366;
+    --bubble-out: #dcf8c6;
+    --bubble-in: #ffffff;
+    --text-main: #111b21;
+    --text-sub: #667781;
+    --border: #e9edef;
+    --header-bg: #f0f2f5;
+}
+
+* { font-family: 'DM Sans', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); }
+
+/* ── HEADER ── */
+.chat-header {
+    background: var(--primary-dark);
+    color: white;
+    padding: 18px 20px 16px;
+    border-radius: 18px 18px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+}
+.chat-header h1 { font-size: 20px; font-weight: 800; }
+.chat-header p  { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+.new-chat-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.new-chat-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* ── SEARCH BAR ── */
+.search-bar-wrap {
+    background: var(--primary-dark);
+    padding: 0 16px 14px;
+}
+.search-bar {
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+}
+.search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 14px;
+    font-family: inherit;
+    flex: 1;
+}
+.search-bar input::placeholder { color: rgba(255,255,255,0.6); }
+.search-bar span { color: rgba(255,255,255,0.6); font-size: 16px; }
+
+/* ── CHAT LIST ── */
+.chat-wrapper {
+    background: white;
+    border-radius: 0 0 18px 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    min-height: 60vh;
+}
+
+.chat-list-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    color: inherit;
+}
+.chat-list-item:hover { background: #f5f6f6; }
+.chat-list-item:last-child { border-bottom: none; }
+
+.chat-avatar {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+    position: relative;
+}
+.online-dot {
+    position: absolute;
+    bottom: 2px; right: 2px;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.chat-info { flex: 1; min-width: 0; }
+.chat-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.chat-name { font-size: 16px; font-weight: 700; color: var(--text-main); }
+.chat-time { font-size: 12px; color: var(--text-sub); flex-shrink: 0; }
+.chat-preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.chat-preview {
+    font-size: 13px;
+    color: var(--text-sub);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+.chat-preview.you { color: var(--text-sub); }
+.unread-badge {
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 0 5px;
+    flex-shrink: 0;
+}
+
+/* ── EMPTY STATE ── */
+.empty-chats {
+    text-align: center;
+    padding: 80px 30px;
+    color: var(--text-sub);
+}
+.empty-chats .icon { font-size: 64px; margin-bottom: 16px; opacity: 0.4; }
+.empty-chats h3 { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+.empty-chats p  { font-size: 14px; }
+
+/* ── LOADING ── */
+.loading-spinner {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-sub);
+    font-size: 14px;
+}
+
+/* ── AVATAR COLORS ── */
+.av-0 { background: linear-gradient(135deg,#128c7e,#075e54); }
+.av-1 { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+.av-2 { background: linear-gradient(135deg,#f59e0b,#d97706); }
+.av-3 { background: linear-gradient(135deg,#ef4444,#dc2626); }
+.av-4 { background: linear-gradient(135deg,#06b6d4,#0891b2); }
+.av-5 { background: linear-gradient(135deg,#8b5cf6,#7c3aed); }
+
+/* ── FAB ── */
+.fab {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(37,211,102,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    z-index: 100;
+    text-decoration: none;
+}
+.fab:hover { transform: scale(1.08); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-header">
+    <div>
+        <h1>💬 Chats</h1>
+        <p id="chatSubtitle">Loading...</p>
+    </div>
+    <a href="{% url 'guard_notifications' %}" class="new-chat-btn" title="New Chat">✏️</a>
+</div>
+
+<div class="search-bar-wrap">
+    <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" id="chatSearch" placeholder="Search chats..." oninput="filterChats(this.value)">
+    </div>
+</div>
+
+<div class="chat-wrapper">
+    <div id="chatList">
+        <div class="loading-spinner">⏳ Loading chats...</div>
+    </div>
+</div>
+
+<!-- FAB: start new chat -->
+<a href="{% url 'guard_notifications' %}" class="fab" title="New Chat">💬</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allChats = [];
+const CURRENT_USER_ID = {{ request.user.id }};
+const COLORS = ['av-0','av-1','av-2','av-3','av-4','av-5'];
+
+function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+}
+
+function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 60) return 'now';
+    if (diff < 3600) return Math.floor(diff/60) + 'm';
+    if (diff < 86400) return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+    if (diff < 604800) {
+        return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    }
+    return d.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+
+function loadChats() {
+    fetch('/api/chats/', {
+        headers: {'X-Requested-With':'XMLHttpRequest'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        allChats = data.chats || data || [];
+        renderChats(allChats);
+        document.getElementById('chatSubtitle').textContent = `${allChats.length} conversation${allChats.length !== 1 ? 's' : ''}`;
+    })
+    .catch(() => {
+        document.getElementById('chatList').innerHTML = `
+            <div class="empty-chats">
+                <div class="icon">⚠️</div>
+                <h3>Couldn't load chats</h3>
+                <p>Please refresh the page</p>
+            </div>`;
+    });
+}
+
+function renderChats(chats) {
+    const list = document.getElementById('chatList');
+    if (!chats.length) {
+        list.innerHTML = `
+            <div class="empty-chats">
+                <div class="icon">💬</div>
+                <h3>No chats yet</h3>
+                <p>Tap the pencil icon to start a conversation</p>
+            </div>`;
+        return;
+    }
+    list.innerHTML = chats.map((chat, i) => {
+        const other = chat.other_user || chat;
+        const name  = other.name || other.full_name || other.username || 'Unknown';
+        const initials = getInitials(name);
+        const colorClass = COLORS[i % COLORS.length];
+        const preview = chat.last_message
+            ? (chat.last_message.sender_id === CURRENT_USER_ID ? '✓ ' : '') + (chat.last_message.content || chat.last_message.text || '').substring(0,40)
+            : 'No messages yet';
+        const time    = timeAgo(chat.last_message?.created_at || chat.last_message?.timestamp || chat.updated_at);
+        const unread  = chat.unread_count || 0;
+        const isOnline = other.is_online || false;
+
+        return `
+        <a class="chat-list-item" href="/guard/chat/${chat.id}/">
+            <div class="chat-avatar ${colorClass}">
+                ${initials}
+                ${isOnline ? '<div class="online-dot"></div>' : ''}
+            </div>
+            <div class="chat-info">
+                <div class="chat-name-row">
+                    <span class="chat-name">${name}</span>
+                    <span class="chat-time">${time}</span>
+                </div>
+                <div class="chat-preview-row">
+                    <span class="chat-preview">${preview}</span>
+                    ${unread ? `<span class="unread-badge">${unread}</span>` : ''}
+                </div>
+            </div>
+        </a>`;
+    }).join('');
+}
+
+function filterChats(query) {
+    const q = query.toLowerCase();
+    const filtered = q
+        ? allChats.filter(c => {
+            const name = (c.other_user?.name || c.other_user?.full_name || '').toLowerCase();
+            return name.includes(q);
+          })
+        : allChats;
+    renderChats(filtered);
+}
+
+document.addEventListener('DOMContentLoaded', loadChats);
+// Refresh every 15s
+setInterval(loadChats, 15000);
+</script>
+{% endblock %}

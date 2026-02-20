@@ -1,0 +1,138 @@
+{% extends "society_guard/guard_base.html" %}
+
+{% block title %}Patrol Details{% endblock %}
+{% block page_title %}Patrol Details{% endblock %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            🚶 Patrol by {{ patrol.guard.user.get_full_name|default:patrol.guard.user.username }}
+        </div>
+        <a href="{% url 'patrol_history' %}" class="btn btn-secondary btn-small">
+            ← Back to History
+        </a>
+    </div>
+
+    <div class="card-body" style="display:grid; grid-template-columns: repeat(4,1fr); gap:16px;">
+        <div class="stat-box">
+            <div class="stat-value">{{ patrol.start_time|date:"d M Y" }}</div>
+            <div class="stat-label">Date</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ patrol.start_time|time:"h:i A" }}</div>
+            <div class="stat-label">Start Time</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">
+                {{ patrol.end_time|time:"h:i A"|default:"—" }}
+            </div>
+            <div class="stat-label">End Time</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ duration_minutes }} min</div>
+            <div class="stat-label">Duration</div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= PROGRESS ================= -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">📍 Checkpoint Progress</div>
+    </div>
+    <div class="card-body">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <strong>{{ patrol.checkpoints_completed }}/{{ patrol.total_checkpoints }} Completed</strong>
+            <strong>{{ completion_rate }}%</strong>
+        </div>
+
+        <div style="height:10px; background:#E2E8F0; border-radius:8px; overflow:hidden;">
+            <div style="
+                height:100%;
+                width: {{ completion_rate }}%;
+                background: linear-gradient(90deg,#10B981,#059669);
+            "></div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= CHECKPOINT SCANS ================= -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">✅ Checkpoint Scans</div>
+    </div>
+    <div class="card-body">
+
+        {% if scans %}
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Checkpoint</th>
+                    <th>Type</th>
+                    <th>Scanned At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in scans %}
+                <tr>
+                    <td>
+                        <strong>{{ scan.checkpoint.name }}</strong>
+                    </td>
+                    <td>
+                        <span class="checkpoint-type-badge checkpoint-type-{{ scan.checkpoint.checkpoint_type }}">
+                            {{ scan.checkpoint.checkpoint_type }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ scan.scanned_at|date:"d M Y" }} • {{ scan.scanned_at|time:"h:i A" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p style="color:#64748B;">No checkpoints scanned.</p>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- ================= INCIDENTS ================= -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">⚠️ Incidents Reported</div>
+    </div>
+    <div class="card-body">
+
+        {% if incidents %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for incident in incidents %}
+            <div style="
+                background:#FEF2F2;
+                border:1px solid #FCA5A5;
+                border-radius:10px;
+                padding:16px;
+            ">
+                <div style="font-weight:700; color:#991B1B;">
+                    {{ incident.title|default:"Incident" }}
+                </div>
+                <div style="font-size:13px; color:#7F1D1D; margin:6px 0;">
+                    {{ incident.description|default:"No description provided." }}
+                </div>
+                <div style="font-size:11px; color:#9F1239;">
+                    Reported at {{ incident.reported_at|time:"h:i A" }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <p style="color:#64748B;">No incidents reported during this patrol.</p>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

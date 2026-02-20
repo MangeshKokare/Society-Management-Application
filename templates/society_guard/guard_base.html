@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3B82F6">
+    <title>{% block title %}Guard Dashboard - MyGate{% endblock %}</title>
+    
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            /* MyGate Color System */
+            --primary-blue: #3B82F6;
+            --primary-dark: #1E40AF;
+            --primary-light: #DBEAFE;
+            --success-green: #10B981;
+            --success-light: #D1FAE5;
+            --warning-yellow: #F59E0B;
+            --warning-light: #FEF3C7;
+            --danger-red: #EF4444;
+            --danger-light: #FEE2E2;
+            
+            /* Neutral Colors */
+            --bg-gray: #F8FAFC;
+            --card-white: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --text-tertiary: #94A3B8;
+            --border-light: #E2E8F0;
+            --border-medium: #CBD5E1;
+            
+            /* Shadows */
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+            --shadow-xl: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gray);
+            padding-bottom: 70px;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ================= TOP HEADER ================= */
+        .top-header {
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .notification-icon {
+            position: relative;
+            font-size: 22px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            text-decoration: none;
+        }
+
+        .notification-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-icon:active {
+            transform: scale(0.95);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--danger-red);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+            animation: badge-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badge-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* ================= MAIN CONTENT ================= */
+        .main-content {
+            padding: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ================= BOTTOM NAVIGATION ================= */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 8px;
+            z-index: 1000;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 6px 4px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 0 0 3px 3px;
+            transition: width 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-item.active::before {
+            width: 32px;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 2px;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-item:active .nav-icon {
+            transform: scale(0.9);
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* ================= UTILITY CLASSES ================= */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-10 { margin-top: 10px; }
+        .mt-20 { margin-top: 20px; }
+        .mb-10 { margin-bottom: 10px; }
+        .mb-20 { margin-bottom: 20px; }
+
+        /* ================= LOADING SPINNER ================= */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ================= RESPONSIVE DESIGN ================= */
+        @media (max-width: 640px) {
+            .header-actions {
+                gap: 12px;
+            }
+            
+            .page-title {
+                font-size: 18px;
+            }
+            
+            .main-content {
+                padding: 12px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .bottom-nav {
+                max-width: 600px;
+                left: 50%;
+                transform: translateX(-50%);
+                border-radius: 16px 16px 0 0;
+            }
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="header-content">
+            <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+            <div class="header-actions">
+                <!-- Notification Icon -->
+                <a href="{% url 'guard_notifications' %}" class="notification-icon" title="Notifications">
+                    🔔
+                    {% if guard_notification_count > 0 %}
+                    <span class="notification-badge">
+                        {{ guard_notification_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Profile Icon -->
+                <a href="{% url 'guard_profile' %}" class="notification-icon" title="Profile">
+                    👤
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Django Messages -->
+        {% if messages %}
+        <div style="margin-bottom: 16px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="
+                padding: 12px 16px;
+                border-radius: 8px;
+                margin-bottom: 8px;
+                font-size: 14px;
+                {% if message.tags == 'success' %}
+                    background: var(--success-light);
+                    color: #065F46;
+                    border-left: 4px solid var(--success-green);
+                {% elif message.tags == 'error' %}
+                    background: var(--danger-light);
+                    color: #991B1B;
+                    border-left: 4px solid var(--danger-red);
+                {% elif message.tags == 'warning' %}
+                    background: var(--warning-light);
+                    color: #92400E;
+                    border-left: 4px solid var(--warning-yellow);
+                {% else %}
+                    background: var(--primary-light);
+                    color: #1E40AF;
+                    border-left: 4px solid var(--primary-blue);
+                {% endif %}
+            ">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+
+   
+
+
+        <a href="{% url 'guard_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'guard_dashboard' %}active{% endif %}">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        {% if request.user.userprofile.role == "guard_admin" %}
+        <a href="{% url 'guard_admin_management' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'guard_admin_management' %}active{% endif %}">
+
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-label">Management</span>
+        </a>
+        {% endif %}
+
+
+
+        <a href="{% url 'guard_entry' %}" class="nav-item {% if request.resolver_match.url_name == 'guard_entry' %}active{% endif %}">
+            <span class="nav-icon">➕</span>
+            <span class="nav-label">Entry</span>
+        </a>
+        <a href="{% url 'guard_visitors' %}" class="nav-item {% if request.resolver_match.url_name == 'guard_visitors' %}active{% endif %}">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Visitors</span>
+        </a>
+        <a href="{% url 'guard_parcels' %}" class="nav-item {% if request.resolver_match.url_name == 'guard_parcels' %}active{% endif %}">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Parcels</span>
+        </a>
+        <a href="{% url 'guard_patrol' %}" class="nav-item {% if request.resolver_match.url_name == 'guard_patrol' %}active{% endif %}">
+            <span class="nav-icon">🚶</span>
+            <span class="nav-label">Patrol</span>
+        </a>
+    </div>
+
+    <!-- Base JavaScript -->
+    <script>
+        // ================= GLOBAL UTILITIES =================
+        
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+        
+        // Auto-hide messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-10px)';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+        
+        // CSRF Token Helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Add haptic feedback for mobile
+        function hapticFeedback() {
+            if (navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+        }
+        
+        // Add haptic to all buttons and nav items
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('button, .nav-item, .btn')) {
+                hapticFeedback();
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

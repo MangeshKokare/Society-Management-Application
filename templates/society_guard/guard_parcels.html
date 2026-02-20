@@ -1,0 +1,538 @@
+{% extends "society_guard/guard_base.html" %}
+
+{% block title %}Parcels - MyGate Guard{% endblock %}
+{% block page_title %}Parcel Management{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* Stats Grid - Side by Side in One Line */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 15px 10px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        color: #666;
+        margin-top: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Action Buttons - Side by Side */
+    .action-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .action-card {
+        background: white;
+        padding: 20px 15px;
+        border-radius: 10px;
+        text-align: center;
+        text-decoration: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        text-decoration: none;
+    }
+
+    .action-card.scan {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+    }
+
+    .action-card.manual {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+    }
+
+    .action-icon {
+        font-size: 36px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .action-label {
+        font-size: 13px;
+        font-weight: 600;
+        display: block;
+        color: inherit;
+    }
+
+    .parcel-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid #3498db;
+    }
+
+    .parcel-card.pending {
+        border-left-color: #f39c12;
+    }
+
+    .parcel-card.delivered {
+        border-left-color: #27ae60;
+    }
+
+    .parcel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .parcel-company {
+        font-size: 16px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .tracking-id {
+        font-size: 12px;
+        color: #7f8c8d;
+        font-family: 'Courier New', monospace;
+        background: #ecf0f1;
+        padding: 2px 8px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .parcel-details {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.6;
+        margin-top: 10px;
+    }
+
+    .parcel-details div {
+        margin-bottom: 5px;
+    }
+
+    .parcel-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-call {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-call:hover {
+        background: #2980b9;
+    }
+
+    .tabs {
+        display: flex;
+        background: white;
+        border-radius: 12px;
+        padding: 5px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .tab {
+        flex: 1;
+        padding: 10px;
+        text-align: center;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #7f8c8d;
+        transition: all 0.3s;
+    }
+
+    .tab.active {
+        background: #3498db;
+        color: white;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .otp-display {
+        background: #f39c12;
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 10px 0;
+    }
+
+    .otp-label {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .otp-code {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 8px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .photo-preview {
+        width: 100%;
+        height: 150px;
+        background: #ecf0f1;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0;
+        cursor: pointer;
+    }
+
+    /* Manual Entry Modal */
+    #manualEntryModal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    #manualEntryModal .card {
+        max-width: 500px;
+        margin: 20px auto;
+        position: relative;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 12px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .submit-btn:hover {
+        background: #229954;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="action-buttons">
+    <a href="#" class="action-card scan" onclick="scanBarcode(); return false;">
+        <span class="action-icon">📷</span>
+        <span class="action-label">Scan Barcode</span>
+    </a>
+    <a href="#" class="action-card manual" onclick="openManualEntry(); return false;">
+        <span class="action-icon">✍️</span>
+        <span class="action-label">Manual Entry</span>
+    </a>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('pending')">Pending</div>
+    <div class="tab" onclick="switchTab('delivered')">Delivered</div>
+</div>
+
+<!-- Pending Tab -->
+<div class="tab-content active" id="pending">
+    {% if pending_deliveries %}
+        {% for delivery in pending_deliveries %}
+        <div class="parcel-card pending">
+            <div class="parcel-header">
+                <div>
+                    <div class="parcel-company">{{ delivery.company }}</div>
+                    <span class="tracking-id">{{ delivery.tracking_id }}</span>
+                </div>
+                <span class="badge badge-pending">Pending</span>
+            </div>
+
+            <div class="parcel-details">
+                <div>🏠 {{ delivery.apartment.block }}-{{ delivery.apartment.flat_number }}</div>
+                <div>📅 Received: {{ delivery.received_at|date:"d M Y, g:i A" }}</div>
+            </div>
+
+            {% if delivery.otp %}
+            <div class="otp-display">
+                <div class="otp-label">Pickup OTP</div>
+                <div class="otp-code">{{ delivery.otp }}</div>
+            </div>
+            {% endif %}
+
+            <div class="parcel-actions">
+                <button
+                class="action-btn btn-call"
+                onclick="notifyResident('{{ delivery.id }}')">
+                📱 Notify
+                </button>
+
+                <button class="action-btn btn-success" onclick="markDelivered('{{ delivery.id }}')">
+                    ✓ Delivered
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <p>No pending parcels</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Delivered Tab -->
+<div class="tab-content" id="delivered">
+    {% if delivered_deliveries %}
+        {% for delivery in delivered_deliveries %}
+        <div class="parcel-card delivered">
+            <div class="parcel-header">
+                <div>
+                    <div class="parcel-company">{{ delivery.company }}</div>
+                    <span class="tracking-id">{{ delivery.tracking_id }}</span>
+                </div>
+                <span class="badge badge-approved">✓ Delivered</span>
+            </div>
+
+            <div class="parcel-details">
+                <div>🏠 {{ delivery.apartment.block }}-{{ delivery.apartment.flat_number }}</div>
+                <div>📅 Received: {{ delivery.received_at|date:"d M, g:i A" }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">✓</div>
+            <p>No delivered parcels today</p>
+        </div>
+    {% endif %}
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ today_parcels }}</div>
+        <div class="stat-label">Today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ pending_parcels }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ delivered_parcels }}</div>
+        <div class="stat-label">Delivered</div>
+    </div>
+</div>
+<!-- Manual Entry Modal (Hidden by default) -->
+<div id="manualEntryModal" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <span>New Parcel Entry</span>
+            <span onclick="closeManualEntry()" style="cursor: pointer; font-size: 24px;">✕</span>
+        </div>
+
+        <form method="POST" id="parcelForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label">Delivery Company *</label>
+                <select name="company" class="form-control" required>
+                    <option value="">Select Company</option>
+                    <option value="Amazon">Amazon</option>
+                    <option value="Flipkart">Flipkart</option>
+                    <option value="Myntra">Myntra</option>
+                    <option value="Swiggy">Swiggy</option>
+                    <option value="Zomato">Zomato</option>
+                    <option value="BlueDart">BlueDart</option>
+                    <option value="DTDC">DTDC</option>
+                    <option value="FedEx">FedEx</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tracking ID</label>
+                <input type="text" name="tracking_id" class="form-control" placeholder="Enter tracking number">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Apartment *</label>
+                <select name="apartment" class="form-control" required>
+                    <option value="">Select Apartment</option>
+                    {% for apt in apartments %}
+                        <option value="{{ apt.id }}">{{ apt.block }}-{{ apt.flat_number }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="photo-preview" onclick="captureParcelPhoto()">
+                <div style="text-align: center; color: #7f8c8d;">
+                    <div style="font-size: 36px;">📷</div>
+                    <div style="font-size: 13px;">Tap to capture parcel photo</div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                ✓ Log Parcel
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(tabName).classList.add('active');
+    }
+
+    function scanBarcode() {
+        alert('📷 Barcode scanner would open here\n\nIn production, this would:\n- Open device camera\n- Scan package barcode\n- Auto-fill tracking details');
+    }
+
+    function openManualEntry() {
+        document.getElementById('manualEntryModal').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeManualEntry() {
+        document.getElementById('manualEntryModal').style.display = 'none';
+    }
+
+    function captureParcelPhoto() {
+        alert('📷 Camera would open to capture parcel photo');
+    }
+
+    function notifyResident(deliveryId) {
+        fetch(`/guard/parcel/notify/${deliveryId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": document.querySelector(
+                    '[name=csrfmiddlewaretoken]'
+                ).value
+            }
+        })
+        .then(res => res.json())
+        .then(data => alert(data.message));
+    }
+
+
+    function markDelivered(deliveryId) {
+        const otp = prompt('Enter resident OTP to confirm delivery:');
+        if(otp) {
+            // Validate OTP and mark as delivered
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/guard/parcel/deliver/' + deliveryId + '/';
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            
+            const otpInput = document.createElement('input');
+            otpInput.type = 'hidden';
+            otpInput.name = 'otp';
+            otpInput.value = otp;
+            
+            form.appendChild(csrfInput);
+            form.appendChild(otpInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Generate random OTP for demo (in production, this comes from backend)
+    function generateOTP() {
+        return Math.floor(100000 + Math.random() * 900000);
+    }
+</script>
+{% endblock %}

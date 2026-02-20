@@ -1,0 +1,655 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Profile{% endblock %}
+
+{% block extra_styles %}
+<style>
+.profile-header {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+#profileForm input,
+#profileForm textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    font-family: inherit;
+    resize: none;
+    height: 38px;
+}
+
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 48px;
+    margin: 0 auto 20px;
+}
+
+.profile-info-grid {
+    margin-top: 15px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    text-align: left;
+}
+
+.info-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .notification-icon, .profile-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .profile-header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            margin: 0 auto 20px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .profile-apartment {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .edit-profile-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .edit-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 25px 0 15px;
+            color: #333;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .setting-item {
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item:hover {
+            background: #f8f9fa;
+        }
+
+        .setting-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .setting-icon {
+            width: 45px;
+            height: 45px;
+            background: #f0f3ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .setting-info h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .setting-info p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .setting-right {
+            color: #999;
+            font-size: 20px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #28a745;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 5px 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+        .profile-info-grid {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            text-align: left;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-item strong {
+            display: block;
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 3px;
+        }
+
+        .info-item span {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="profile-header">
+
+    <span
+        onclick="window.history.back()"
+        style="
+            font-size:20px;
+            cursor:pointer;
+            padding:6px 10px;
+            border-radius:8px;
+            background: rgba(255,255,255,0.2);
+        "
+        title="Back"
+    >
+        ←
+    </span>
+    <div class="profile-avatar">
+        {{ request.user.username|slice:":1"|upper }}
+    </div>
+
+    <h2>{{ request.user.get_full_name|default:request.user.username }}</h2>
+
+
+    <form method="post" id="profileForm">
+    {% csrf_token %}
+    <div class="profile-info-grid">
+
+        <div class="info-item">
+            <strong>Apartment</strong>
+            <span>
+                {{ profile.apartment.flat_number }},
+                Block {{ profile.apartment.block }}
+            </span>
+        </div>
+
+        <div class="info-item">
+            <strong>Email</strong>
+            {{ user_form.email }}
+        </div>
+
+        <div class="info-item">
+            <strong>Phone</strong>
+            {{ profile_form.phone }}
+        </div>
+
+        <div class="info-item">
+            <strong>Address</strong>
+            {{ profile_form.address }}
+        </div>
+
+        <div class="info-item">
+            <strong>Society</strong>
+            <span>{{ profile.apartment.society.name }}</span>
+        </div>
+
+        <div class="info-item">
+            <strong>Role</strong>
+            <span>{{ profile.role|title }}</span>
+        </div>
+
+    </div>
+
+
+    <button class="btn btn-primary" onclick="enableEdit()" type="button">
+        Edit Profile
+    </button>
+    <button type="submit"
+            id="saveBtn"
+            class="btn btn-success"
+            style="width:100%;margin-top:15px;display:none">
+        Save Changes
+    </button>
+
+    </form>
+
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ visitors_count }}</div>
+        <div class="stat-label">Total Visitors</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ active_services_count }}</div>
+        <div class="stat-label">Active Services</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ deliveries_count }}</div>
+        <div class="stat-label">Deliveries</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ posts_count }}</div>
+        <div class="stat-label">Community Posts</div>
+    </div>
+</div>
+
+        <div class="section-title">Apartment Details</div>
+        <div class="settings-card">
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">🏠</div>
+                    <div class="setting-info">
+                        <h4>Apartment Number</h4>
+                        <p>
+                            {{ request.user.userprofile.apartment.flat_number }},
+                            Block {{ request.user.userprofile.apartment.block }}
+                        </p>
+
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">👥</div>
+                    <div class="setting-info">
+                        <h4>Family Members</h4>
+                        <p>4 Members</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">🚗</div>
+                    <div class="setting-info">
+                        <h4>Vehicles</h4>
+                        <p>2 Vehicles Registered</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+        </div>
+
+        <div class="section-title">Preferences</div>
+        <div class="settings-card">
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">🔔</div>
+                    <div class="setting-info">
+                        <h4>Push Notifications</h4>
+                        <p>Get notified about visitors</p>
+                    </div>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">📧</div>
+                    <div class="setting-info">
+                        <h4>Email Notifications</h4>
+                        <p>Receive updates via email</p>
+                    </div>
+                </div>
+                <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">🌙</div>
+                    <div class="setting-info">
+                        <h4>Dark Mode</h4>
+                        <p>Switch to dark theme</p>
+                    </div>
+                </div>
+                <div class="toggle-switch" onclick="toggleSwitch(this)">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Account</div>
+        <div class="settings-card">
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">🔐</div>
+                    <div class="setting-info">
+                        <h4>Change Password</h4>
+                        <p>Update your password</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">🔒</div>
+                    <div class="setting-info">
+                        <h4>Privacy Settings</h4>
+                        <p>Manage your privacy</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">💳</div>
+                    <div class="setting-info">
+                        <h4>Payment Methods</h4>
+                        <p>Manage payment options</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+        </div>
+
+        <div class="section-title">Support</div>
+        <div class="settings-card">
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">❓</div>
+                    <div class="setting-info">
+                        <h4>Help & FAQ</h4>
+                        <p>Get help and support</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">📱</div>
+                    <div class="setting-info">
+                        <h4>Contact Support</h4>
+                        <p>Reach out to our team</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-left">
+                    <div class="setting-icon">ℹ️</div>
+                    <div class="setting-info">
+                        <h4>About MyGate</h4>
+                        <p>Version 3.2.1</p>
+                    </div>
+                </div>
+                <div class="setting-right">›</div>
+            </div>
+        </div>
+    </main>
+<a href="{% url 'logout' %}" class="btn btn-danger" style="width:100%;margin-top:20px">
+    Logout
+</a>
+<script>
+function enableEdit() {
+    document
+        .querySelectorAll("#profileForm input[readonly], #profileForm textarea[readonly]")
+        .forEach(el => {
+            el.removeAttribute("readonly");
+            el.style.border = "2px solid #667eea";
+            el.style.background = "#fff";
+        });
+
+    document.getElementById("saveBtn").style.display = "block";
+}
+
+
+</script>
+
+{% endblock %}

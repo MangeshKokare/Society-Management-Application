@@ -1,0 +1,1086 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Community{% endblock %}
+{% block nav_community %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+        padding-bottom: 80px;
+    }
+
+    .main-content {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 20px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 12px;
+        padding: 5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+        color: #666;
+    }
+
+    .tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .post-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .post-author {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .author-avatar {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+    }
+
+    .author-info h4 {
+        font-size: 16px;
+        margin-bottom: 3px;
+    }
+
+    .author-info p {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .post-content {
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .post-image {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 15px;
+    }
+
+    .post-actions {
+        display: flex;
+        gap: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: #666;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .action-btn:hover {
+        color: #667eea;
+    }
+
+    .action-btn.liked {
+        color: #ff4757;
+    }
+
+    .announcement-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .announcement-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .announcement-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+
+    .announcement-meta h3 {
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+    .announcement-time {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .announcement-content {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #555;
+        margin-bottom: 15px;
+    }
+
+    .announcement-category {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #ffe5e5;
+        color: #d63031;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .poll-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .poll-question {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .poll-option {
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .poll-option:hover {
+        border-color: #667eea;
+        background: #f0f3ff;
+    }
+
+    .poll-option.selected {
+        border-color: #667eea;
+        background: linear-gradient(90deg, #f0f3ff 0%, white 100%);
+    }
+
+    .poll-percentage {
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .fab-btn {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s;
+        z-index: 50;
+        border: none;
+    }
+
+    .fab-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .fab-btn.hidden {
+        display: none;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideUp 0.3s;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-title {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .close-btn {
+        font-size: 28px;
+        cursor: pointer;
+        color: #999;
+        background: none;
+        border: none;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .form-input, .form-textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.3s;
+    }
+
+    .form-input:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .poll-options-list {
+        margin-bottom: 10px;
+    }
+
+    .poll-option-input {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .poll-option-input input {
+        flex: 1;
+    }
+
+    .remove-option-btn {
+        background: #ff4757;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .add-option-btn {
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-weight: 600;
+        width: 100%;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 15px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+
+    .permission-message {
+        background: #fff3cd;
+        color: #856404;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .poll-option.voted {
+        opacity: 0.85;
+    }
+
+    .poll-option.selected {
+        border-color: #667eea;
+        background: #f0f3ff;
+    }
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <h1 class="page-title">Community</h1>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="feed">Feed</div>
+        <div class="tab" data-tab="announcements">Announcements</div>
+        <div class="tab" data-tab="polls">Polls</div>
+    </div>
+
+    <!-- Feed Section -->
+    <div id="feed-section" class="tab-content">
+        {% for post in posts %}
+        <div class="post-card" data-post-id="{{ post.id }}">
+            <div class="post-header">
+                <div class="post-author">
+                    <div class="author-avatar">👤</div>
+                    <div class="author-info">
+                        <h4>{{ post.user.get_full_name|default:post.user.username }}</h4>
+                        <p>{% if post.apartment %}{{ post.apartment.block }}-{{ post.apartment.flat_number }}{% endif %} • {{ post.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post-content">{{ post.content }}</div>
+
+            {% if post.image %}
+            <img src="{{ post.image.url }}" class="post-image" alt="Post image">
+            {% endif %}
+
+            <div class="post-actions">
+                <div class="action-btn like-btn 
+                    {% if post.id in liked_post_ids %}liked{% endif %}"
+                    data-post-id="{{ post.id }}"
+                    onclick="likePost({{ post.id }})">
+
+
+                    ❤️ <span class="like-count">{{ post.likes }}</span> Like{{ post.likes|pluralize }}
+                </div>
+                <div class="action-btn" onclick="openComments({{ post.id }})">
+                    💬 <span class="comment-count">{{ post.comments }}</span>
+                    Comment{{ post.comments|pluralize }}
+                </div>
+
+                <div class="action-btn" onclick="sharePost({{ post.id }})">🔗 Share</div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <h3>No posts yet</h3>
+            <p>Be the first to share something with your community!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Announcements Section -->
+    <div id="announcements-section" class="tab-content" style="display:none;">
+        {% if not is_admin %}
+        <div class="permission-message">
+            ℹ️ Only society admins can create announcements
+        </div>
+        {% endif %}
+        
+        {% for a in announcements %}
+        <div class="announcement-card">
+            <div class="announcement-header">
+                <div class="announcement-icon">📢</div>
+                <div class="announcement-meta">
+                    <h3>{{ a.title }}</h3>
+                    <div class="announcement-time">
+                        Posted by {% if a.created_by %}{{ a.created_by.get_full_name|default:a.created_by.username }}{% else %}Admin{% endif %} • {{ a.created_at|timesince }} ago
+                    </div>
+                </div>
+            </div>
+
+            <div class="announcement-content">{{ a.message }}</div>
+
+            <span class="announcement-category">Announcement</span>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📢</div>
+            <h3>No announcements</h3>
+            <p>There are no announcements at this time.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Polls Section -->
+    <div id="polls-section" class="tab-content" style="display:none;">
+        {% for poll in polls %}
+        <div class="poll-card" data-poll-id="{{ poll.id }}">
+            <div class="post-header">
+                <div class="post-author">
+                    <div class="author-avatar">📊</div>
+                    <div class="author-info">
+                        <h4>{% if poll.created_by %}{{ poll.created_by.get_full_name|default:poll.created_by.username }}{% else %}Admin{% endif %}</h4>
+                        <p>{{ poll.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="poll-question">{{ poll.question }}</div>
+
+            <form class="poll-vote-form" data-poll-id="{{ poll.id }}">
+                {% csrf_token %}
+                {% for opt in poll.options.all %}
+                <div class="poll-option {% if poll.id in user_voted_polls %}voted{% endif %}"
+                    data-option-id="{{ opt.id }}"
+                    onclick="selectPollOption(this)">
+
+                    <span>{{ opt.text }}</span>
+                    <span class="poll-percentage">{{ opt.votes }} vote{{ opt.votes|pluralize }}</span>
+                </div>
+                {% endfor %}
+            </form>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <h3>No polls available</h3>
+            <p>No polls have been created yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
+<!-- FAB Button - Conditional Display -->
+<button class="fab-btn" id="fabButton" onclick="openCreateModal()">✏️</button>
+
+
+<!-- comment modal -->
+
+<div id="commentModal" class="modal">
+    <div class="modal-content" style="max-width:600px;">
+        <div class="modal-header">
+            <h3>Comments</h3>
+            <button class="close-btn" onclick="closeModal('commentModal')">&times;</button>
+        </div>
+
+        <div id="commentList" style="margin-bottom:20px;">
+            <!-- Comments injected here -->
+        </div>
+
+        <form id="commentForm">
+            {% csrf_token %}
+            <input type="hidden" id="commentPostId">
+            <textarea id="commentText"
+                      class="form-textarea"
+                      placeholder="Write a comment..."
+                      required></textarea>
+            <button class="submit-btn" style="margin-top:10px;">Post</button>
+        </form>
+    </div>
+</div>
+
+
+
+<!-- Create Post Modal -->
+<div id="postModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Create Post</h2>
+            <button class="close-btn" onclick="closeModal('postModal')">&times;</button>
+        </div>
+        <form id="postForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">What's on your mind?</label>
+                <textarea name="content" class="form-textarea" placeholder="Share something with your community..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Add Image (Optional)</label>
+                <input type="file" name="image" class="form-input" accept="image/*">
+            </div>
+            <button type="submit" class="submit-btn">Post</button>
+        </form>
+    </div>
+</div>
+
+<!-- Create Announcement Modal -->
+<div id="announcementModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Create Announcement</h2>
+            <button class="close-btn" onclick="closeModal('announcementModal')">&times;</button>
+        </div>
+        <form id="announcementForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-input" placeholder="Announcement title" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Message</label>
+                <textarea name="message" class="form-textarea" placeholder="Announcement details..." required></textarea>
+            </div>
+            <button type="submit" class="submit-btn">Post Announcement</button>
+        </form>
+    </div>
+</div>
+
+<!-- Create Poll Modal -->
+<div id="pollModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Create Poll</h2>
+            <button class="close-btn" onclick="closeModal('pollModal')">&times;</button>
+        </div>
+        <form id="pollForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Question</label>
+                <input type="text" name="question" class="form-input" placeholder="What would you like to ask?" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Options</label>
+                <div id="pollOptionsList" class="poll-options-list">
+                    <div class="poll-option-input">
+                        <input type="text" class="form-input poll-option-field" placeholder="Option 1" required>
+                    </div>
+                    <div class="poll-option-input">
+                        <input type="text" class="form-input poll-option-field" placeholder="Option 2" required>
+                    </div>
+                </div>
+                <button type="button" class="add-option-btn" onclick="addPollOption()">+ Add Option</button>
+            </div>
+            <button type="submit" class="submit-btn">Create Poll</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    const csrftoken = document
+        .querySelector('meta[name="csrf-token"]')
+        .getAttribute('content');
+
+    function sharePost(postId) {
+        const url = `${window.location.origin}/community/post/${postId}/`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Community Post',
+                url: url
+            });
+        } else {
+            navigator.clipboard.writeText(url);
+            alert("Post link copied!");
+        }
+    }
+
+
+    let currentTab = 'feed';
+    const isAdmin = {{ is_admin|yesno:"true,false" }};
+    const userRole = "{{ user_role }}";
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
+
+    function switchTab(tabName) {
+        currentTab = tabName;
+        
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+        // Show/hide sections
+        document.getElementById('feed-section').style.display = 'none';
+        document.getElementById('announcements-section').style.display = 'none';
+        document.getElementById('polls-section').style.display = 'none';
+
+        document.getElementById(`${tabName}-section`).style.display = 'block';
+
+        // Update FAB button visibility
+        updateFabVisibility();
+    }
+
+    function updateFabVisibility() {
+        const fabBtn = document.getElementById('fabButton');
+        
+        if (currentTab === 'announcements' && !isAdmin) {
+            // Hide FAB for announcements if not admin
+            fabBtn.classList.add('hidden');
+        } else {
+            // Show FAB for feed, polls, and announcements (if admin)
+            fabBtn.classList.remove('hidden');
+        }
+    }
+
+    // Initial FAB visibility check
+    updateFabVisibility();
+
+    // Open appropriate modal based on current tab
+    function openCreateModal() {
+        if (currentTab === 'feed') {
+            openModal('postModal');
+        } else if (currentTab === 'announcements') {
+            if (isAdmin) {
+                openModal('announcementModal');
+            } else {
+                alert('Only society admins can create announcements');
+            }
+        } else if (currentTab === 'polls') {
+            openModal('pollModal');
+        }
+    }
+
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+        // Reset forms
+        document.getElementById(modalId).querySelector('form').reset();
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('active');
+        }
+    }
+
+    // Handle Post Form
+    document.getElementById('postForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('.submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Posting...';
+        
+        try {
+            const response = await fetch("{% url 'create_post' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Post created successfully!');
+                closeModal('postModal');
+                window.location.href = '{% url "resident_notices" %}?tab=feed';
+            } else {
+                alert('Error: ' + data.error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post';
+            }
+        } catch (error) {
+            alert('Error creating post: ' + error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Post';
+        }
+    });
+
+    // Handle Announcement Form
+    document.getElementById('announcementForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('.submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Posting...';
+        
+        try {
+            const response = await fetch("{% url 'create_announcement' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Announcement created successfully!');
+                closeModal('announcementModal');
+                window.location.href = '{% url "resident_notices" %}?tab=announcements';
+            } else {
+                alert('Error: ' + data.error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post Announcement';
+            }
+        } catch (error) {
+            alert('Error creating announcement: ' + error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Post Announcement';
+        }
+    });
+
+    // Handle Poll Form
+    document.getElementById('pollForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const question = this.querySelector('[name=question]').value;
+        const optionFields = this.querySelectorAll('.poll-option-field');
+        const options = Array.from(optionFields).map(field => field.value).filter(val => val.trim());
+        
+        if (options.length < 2) {
+            alert('Please provide at least 2 options');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('question', question);
+        formData.append('options', JSON.stringify(options));
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        const submitBtn = this.querySelector('.submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+        
+        try {
+            const response = await fetch("{% url 'create_poll' %}", {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Poll created successfully!');
+                closeModal('pollModal');
+                window.location.href = '{% url "resident_notices" %}?tab=polls';
+            } else {
+                alert('Error: ' + data.error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Poll';
+            }
+        } catch (error) {
+            alert('Error creating poll: ' + error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Poll';
+        }
+    });
+
+    // Add poll option
+    function addPollOption() {
+        const optionsList = document.getElementById('pollOptionsList');
+        const optionCount = optionsList.querySelectorAll('.poll-option-input').length + 1;
+        
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'poll-option-input';
+        optionDiv.innerHTML = `
+            <input type="text" class="form-input poll-option-field" placeholder="Option ${optionCount}">
+            <button type="button" class="remove-option-btn" onclick="removePollOption(this)">×</button>
+        `;
+        
+        optionsList.appendChild(optionDiv);
+    }
+
+    function removePollOption(btn) {
+        const optionsList = document.getElementById('pollOptionsList');
+        if (optionsList.querySelectorAll('.poll-option-input').length > 2) {
+            btn.parentElement.remove();
+        } else {
+            alert('A poll must have at least 2 options');
+        }
+    }
+
+    // Poll voting
+    function selectPollOption(optionElement) {
+        const pollCard = optionElement.closest(".poll-card");
+        const pollId = pollCard.dataset.pollId;
+        const optionId = optionElement.dataset.optionId;
+
+        // UI: highlight selected option
+        pollCard.querySelectorAll(".poll-option").forEach(opt => {
+            opt.classList.remove("selected");
+        });
+        optionElement.classList.add("selected");
+
+        votePoll(pollId, optionId, pollCard);
+    }
+
+
+
+    async function votePoll(pollId, optionId, pollCard) {
+        const formData = new FormData();
+        formData.append("option_id", optionId);
+
+        try {
+            const response = await fetch(`/community/poll/${pollId}/vote/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrftoken
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                alert(data.error || "Vote failed");
+                return;
+            }
+
+            // ✅ 1. INSTANT UI UPDATE
+            pollCard.querySelectorAll(".poll-option").forEach(opt => {
+                const span = opt.querySelector(".poll-percentage");
+
+                if (opt.dataset.optionId === optionId) {
+                    span.textContent = `${data.votes} votes`;
+                }
+            });
+
+            // ✅ 2. REFRESH PAGE AFTER SHORT DELAY
+            setTimeout(() => {
+                window.location.href = "{% url 'resident_notices' %}?tab=polls";
+            }, 600); // smooth UX (MyGate-like)
+
+        } catch (err) {
+            console.error("Vote error:", err);
+        }
+    }
+
+
+
+
+    // Like post functionality
+    async function likePost(postId) {
+        try {
+            const response = await fetch(`/community/post/${postId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const likeBtn = document.querySelector(
+                    `.like-btn[data-post-id="${postId}"]`
+                );
+                likeBtn.querySelector('.like-count').textContent = data.likes;
+
+                data.liked
+                    ? likeBtn.classList.add('liked')
+                    : likeBtn.classList.remove('liked');
+            } else {
+                alert(data.error);
+            }
+        } catch (err) {
+            console.error("Like failed:", err);
+        }
+    }
+
+
+    // Check URL parameters on page load to restore tab state
+    window.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        
+        if (tabParam && ['feed', 'announcements', 'polls'].includes(tabParam)) {
+            switchTab(tabParam);
+        }
+    });
+
+
+    async function openComments(postId) {
+        document.getElementById("commentPostId").value = postId;
+        openModal("commentModal");
+
+        const list = document.getElementById("commentList");
+        list.innerHTML = "Loading...";
+
+        try {
+            const res = await fetch(`/community/post/${postId}/comments/`);
+            const data = await res.json();
+
+            if (!data.comments.length) {
+                list.innerHTML = "<p style='color:#999;'>No comments yet</p>";
+                return;
+            }
+
+            list.innerHTML = data.comments.map(c => `
+                <div style="margin-bottom:12px;">
+                    <strong>${c.user}</strong><br>
+                    <span>${c.text}</span><br>
+                    <small style="color:#999;">${c.time}</small>
+                </div>
+            `).join("");
+        } catch (err) {
+            list.innerHTML = "<p style='color:red;'>Failed to load comments</p>";
+            console.error(err);
+        }
+    }
+
+    document.getElementById("commentForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const postId = document.getElementById("commentPostId").value;
+        const text = document.getElementById("commentText").value.trim();
+
+        if (!text) return;
+
+        const formData = new FormData();
+        formData.append("text", text);
+
+        try {
+            const res = await fetch(`/community/post/${postId}/comment/add/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrftoken
+                },
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById("commentText").value = "";
+                openComments(postId);
+
+                // 🔥 update feed counter
+                const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+                postCard.querySelector(".comment-count").textContent = data.new_count;
+            }
+        } catch (err) {
+            console.error("Comment failed:", err);
+        }
+    });
+
+</script>
+{% endblock %}

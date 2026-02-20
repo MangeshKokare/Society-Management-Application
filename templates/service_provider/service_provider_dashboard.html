@@ -1,0 +1,170 @@
+{% extends "service_provider\service_provider_base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Header -->
+<div class="card">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                    color: white; font-size: 36px;">
+            {% if provider.service.name == "Maid" %}🧹
+            {% elif provider.service.name == "Driver" %}🚗
+            {% elif provider.service.name == "Cook" %}👨‍🍳
+            {% elif provider.service.name == "Laundry" %}🧺
+            {% else %}🛠️
+            {% endif %}
+        </div>
+        <div style="flex: 1;">
+            <h1 style="font-size: 28px; margin-bottom: 6px;">Welcome back, {{ provider.name }}! 👋</h1>
+            <p style="color: #666; font-size: 14px;">
+                📍 {{ provider.area }}, {{ provider.city }} • {{ provider.service.name }} Provider
+            </p>
+        </div>
+        <div>
+            {% if provider.is_available %}
+                <span class="badge badge-success" style="font-size: 14px; padding: 8px 16px;">
+                    🟢 Available for Hire
+                </span>
+            {% else %}
+                <span class="badge badge-danger" style="font-size: 14px; padding: 8px 16px;">
+                    🔴 Not Available
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ active_clients.count }}</div>
+        <div class="stat-label">Active Clients</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+        <div class="stat-value">{{ total_clients }}</div>
+        <div class="stat-label">Total Hires</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <div class="stat-value">{{ rating }}</div>
+        <div class="stat-label">⭐ Rating</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+        <div class="stat-value">{{ reviews }}</div>
+        <div class="stat-label">Total Reviews</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">⚡ Quick Actions</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <a href="{% url 'service_provider_profile' %}" class="btn btn-primary" 
+           style="text-align: center; padding: 16px;">
+            ⚙️ Edit Profile
+        </a>
+        <a href="{% url 'service_provider_clients' %}" class="btn btn-secondary" 
+           style="text-align: center; padding: 16px;">
+            👥 View Clients
+        </a>
+        <a href="{% url 'service_provider_requests' %}" class="btn btn-success" 
+           style="text-align: center; padding: 16px;">
+            📬 Hire Requests
+        </a>
+    </div>
+</div>
+
+<!-- Recent Active Clients -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">👥 Recent Active Clients</h2>
+        <a href="{% url 'service_provider_clients' %}" class="btn btn-secondary">View All</a>
+    </div>
+
+    {% if active_clients %}
+        <div style="display: grid; gap: 12px;">
+            {% for hired in active_clients|slice:":5" %}
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        padding: 16px; background: #f8f9ff; border-radius: 10px; border-left: 4px solid #667eea;">
+                <div>
+                    <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px;">
+                        {{ hired.resident.userprofile.user.first_name }} {{ hired.resident.userprofile.user.last_name }}
+                    </div>
+                    <div style="font-size: 13px; color: #666;">
+                        🏢 {{ hired.resident.userprofile.apartment.block }}-{{ hired.resident.userprofile.apartment.flat_number }}
+                        • 🕐 {{ hired.timing }}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 700; color: #28a745; font-size: 16px;">
+                        ₹{{ hired.monthly_payment }}/mo
+                    </div>
+                    <div style="font-size: 12px; color: #666; margin-top: 2px;">
+                        {{ hired.days }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-text">No active clients yet</div>
+            <div class="empty-hint">Wait for residents to hire your services</div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Professional Details Summary -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+    
+    <!-- Availability Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">📅 Availability</h3>
+        </div>
+        <div style="display: grid; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8f9ff; border-radius: 8px;">
+                <span style="color: #666;">Days:</span>
+                <span style="font-weight: 700;">{{ provider.available_days }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8f9ff; border-radius: 8px;">
+                <span style="color: #666;">Timings:</span>
+                <span style="font-weight: 700;">{{ provider.preferred_timings }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rates Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">💰 Service Rates</h3>
+        </div>
+        <div style="display: grid; gap: 12px;">
+            {% if provider.monthly_rate %}
+            <div style="display: flex; justify-content: space-between; padding: 12px; background: #e8f5e9; border-radius: 8px;">
+                <span style="color: #2e7d32;">Monthly Rate:</span>
+                <span style="font-weight: 700; color: #2e7d32;">₹{{ provider.monthly_rate }}</span>
+            </div>
+            {% endif %}
+            {% if provider.hourly_rate %}
+            <div style="display: flex; justify-content: space-between; padding: 12px; background: #fff3cd; border-radius: 8px;">
+                <span style="color: #856404;">Hourly Rate:</span>
+                <span style="font-weight: 700; color: #856404;">₹{{ provider.hourly_rate }}</span>
+            </div>
+            {% endif %}
+            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8f9ff; border-radius: 8px;">
+                <span style="color: #666;">Experience:</span>
+                <span style="font-weight: 700;">{{ provider.experience_years }} years</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

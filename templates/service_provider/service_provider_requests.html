@@ -1,0 +1,201 @@
+{% extends "service_provider\service_provider_base.html" %}
+
+{% block title %}Hire Requests{% endblock %}
+{% block nav_requests %}active{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="font-size: 28px; margin-bottom: 6px;">Hire Requests 📬</h1>
+            <p style="color: #666; font-size: 14px;">
+                Review and accept hire requests from residents
+            </p>
+        </div>
+        {% if pending_requests %}
+        <div class="badge badge-warning" style="font-size: 16px; padding: 10px 20px;">
+            {{ pending_requests.count }} Pending
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Info Banner -->
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 20px; border-radius: 12px; color: white; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 40px;">💡</div>
+        <div>
+            <div style="font-weight: 700; font-size: 18px; margin-bottom: 4px;">
+                How it works
+            </div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                When residents hire you through the platform, their requests appear here. 
+                Review details and accept or decline based on your availability.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Requests -->
+{% if pending_requests %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">⏳ Pending Requests</h2>
+        </div>
+
+        <div style="display: grid; gap: 16px;">
+            {% for request in pending_requests %}
+            <div style="padding: 20px; background: #fffbf0; border-radius: 12px; border-left: 4px solid #ffa726;">
+                <div style="display: flex; gap: 20px; align-items: start;">
+                    
+                    <!-- Avatar -->
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%); 
+                                border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                                color: white; font-size: 28px; flex-shrink: 0;">
+                        👤
+                    </div>
+
+                    <!-- Request Details -->
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">
+                                    {{ request.resident.first_name }} {{ request.resident.last_name }}
+                                </h3>
+                                <div style="font-size: 13px; color: #666;">
+                                    🏢 {{ request.resident.userprofile.apartment.society.name }} - 
+                                    {{ request.resident.userprofile.apartment.block }}-{{ request.resident.userprofile.apartment.flat_number }}
+                                </div>
+                            </div>
+                            <span class="badge badge-warning">⏳ Pending Review</span>
+                        </div>
+
+                        <!-- Details Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 16px;">📱</span>
+                                <span style="font-size: 14px;">{{ request.resident.userprofile.phone }}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 16px;">🕐</span>
+                                <span style="font-size: 14px;">{{ request.timing }}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 16px;">📅</span>
+                                <span style="font-size: 14px;">{{ request.days }}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 16px;">💰</span>
+                                <span style="font-size: 14px; font-weight: 700; color: #28a745;">
+                                    ₹{{ request.monthly_payment }}/month
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="font-size: 13px; color: #666; margin-bottom: 16px;">
+                            📆 Requested on: <strong>{{ request.created_at|date:"d M, Y - h:i A" }}</strong>
+                        </div>
+
+                        {% if request.special_instructions %}
+                        <div style="padding: 10px; background: white; border-radius: 8px; margin-bottom: 16px; border: 1px solid #ffe0b2;">
+                            <div style="font-size: 12px; color: #e65100; font-weight: 600; margin-bottom: 4px;">
+                                📝 Special Instructions:
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                {{ request.special_instructions }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 10px;">
+                            <form method="POST" action="{% url 'accept_hire_request' request.id %}" style="flex: 1;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success" style="width: 100%;">
+                                    ✅ Accept Request
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'decline_hire_request' request.id %}" 
+                                  onsubmit="return confirm('Are you sure you want to decline this request?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    ❌ Decline
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-icon">📬</div>
+            <div class="empty-text">No pending requests</div>
+            <div class="empty-hint">New hire requests will appear here</div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Accepted Requests (Recent) -->
+{% if accepted_requests %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">✅ Recently Accepted</h2>
+    </div>
+
+    <div style="display: grid; gap: 12px;">
+        {% for request in accepted_requests|slice:":5" %}
+        <div style="padding: 16px; background: #e8f5e9; border-radius: 10px; border-left: 4px solid #28a745;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px;">
+                        {{ request.resident.first_name }} {{ request.resident.last_name }}
+                    </div>
+                    <div style="font-size: 13px; color: #666;">
+                        🏢 {{ request.resident.userprofile.apartment.block }}-{{ request.resident.userprofile.apartment.flat_number }}
+                        • 🕐 {{ request.timing }}
+                        • 💰 ₹{{ request.monthly_payment }}/mo
+                    </div>
+                </div>
+                <span class="badge badge-success">✅ Accepted</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Declined Requests (Recent) -->
+{% if declined_requests %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">❌ Recently Declined</h2>
+    </div>
+
+    <div style="display: grid; gap: 12px;">
+        {% for request in declined_requests|slice:":3" %}
+        <div style="padding: 16px; background: #f8d7da; border-radius: 10px; border-left: 4px solid #e74c3c;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px;">
+                        {{ request.resident.first_name }} {{ request.resident.last_name }}
+                    </div>
+                    <div style="font-size: 13px; color: #666;">
+                        Declined on {{ request.updated_at|date:"d M, Y" }}
+                    </div>
+                </div>
+                <span class="badge badge-danger">❌ Declined</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

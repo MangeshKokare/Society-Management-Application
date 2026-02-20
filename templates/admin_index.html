@@ -1,0 +1,574 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Admin Dashboard{% endblock %}
+{% block role_name %}Admin / RWA{% endblock %}
+{% block logo_icon %}⚡{% endblock %}
+{% block header_gradient %}#e74c3c 0%, #c0392b 100%{% endblock %}
+{% block nav_active_color %}#e74c3c{% endblock %}
+{% block btn_gradient %}#e74c3c 0%, #c0392b 100%{% endblock %}
+
+{% block navigation %}
+<a href="admin_index.html" class="nav-item active">
+    <div class="nav-icon">📊</div>
+    <span>Dashboard</span>
+</a>
+<a href="admin_residents.html" class="nav-item">
+    <div class="nav-icon">👥</div>
+    <span>Residents</span>
+</a>
+<a href="admin_notices.html" class="nav-item">
+    <div class="nav-icon">📢</div>
+    <span>Notices</span>
+</a>
+<a href="admin_analytics.html" class="nav-item">
+    <div class="nav-icon">📈</div>
+    <span>Analytics</span>
+</a>
+<a href="admin_settings.html" class="nav-item">
+    <div class="nav-icon">⚙️</div>
+    <span>Settings</span>
+</a>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+    .admin-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .admin-subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+
+    .metric-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .metric-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #e74c3c;
+        margin-bottom: 5px;
+    }
+
+    .metric-label {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .metric-change {
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .metric-change.positive {
+        color: #27ae60;
+    }
+
+    .metric-change.negative {
+        color: #e74c3c;
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .action-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    .action-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .pending-section {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 20px;
+        border-radius: 0 12px 12px 0;
+        margin-bottom: 20px;
+    }
+
+    .pending-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .request-item {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .request-info h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .request-info p {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 3px;
+    }
+
+    .request-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+
+    .chart-header {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .activity-feed {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        padding: 12px;
+        border-left: 3px solid #e0e0e0;
+        margin-bottom: 12px;
+        background: #f8f9fa;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .activity-item.important {
+        border-left-color: #e74c3c;
+        background: #ffebee;
+    }
+
+    .activity-time {
+        font-size: 11px;
+        color: #999;
+        margin-bottom: 5px;
+    }
+
+    .activity-text {
+        font-size: 13px;
+        color: #333;
+    }
+
+    .complaint-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .complaint-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 10px;
+    }
+
+    .complaint-title {
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .complaint-meta {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .complaint-description {
+        font-size: 13px;
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    .complaint-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .tenant-item {
+        background: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 10px;
+    }
+
+    .tenant-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .tenant-name {
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .tenant-info {
+        font-size: 13px;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="admin-title">Admin Dashboard ⚡</div>
+    <div class="admin-subtitle">
+        {{ society_name }} • Managing {{ total_apartments }} Units
+    </div>
+
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon">🏠</div>
+        <div class="metric-value">{{ total_apartments }}</div>
+        <div class="metric-label">Total Apartments</div>
+        <div class="metric-change {% if visitor_change >= 0 %}positive{% else %}negative{% endif %}">
+            {% if visitor_change >= 0 %}
+                ↑ {{ visitor_change }} vs yesterday
+            {% else %}
+                ↓ {{ visitor_change_abs }} vs yesterday
+            {% endif %}
+        </div>
+
+
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">👥</div>
+        <div class="metric-value">{{ total_residents }}</div>
+        <div class="metric-label">Active Residents</div>
+        <div class="metric-change positive">↑ 92% occupancy</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">👤</div>
+        <div class="metric-value">{{ today_visitors }}</div>
+        <div class="metric-label">Today's Visitors</div>
+        <div class="metric-change positive">↑ 12% vs yesterday</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">📦</div>
+        <div class="metric-value">{{ pending_deliveries }}</div>
+        <div class="metric-label">Pending Deliveries</div>
+        <div class="metric-change negative">↓ 8 from yesterday</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">🛡️</div>
+        <div class="metric-value">{{ total_guards }}</div>
+        <div class="metric-label">Security Guards</div>
+        <div class="metric-change positive">All present</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon">⚠️</div>
+        <div class="metric-value">{{ open_complaints_count }}</div>
+        <div class="metric-label">Open Complaints</div>
+    </div>
+</div>
+
+<div class="section-title">Quick Actions</div>
+<div class="action-grid">
+    <div class="action-card">
+        <div class="action-icon">📢</div>
+        <div class="action-title">Send Notice</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">✅</div>
+        <div class="action-title">Approve Resident</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">📊</div>
+        <div class="action-title">View Reports</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">🔧</div>
+        <div class="action-title">Manage Services</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">💰</div>
+        <div class="action-title">Billing</div>
+    </div>
+    <div class="action-card">
+        <div class="action-icon">📋</div>
+        <div class="action-title">Access Logs</div>
+    </div>
+</div>
+
+<div class="pending-section">
+    <div class="pending-title">
+        <span>Pending Approvals</span>
+        <span class="badge badge-pending">
+            {{ pending_visitors_count }} Items
+        </span>
+
+    </div>
+
+    {% for v in pending_visitors %}
+    <div class="request-item">
+        <div class="request-info">
+            <h4>{{ v.get_visitor_type_display }} Approval</h4>
+            <p>
+                <strong>{{ v.name }}</strong>
+                {% if v.apartment %}
+                    - Apartment {{ v.apartment.flat_number }}
+                {% endif %}
+            </p>
+            <p>Purpose: {{ v.purpose|default:"—" }}</p>
+            <span class="announcement-time">
+                Submitted {{ v.created_at|timesince }} ago
+            </span>
+        </div>
+        <div class="request-actions">
+            <form method="post" action="{% url 'approve_visitor' v.id %}">
+                {% csrf_token %}
+                <button class="btn btn-success btn-small">Approve</button>
+            </form>
+            <form method="post" action="{% url 'deny_visitor' v.id %}">
+                {% csrf_token %}
+                <button class="btn btn-danger btn-small">Reject</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <p>No pending approvals 🎉</p>
+    {% endfor %}
+
+</div>
+
+
+<div class="card">
+    <div class="card-header">
+        <span>Active Complaints & Tickets</span>
+        <span class="badge badge-pending">
+            {{ open_complaints_count }} Open
+        </span>
+    </div>
+
+    {% for c in complaints %}
+    <div class="complaint-item">
+        <div class="complaint-header">
+            <div class="complaint-title">
+                {{ c.title }}
+            </div>
+            <span class="badge badge-pending">
+                {{ c.get_priority_display }}
+            </span>
+        </div>
+
+        <div class="complaint-meta">
+            Reported by:
+            {{ c.user.username }}
+            {% if c.apartment %}
+                ({{ c.apartment.flat_number }})
+            {% endif %}
+            • {{ c.created_at|timesince }} ago
+        </div>
+
+        <div class="complaint-description">
+            {{ c.description }}
+        </div>
+
+        <div class="complaint-actions">
+            <span class="badge badge-active">
+                {{ c.get_status_display }}
+            </span>
+        </div>
+    </div>
+    {% empty %}
+    <p style="padding:15px;color:#666;">
+        No complaints raised 🎉
+    </p>
+    {% endfor %}
+</div>
+
+
+<div class="card">
+    <div class="card-header">Tenant Management</div>
+
+    {% for u in residents %}
+    <div class="tenant-item">
+        <div class="tenant-header">
+            <div class="tenant-name">
+                {{ u.user.username }} - {{ u.apartment.flat_number }}
+            </div>
+            <span class="badge badge-approved">Active</span>
+        </div>
+        <div class="tenant-info">
+            Phone: {{ u.phone|default:"—" }}
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<div class="chart-container">
+    <div class="chart-header">
+        <span>Recent Activity Feed</span>
+        <button class="btn btn-secondary btn-small">View All</button>
+    </div>
+    
+    <div class="activity-feed">
+        {% for v in recent_visitors %}
+        <div class="activity-item">
+            <div class="activity-time">
+                {{ v.created_at|timesince }} ago
+            </div>
+            <div class="activity-text">
+                {{ v.get_visitor_type_display }} entry:
+                {{ v.name }}
+            </div>
+        </div>
+        {% endfor %}
+
+        {% for a in recent_announcements %}
+        <div class="activity-item important">
+            <div class="activity-time">
+                {{ a.created_at|timesince }} ago
+            </div>
+            <div class="activity-text">
+                📢 Notice: {{ a.title }}
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span>Visitor Analytics - Today</span>
+    </div>
+
+    <div class="stats-row">
+        {% for row in visitor_stats %}
+        <div class="stat-box">
+            <div class="stat-number">{{ row.count }}</div>
+            <div class="stat-label">
+                {{ row.visitor_type|title }}
+            </div>
+        </div>
+        {% empty %}
+        <p style="padding:15px;color:#666;">
+            No visitors today
+        </p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Approve/Reject functionality
+    document.querySelectorAll('.btn-success').forEach(btn => {
+        btn.addEventListener('click', function() {
+            alert('✅ Request approved successfully!');
+        });
+    });
+
+    document.querySelectorAll('.btn-danger').forEach(btn => {
+        if(btn.textContent.includes('Reject')) {
+            btn.addEventListener('click', function() {
+                if(confirm('Are you sure you want to reject this request?')) {
+                    alert('❌ Request rejected.');
+                }
+            });
+        }
+    });
+
+    // Quick action cards
+    document.querySelectorAll('.action-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const action = this.querySelector('.action-title').textContent;
+            alert(`Opening: ${action}`);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,890 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %}MyGate - Daily Help & Services{% endblock %}
+{% block nav_services %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+        padding-bottom: 80px;
+    }
+
+    .main-content {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 20px;
+    }
+
+    .page-header {
+        margin-bottom: 25px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .location-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+
+    /* Search & Filter Bar */
+    .filter-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #666;
+    }
+
+    .filter-input, .filter-select {
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-search {
+        padding: 10px 24px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-search:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+    }
+
+    /* Service Category Pills */
+    .category-pills {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 15px 0;
+        margin-bottom: 20px;
+    }
+
+    .category-pill {
+        padding: 10px 20px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .category-pill:hover, .category-pill.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Section Titles */
+    .section-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 30px 0 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-count {
+        font-size: 14px;
+        color: #666;
+        font-weight: normal;
+    }
+
+    /* Service Provider Cards */
+    .providers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .provider-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .provider-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .provider-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 12px;
+    }
+
+    .provider-avatar {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+
+    .provider-info {
+        flex: 1;
+        margin-left: 15px;
+    }
+
+    .provider-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .provider-role {
+        font-size: 13px;
+        color: #666;
+        background: #f0f0f0;
+        padding: 4px 10px;
+        border-radius: 12px;
+        display: inline-block;
+    }
+
+    .verified-badge {
+        background: #4caf50;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .provider-details {
+        margin: 15px 0;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .detail-icon {
+        width: 20px;
+        text-align: center;
+    }
+
+    .rating-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .rating-stars {
+        color: #ffa726;
+        font-size: 16px;
+    }
+
+    .rating-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .reviews-count {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .price-tag {
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        margin: 12px 0;
+        text-align: center;
+    }
+
+    .provider-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+    .btn-hired {
+        background: #4caf50;
+        color: white;
+        cursor: default;
+    }
+
+    /* My Hired Services Section */
+    .hired-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid #4caf50;
+    }
+
+    .hired-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 26px;
+        background: #ccc;
+        border-radius: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .toggle-switch.active {
+        background: #28a745;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+    }
+
+    .toggle-switch.active .toggle-slider {
+        transform: translateX(24px);
+    }
+
+    .status-active {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .status-paused {
+        color: #ff9800;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-text {
+        font-size: 18px;
+        color: #999;
+        margin-bottom: 10px;
+    }
+
+    .empty-hint {
+        font-size: 14px;
+        color: #bbb;
+    }
+
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+
+        .providers-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    html {
+        scroll-behavior: smooth;
+    }
+
+    .my-hired-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        padding: 8px 12px;
+        background: #667eea;
+        color: white;
+        border-radius: 8px;
+
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.1;
+        text-align: center;
+
+        text-decoration: none;
+        min-width: unset;
+        white-space: nowrap;
+    }
+
+    .my-hired-btn:hover {
+        background: #5568d3;
+    }
+
+    .scroll-top-btn {
+        position: fixed;
+
+        /* 👇 JUST ABOVE BASE BOTTOM NAV */
+        bottom: 90px;
+
+        right: 20px;
+
+        width: 44px;
+        height: 44px;
+
+        background: #667eea;
+        color: white;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+        font-size: 20px;
+        font-weight: bold;
+
+        text-decoration: none;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+
+        z-index: 1000; /* below modals, above nav */
+
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+
+    .scroll-top-btn:hover {
+        background: #5568d3;
+        transform: translateY(-4px);
+    }
+    @media (max-width: 480px) {
+        .scroll-top-btn {
+            bottom: 100px; /* extra space for thumbs */
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+    }
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content" id="top">
+
+    <!-- Page Header -->
+    <div class="page-header enhanced-header" style="display: flex; justify-content: space-between; align-items: center;">
+
+        
+        <div>
+            <h1 class="page-title">Daily Help & Services</h1>
+            {% if user_area %}
+            <span class="location-badge">
+                📍 Showing services in {{ user_area }}, {{ user_city }}
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- My Hired Services Button -->
+        <a href="#my-hired-services" class="my-hired-btn">
+            <span>My Hired</span>
+            <span>Services</span>
+        </a>
+
+
+    </div>
+
+
+    <!-- Search & Filter Bar -->
+    <div class="filter-bar">
+        <form method="GET" action="{% url 'resident_services' %}">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">Search by Name</label>
+                    <input type="text" name="q" class="filter-input" 
+                           placeholder="Search service providers..." 
+                           value="{{ search_query }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Service Type</label>
+                    <select name="service" class="filter-select">
+                        <option value="">All Services</option>
+                        {% for s in services %}
+                        <option value="{{ s.id }}" {% if selected_service == s.id|stringformat:"s" %}selected{% endif %}>
+                            {{ s.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Area/Location</label>
+                    <input type="text" name="area" class="filter-input" 
+                           placeholder="e.g., Nanded City" 
+                           value="{{ search_area }}">
+                </div>
+                
+                <button type="submit" class="btn-search">🔍 Search</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Service Category Pills -->
+    <div class="category-pills">
+        <a href="{% url 'resident_services' %}" class="category-pill {% if not selected_service %}active{% endif %}">
+            All Services
+        </a>
+        {% for s in services %}
+        <a href="?service={{ s.id }}" class="category-pill {% if selected_service == s.id|stringformat:"s" %}active{% endif %}">
+            {% if s.name == "Maid" %}🧹
+            {% elif s.name == "Driver" %}🚗
+            {% elif s.name == "Cook" %}👨‍🍳
+            {% elif s.name == "Laundry" %}🧺
+            {% elif s.name == "Newspaper" %}📰
+            {% elif s.name == "Milk" %}🥛
+            {% else %}🛠️
+            {% endif %}
+            {{ s.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Available Service Providers -->
+    <div class="section-title">
+        Available Service Providers 
+        <span class="section-count">({{ service_providers|length }} found)</span>
+    </div>
+
+    {% if service_providers %}
+    <div class="providers-grid">
+        {% for provider in service_providers %}
+        <div class="provider-card" onclick="window.location.href='{% url 'service_provider_detail' provider.id %}'">
+            <div class="provider-header">
+                <div style="display: flex; align-items: start; flex: 1;">
+                    <div class="provider-avatar">
+                        {% if provider.service.name == "Maid" %}🧹
+                        {% elif provider.service.name == "Driver" %}🚗
+                        {% elif provider.service.name == "Cook" %}👨‍🍳
+                        {% elif provider.service.name == "Laundry" %}🧺
+                        {% else %}🛠️
+                        {% endif %}
+                    </div>
+                    <div class="provider-info">
+                        <div class="provider-name">{{ provider.name }}</div>
+                        <span class="provider-role">{{ provider.service.name }}</span>
+                    </div>
+                </div>
+                <span class="verified-badge">✓ Verified</span>
+            </div>
+
+            <div class="provider-details">
+                <div class="detail-row">
+                    <span class="detail-icon">📍</span>
+                    <span>{{ provider.area }}, {{ provider.city }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">📱</span>
+                    <span>{{ provider.mobile }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">⏰</span>
+                    <span>{{ provider.preferred_timings }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">📅</span>
+                    <span>{{ provider.available_days }}</span>
+                </div>
+                {% if provider.experience_years %}
+                <div class="detail-row">
+                    <span class="detail-icon">⭐</span>
+                    <span>{{ provider.experience_years }} years experience</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="rating-box">
+                <div class="rating-stars"
+                    data-rating="{{ provider.rating|floatformat:0 }}">
+                    ★★★★★
+                </div>
+
+
+                <span class="rating-text">{{ provider.rating }}</span>
+                <span class="reviews-count">({{ provider.total_reviews }} reviews)</span>
+            </div>
+
+            {% if provider.monthly_rate %}
+            <div class="price-tag">
+                ₹{{ provider.monthly_rate }}/month
+            </div>
+            {% endif %}
+
+            <div class="provider-actions" onclick="event.stopPropagation();">
+                {% with status=provider_status_map|get_item:provider.id %}
+                    {% if status == "pending" %}
+                        <button class="btn btn-hired" style="background:#ff9800;">
+                            ⏳ Requested
+                        </button>
+
+                    {% elif status == "active" %}
+                        <button class="btn btn-hired">
+                            ✅ Hired
+                        </button>
+
+                    {% elif status == "paused" %}
+                        <button class="btn btn-hired" style="background:#9e9e9e;">
+                            ⏸ Paused
+                        </button>
+
+                    {% else %}
+                        <a href="{% url 'hire_service_provider' provider.id %}"
+                        class="btn btn-primary">
+                            Hire Now
+                        </a>
+
+                        <a href="{% url 'service_provider_detail' provider.id %}"
+                        class="btn btn-secondary">
+                            View Details
+                        </a>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-text">No service providers found</div>
+        <div class="empty-hint">
+            Try adjusting your search filters or location
+        </div>
+    </div>
+    {% endif %}
+
+
+
+
+
+    <!-- Pending Hire Requests -->
+    <div class="section-title">
+        Pending Requests
+        <span class="section-count">({{ pending_hired_services|length }})</span>
+    </div>
+
+    {% if pending_hired_services %}
+        {% for hired in pending_hired_services %}
+            <div class="hired-card" style="border-left:4px solid #ff9800;">
+                <h3>{{ hired.service_provider.name }}</h3>
+                <p>⏳ Waiting for provider approval</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="color:#999;">No pending requests</p>
+    {% endif %}
+
+    <!-- My Hired Services -->
+    <div class="section-title" id="my-hired-services">
+        My Hired Services
+        <span class="section-count">({{ my_hired_services|length }} active)</span>
+    </div>
+    
+    {% if my_hired_services %}
+        {% for hired in my_hired_services %}
+        <div class="hired-card">
+            <div class="hired-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="provider-avatar">
+                        {% if hired.service_provider.service.name == "Maid" %}🧹
+                        {% elif hired.service_provider.service.name == "Driver" %}🚗
+                        {% elif hired.service_provider.service.name == "Cook" %}👨‍🍳
+                        {% else %}🛠️
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 5px;">{{ hired.service_provider.name }}</h3>
+                        <span class="provider-role">{{ hired.service_provider.service.name }}</span>
+                    </div>
+                </div>
+
+                <div class="toggle-switch {% if hired.status == 'active' %}active{% endif %}"
+                     onclick="toggleHiredService(this, {{ hired.id }})">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <div class="provider-details">
+                <div class="detail-row">
+                    <span class="detail-icon">📱</span>
+                    <span>{{ hired.service_provider.mobile }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">🕐</span>
+                    <span>{{ hired.timing }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">📅</span>
+                    <span>{{ hired.days }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">💰</span>
+                    <span>₹{{ hired.monthly_payment }}/month</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-icon">✓</span>
+                    <span class="{% if hired.status == 'active' %}status-active{% else %}status-paused{% endif %}">
+                        {{ hired.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="provider-actions">
+                <a href="tel:{{ hired.service_provider.mobile }}" class="btn btn-primary">📞 Call</a>
+                <form method="POST" action="{% url 'terminate_hired_service' hired.id %}" style="flex: 1;" 
+                      onsubmit="return confirm('Are you sure you want to remove this service?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary" style="width: 100%;">Remove</button>
+                </form>
+            </div>
+
+            {% if hired.status == "active" and not hired.review %}
+            <form method="POST"
+                action="{% url 'add_service_review' hired.id %}"
+                style="margin-top: 15px;">
+                {% csrf_token %}
+
+                <label style="font-weight:600;">Rate Service</label>
+                <div class="star-input"
+                    style="font-size:26px;color:#ccc;cursor:pointer;"
+                    data-input="rating-{{ hired.id }}">
+                    <span data-value="1">★</span>
+                    <span data-value="2">★</span>
+                    <span data-value="3">★</span>
+                    <span data-value="4">★</span>
+                    <span data-value="5">★</span>
+                </div>
+
+                <input type="hidden"
+                    name="rating"
+                    id="rating-{{ hired.id }}"
+                    required>
+
+
+                <textarea name="review_text"
+                        required
+                        placeholder="Write your experience..."
+                        style="width:100%; padding:8px; border-radius:6px;"></textarea>
+
+                <button type="submit"
+                        class="btn btn-primary"
+                        style="margin-top:10px;">
+                    Submit Review
+                </button>
+            </form>
+
+            {% elif hired.review %}
+            <p style="margin-top:10px; color:#4caf50; font-weight:600;">
+                ✔ Review submitted
+            </p>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">👤</div>
+        <div class="empty-text">No services hired yet</div>
+        <div class="empty-hint">Browse and hire service providers from above</div>
+    </div>
+    {% endif %}
+</div>
+
+<a href="#top" class="scroll-top-btn">⬆️</a>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleHiredService(el, id) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      document.getElementById('csrf-token')?.value;
+
+    fetch(`/services/toggle-hired/${id}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        el.classList.toggle('active', data.status === 'active');
+        
+        const statusEl = el.closest('.hired-card')
+            .querySelector('.detail-row:last-child span:last-child');
+        
+        if (data.status === 'active') {
+            statusEl.className = 'status-active';
+            statusEl.textContent = 'Active';
+        } else {
+            statusEl.className = 'status-paused';
+            statusEl.textContent = 'Paused';
+        }
+    })
+    .catch(err => console.error(err));
+}
+</script>
+
+<script>
+document.querySelectorAll(".star-input").forEach(container => {
+    const inputId = container.dataset.input;
+    const input = document.getElementById(inputId);
+
+    container.querySelectorAll("span").forEach(star => {
+        star.addEventListener("click", () => {
+            const value = star.dataset.value;
+            input.value = value;
+
+            container.querySelectorAll("span").forEach(s => {
+                s.style.color = s.dataset.value <= value ? "#ffa726" : "#ccc";
+            });
+        });
+    });
+});
+</script>
+<script>
+document.querySelectorAll(".rating-stars").forEach(starBox => {
+    const rating = parseInt(starBox.dataset.rating || 0);
+
+    starBox.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement("span");
+        star.textContent = "★";
+        star.style.color = i <= rating ? "#ffa726" : "#ccc";
+        starBox.appendChild(star);
+    }
+});
+</script>
+
+{% endblock %}

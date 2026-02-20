@@ -1,0 +1,719 @@
+{% extends "society_admin/base.html" %}
+
+{% block title %}Guards Management - Society Admin{% endblock %}
+
+
+{% block extra_styles %}
+<style>
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+        font-size: 15px;
+        color: #64748b;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        border-left: 5px solid #8b5cf6;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: 800;
+        color: #8b5cf6;
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 250px;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #8b5cf6;
+    }
+
+    .filter-select {
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: #8b5cf6;
+    }
+
+    .residents-grid {
+        display: grid;
+        gap: 16px;
+    }
+
+    .resident-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .resident-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);
+    }
+
+    .resident-info {
+        flex: 1;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .resident-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .resident-details {
+        flex: 1;
+    }
+
+    .resident-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 6px;
+    }
+
+    .resident-meta {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+
+    .resident-phone {
+        font-size: 13px;
+        color: #8b5cf6;
+        font-weight: 600;
+    }
+
+    .resident-actions {
+        display: flex;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    .badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .badge-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: none;
+        font-size: 18px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .btn-view:hover {
+        background: #c7d2fe;
+        transform: scale(1.1);
+    }
+
+    .btn-edit {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-edit:hover {
+        background: #bfdbfe;
+        transform: scale(1.1);
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+        transform: scale(1.1);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+
+    .empty-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #334155;
+    }
+
+    .empty-text {
+        font-size: 14px;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideUp 0.3s;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f1f5f9;
+    }
+
+    .modal-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .close-btn {
+        font-size: 28px;
+        cursor: pointer;
+        color: #94a3b8;
+        background: none;
+        border: none;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .detail-row {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 16px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 10px;
+        margin-bottom: 12px;
+    }
+
+    .detail-label {
+        font-weight: 700;
+        color: #475569;
+        font-size: 14px;
+    }
+
+    .detail-value {
+        color: #1e293b;
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 8px;
+    }
+
+    .form-input,
+    .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #8b5cf6;
+    }
+
+    .btn-save {
+        padding: 14px 32px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-cancel {
+        padding: 14px 32px;
+        background: #e2e8f0;
+        color: #475569;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-left: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #cbd5e1;
+    }
+
+    .btn-danger {
+        padding: 14px 32px;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .warning-text {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        color: #92400e;
+        font-size: 14px;
+    }
+
+    .success-message {
+        background: #d1fae5;
+        border-left: 4px solid #10b981;
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .success-message.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+
+    .success-text {
+        font-size: 14px;
+        color: #065f46;
+        font-weight: 600;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">🛡️ Guards Management</h1>
+    <p class="page-subtitle">Manage all security guards in your society</p>
+</div>
+
+<!-- Success Message -->
+<div id="successMessage" class="success-message">
+    <p class="success-text">✅ <span id="successText">Action completed successfully!</span></p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ guards|length }}</div>
+        <div class="stat-label">Total Guards</div>
+    </div>
+    <div class="stat-card" style="border-left-color:#10b981">
+        <div class="stat-value" style="color:#10b981">{{ active_count }}</div>
+        <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-card" style="border-left-color:#f59e0b">
+        <div class="stat-value" style="color:#f59e0b">{{ pending_count }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <input type="text" class="search-input" placeholder="🔍 Search by name or phone...">
+    <select class="filter-select" id="statusFilter">
+        <option value="">All Status</option>
+        <option value="approved">Active</option>
+        <option value="pending">Pending</option>
+    </select>
+</div>
+
+<div class="residents-grid">
+{% for guard in guards %}
+    <div class="resident-card"
+         data-name="{{ guard.user.username }}"
+         data-status="{{ guard.status }}"
+         data-phone="{{ guard.phone }}">
+
+        <div class="resident-info">
+            <div class="resident-avatar">🛡️</div>
+            <div class="resident-details">
+                <div class="resident-name">
+                    {{ guard.user.get_full_name|default:guard.user.username }}
+                </div>
+                <div class="resident-meta">
+                    📞 {{ guard.phone|default:"Not provided" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="resident-actions">
+            {% if guard.status == "approved" %}
+                <span class="badge badge-active">Active</span>
+            {% else %}
+                <span class="badge badge-pending">Pending</span>
+            {% endif %}
+
+            <button class="btn-icon btn-view"
+                    onclick="viewGuard({{ guard.id }})">👁️</button>
+            <button class="btn-icon btn-edit"
+                    onclick="editGuard({{ guard.id }})">✏️</button>
+            <button class="btn-icon btn-delete"
+                    onclick="deleteGuard({{ guard.id }}, '{{ guard.user.username }}')">🗑️</button>
+        </div>
+    </div>
+{% empty %}
+    <div class="empty-state">
+        <div class="empty-icon">🛡️</div>
+        <div class="empty-title">No Guards Found</div>
+    </div>
+{% endfor %}
+</div>
+
+<div id="viewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">🛡️ Guard Details</h2>
+            <button class="close-btn" onclick="closeModal('viewModal')">&times;</button>
+        </div>
+        <div id="viewContent"></div>
+    </div>
+</div>
+
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">✏️ Edit Guard</h2>
+            <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+        </div>
+
+        <form id="editForm">
+            {% csrf_token %}
+            <input type="hidden" name="guard_id" id="editGuardId">
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input class="form-input" id="editUsername" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" id="editEmail" name="email">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input class="form-input" id="editPhone" name="phone">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="editStatus" name="status">
+                    <option value="approved">Active</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+
+            <button class="btn-save">💾 Save</button>
+            <button type="button" class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+        </form>
+    </div>
+</div>
+
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width:480px">
+        <div class="modal-header">
+            <h2 class="modal-title">⚠️ Delete Guard</h2>
+            <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+
+        <p class="warning-text">
+            This action is irreversible. Are you sure you want to delete
+            <strong id="deleteGuardName"></strong>?
+        </p>
+
+        <input type="hidden" id="deleteGuardId">
+
+        <button class="btn-danger" onclick="confirmDelete()">🗑️ Delete</button>
+        <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+
+function openModal(id) {
+    document.getElementById(id).classList.add("active");
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove("active");
+}
+
+
+const searchInput = document.querySelector('.search-input');
+const statusFilter = document.getElementById('statusFilter');
+const cards = document.querySelectorAll('.resident-card');
+
+function filterGuards() {
+    const search = searchInput.value.toLowerCase();
+    const status = statusFilter.value;
+
+    cards.forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const phone = card.dataset.phone.toLowerCase();
+        const cardStatus = card.dataset.status;
+
+        card.style.display =
+            (name.includes(search) || phone.includes(search)) &&
+            (!status || cardStatus === status)
+            ? "flex"
+            : "none";
+    });
+}
+
+searchInput.addEventListener("input", filterGuards);
+statusFilter.addEventListener("change", filterGuards);
+
+// Placeholder AJAX hooks
+function viewGuard(id) {
+    fetch(`/society-admin/guard/${id}/view/`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("viewContent").innerHTML = `
+                <div class="detail-row"><b>Name</b> ${data.name}</div>
+                <div class="detail-row"><b>Email</b> ${data.email || "-"}</div>
+                <div class="detail-row"><b>Phone</b> ${data.phone || "-"}</div>
+                <div class="detail-row"><b>Status</b> ${data.status}</div>
+            `;
+            openModal("viewModal");
+        });
+}
+
+
+function editGuard(id) {
+    fetch(`/society-admin/guard/${id}/edit/`)
+        .then(res => res.json())
+        .then(data => {
+            editGuardId.value = id;
+            editUsername.value = data.username;
+            editEmail.value = data.email || "";
+            editPhone.value = data.phone || "";
+            editStatus.value = data.status;
+            openModal("editModal");
+        });
+}
+
+document.getElementById("editForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    fetch("/society-admin/guard/update/", {
+        method: "POST",
+        body: new FormData(this),
+        headers: {"X-CSRFToken": this.csrfmiddlewaretoken.value}
+    })
+    .then(res => res.json())
+    .then(() => location.reload());
+});
+
+
+function deleteGuard(id, name) {
+    deleteGuardId.value = id;
+    deleteGuardName.innerText = name;
+    openModal("deleteModal");
+}
+
+function confirmDelete() {
+    fetch("/society-admin/guard/delete/", {
+        method: "POST",
+        body: new URLSearchParams({guard_id: deleteGuardId.value}),
+        headers: {"X-CSRFToken": "{{ csrf_token }}"}
+    })
+    .then(() => location.reload());
+}
+
+</script>
+{% endblock %}

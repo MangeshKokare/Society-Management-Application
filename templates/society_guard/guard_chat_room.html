@@ -1,0 +1,694 @@
+{% extends "society_guard/guard_base.html" %}
+{% load custom_filters %}
+
+{% block title %}Chat{% endblock %}
+{% block page_title %}Chat{% endblock %}
+
+{% block extra_styles %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg: #efeae2;
+    --white: #ffffff;
+    --primary: #128c7e;
+    --primary-dark: #075e54;
+    --accent: #25d366;
+    --bubble-out: #dcf8c6;
+    --bubble-in: #ffffff;
+    --text-main: #111b21;
+    --text-sub: #667781;
+    --border: #e9edef;
+    --tick-read: #53bdeb;
+}
+
+* { font-family: 'DM Sans', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── LAYOUT: full height chat ── */
+.chat-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px); /* account for guard base nav */
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    background: var(--bg);
+    /* WhatsApp-style chat background */
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23128c7e' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ── HEADER ── */
+.room-header {
+    background: var(--primary-dark);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 10;
+}
+.back-btn {
+    color: white;
+    font-size: 22px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+.back-btn:hover { background: rgba(255,255,255,0.15); }
+
+.header-avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+.header-info { flex: 1; }
+.header-name { font-size: 16px; font-weight: 700; color: white; }
+.header-status { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 1px; }
+
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* ── MESSAGES AREA ── */
+.messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    scroll-behavior: smooth;
+}
+.messages-area::-webkit-scrollbar { width: 4px; }
+.messages-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+/* ── DATE DIVIDER ── */
+.date-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 6px;
+}
+.date-divider span {
+    background: rgba(255,255,255,0.85);
+    color: var(--text-sub);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* ── BUBBLE ── */
+.msg-row {
+    display: flex;
+    margin-bottom: 2px;
+}
+.msg-row.out { justify-content: flex-end; }
+.msg-row.in  { justify-content: flex-start; }
+
+/* Group: reduce gap between consecutive messages from same sender */
+.msg-row.out + .msg-row.out,
+.msg-row.in  + .msg-row.in  { margin-top: -6px; }
+
+.bubble {
+    max-width: 72%;
+    padding: 8px 12px 6px;
+    border-radius: 10px;
+    position: relative;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    animation: bubbleIn 0.15s ease;
+}
+@keyframes bubbleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.msg-row.out .bubble {
+    background: var(--bubble-out);
+    border-radius: 10px 2px 10px 10px;
+}
+.msg-row.in .bubble {
+    background: var(--bubble-in);
+    border-radius: 2px 10px 10px 10px;
+}
+
+/* First message in a group gets the tail */
+.msg-row.out.first .bubble::after {
+    content: '';
+    position: absolute;
+    top: 0; right: -8px;
+    border: 8px solid transparent;
+    border-top-color: var(--bubble-out);
+    border-right: 0;
+}
+.msg-row.in.first .bubble::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -8px;
+    border: 8px solid transparent;
+    border-top-color: var(--bubble-in);
+    border-left: 0;
+}
+
+.bubble-text {
+    font-size: 14px;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+.bubble-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 3px;
+}
+.bubble-time {
+    font-size: 11px;
+    color: var(--text-sub);
+}
+.tick {
+    font-size: 13px;
+    color: var(--text-sub);
+    line-height: 1;
+}
+.tick.read { color: var(--tick-read); }
+
+/* ── TYPING INDICATOR ── */
+.typing-indicator {
+    display: none;
+    padding: 8px 14px;
+    background: white;
+    border-radius: 2px 10px 10px 10px;
+    width: fit-content;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    margin-left: 4px;
+}
+.typing-indicator.show { display: flex; gap: 4px; align-items: center; }
+.typing-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #aaa;
+    animation: typingBounce 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+}
+
+/* ── INPUT BAR ── */
+.input-bar {
+    background: var(--header-bg);
+    padding: 8px 10px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.msg-input-wrap {
+    flex: 1;
+    background: white;
+    border-radius: 24px;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    gap: 8px;
+}
+#msgInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text-main);
+    resize: none;
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 1.4;
+    background: none;
+}
+#msgInput::placeholder { color: #aaa; }
+
+.emoji-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-sub);
+    padding: 0;
+    line-height: 1;
+}
+
+.send-btn {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.15s, background 0.15s;
+    box-shadow: 0 2px 8px rgba(37,211,102,0.4);
+}
+.send-btn:hover { transform: scale(1.07); }
+.send-btn:active { transform: scale(0.95); }
+.send-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+/* ── LOADING & EMPTY ── */
+.msg-loading, .msg-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-sub);
+}
+.msg-empty .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+.msg-empty h3 { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+
+/* ── EMOJI PICKER (simple) ── */
+.emoji-picker {
+    display: none;
+    position: absolute;
+    bottom: 70px;
+    left: 10px;
+    background: white;
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 100;
+    grid-template-columns: repeat(8,1fr);
+    gap: 6px;
+    max-width: 300px;
+}
+.emoji-picker.open { display: grid; }
+.emoji-pick-btn {
+    font-size: 22px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    line-height: 1;
+}
+.emoji-pick-btn:hover { background: #f0f0f0; }
+
+@media (max-width: 480px) {
+    .bubble { max-width: 88%; }
+    .header-actions { gap: 4px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-page" style="position:relative;">
+
+    <!-- HEADER -->
+    <div class="room-header">
+        <a href="{% url 'guard_chat_list' %}" class="back-btn">←</a>
+        <div class="header-avatar" id="headerAvatar">?</div>
+        <div class="header-info">
+            <div class="header-name" id="headerName">Loading...</div>
+            <div class="header-status" id="headerStatus">connecting...</div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="refreshMessages()" title="Refresh">🔄</button>
+        </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="messages-area" id="messagesArea">
+        <div class="msg-loading">⏳ Loading messages...</div>
+    </div>
+
+    <!-- EMOJI PICKER -->
+    <div class="emoji-picker" id="emojiPicker">
+        {% for emoji in "😀😂😍🥺😭😡🤔👍👎❤️🔥💯✅🎉🙏😊😎🤣😘😅🥳👋🤝💪🏠🔒🚨⚠️📋✍️📅🕐" %}
+        <button class="emoji-pick-btn" onclick="insertEmoji('{{ emoji }}')">{{ emoji }}</button>
+        {% endfor %}
+    </div>
+
+    <!-- INPUT BAR -->
+    <div class="input-bar">
+        <div class="msg-input-wrap">
+            <button class="emoji-btn" onclick="toggleEmojiPicker(event)">😊</button>
+            <textarea
+                id="msgInput"
+                rows="1"
+                placeholder="Type a message..."
+                onkeydown="handleKey(event)"
+                oninput="autoResize(this)"
+            ></textarea>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const CHAT_ID        = {{ chat_id }};
+const CURRENT_USER   = { id: {{ request.user.id }}, name: "{{ request.user.get_full_name|default:request.user.username }}" };
+const COLORS         = ['#128c7e','#6366f1','#f59e0b','#ef4444','#06b6d4','#8b5cf6'];
+
+let lastMessageId    = 0;
+let pollTimer        = null;
+let otherUser        = {};
+let messageCache     = [];
+
+// ── INIT ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    loadChatInfo();
+    loadMessages(true);
+    startPolling();
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#emojiPicker') && !e.target.closest('.emoji-btn')) {
+            document.getElementById('emojiPicker').classList.remove('open');
+        }
+    });
+});
+
+// ── LOAD CHAT META (other user info) ────────────────────────
+function loadChatInfo() {
+    fetch('/api/chats/', { headers: {'X-Requested-With':'XMLHttpRequest'} })
+    .then(r => r.json())
+    .then(data => {
+        const chats = data.chats || data || [];
+        const chat  = chats.find(c => c.id == CHAT_ID);
+        if (chat) {
+            otherUser = chat.other_user || {};
+            const name = otherUser.name || otherUser.full_name || otherUser.username || 'Chat';
+            document.getElementById('headerName').textContent = name;
+            document.getElementById('headerAvatar').textContent = getInitials(name);
+            const idx = Math.abs(hashStr(name)) % COLORS.length;
+            document.getElementById('headerAvatar').style.background = COLORS[idx];
+            updateOnlineStatus(otherUser.is_online);
+        }
+    })
+    .catch(() => {
+        document.getElementById('headerName').textContent = 'Chat';
+    });
+}
+
+function updateOnlineStatus(isOnline) {
+    const el = document.getElementById('headerStatus');
+    if (isOnline) {
+        el.textContent = '🟢 online';
+        el.style.color = '#90cdb0';
+    } else {
+        el.textContent = 'tap for info';
+        el.style.color = 'rgba(255,255,255,0.65)';
+    }
+}
+
+// ── LOAD MESSAGES ────────────────────────────────────────────
+function loadMessages(initial = false) {
+    fetch(`/api/chats/${CHAT_ID}/messages/`, {
+        headers: {'X-Requested-With':'XMLHttpRequest'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        const msgs = data.messages || data || [];
+        renderMessages(msgs, initial);
+        // Mark as read
+        fetch(`/api/chats/${CHAT_ID}/mark-read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).catch(() => {});
+    })
+    .catch(() => {
+        if (initial) {
+            document.getElementById('messagesArea').innerHTML = `
+                <div class="msg-empty">
+                    <div class="icon">⚠️</div>
+                    <h3>Couldn't load messages</h3>
+                    <p>Pull to refresh</p>
+                </div>`;
+        }
+    });
+}
+
+// ── RENDER MESSAGES ──────────────────────────────────────────
+function formatDate(dateStr) {
+    const d   = new Date(dateStr);
+    const now = new Date();
+    const today = now.toDateString();
+    const yesterday = new Date(now - 86400000).toDateString();
+    if (d.toDateString() === today)     return 'Today';
+    if (d.toDateString() === yesterday) return 'Yesterday';
+    return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function formatTime(dateStr) {
+    return new Date(dateStr).toLocaleTimeString('en-IN', {
+        hour:'2-digit', minute:'2-digit', hour12:true
+    });
+}
+
+function renderMessages(msgs, scrollToBottom = false) {
+    const area = document.getElementById('messagesArea');
+
+    if (!msgs.length) {
+        area.innerHTML = `
+            <div class="msg-empty">
+                <div class="icon">💬</div>
+                <h3>No messages yet</h3>
+                <p>Say hello! 👋</p>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+    let lastDate = '';
+    let lastSender = null;
+
+    msgs.forEach((msg, idx) => {
+        const isMine  = (msg.sender === CURRENT_USER.id || msg.sender_id === CURRENT_USER.id || msg.is_mine);
+        const dir     = isMine ? 'out' : 'in';
+        const content = msg.content || msg.text || msg.message || '';
+        const ts      = msg.created_at || msg.timestamp || msg.sent_at || '';
+        const dateLabel = ts ? formatDate(ts) : '';
+        const timeLabel = ts ? formatTime(ts) : '';
+        const isRead  = msg.is_read || false;
+
+        // Date divider
+        if (dateLabel && dateLabel !== lastDate) {
+            html += `<div class="date-divider"><span>${dateLabel}</span></div>`;
+            lastDate   = dateLabel;
+            lastSender = null;
+        }
+
+        const isFirst = (msg.sender !== lastSender && msg.sender_id !== lastSender);
+        lastSender = msg.sender || msg.sender_id;
+
+        const firstClass = isFirst ? ' first' : '';
+        const tick = isMine
+            ? `<span class="tick ${isRead ? 'read' : ''}">✓✓</span>`
+            : '';
+
+        html += `
+        <div class="msg-row ${dir}${firstClass}">
+            <div class="bubble">
+                <div class="bubble-text">${escapeHtml(content)}</div>
+                <div class="bubble-meta">
+                    <span class="bubble-time">${timeLabel}</span>
+                    ${tick}
+                </div>
+            </div>
+        </div>`;
+    });
+
+    area.innerHTML = html;
+
+    if (scrollToBottom) {
+        area.scrollTop = area.scrollHeight;
+    } else {
+        // Only scroll if user is near bottom
+        const atBottom = area.scrollHeight - area.clientHeight - area.scrollTop < 100;
+        if (atBottom) area.scrollTop = area.scrollHeight;
+    }
+
+    // Update lastMessageId for polling
+    if (msgs.length) {
+        const last = msgs[msgs.length - 1];
+        lastMessageId = last.id || 0;
+    }
+}
+
+// ── SEND MESSAGE ─────────────────────────────────────────────
+function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.disabled = true;
+
+    // Optimistic UI — add bubble immediately
+    addOptimisticBubble(text);
+    input.value = '';
+    autoResize(input);
+
+    fetch(`/api/chats/${CHAT_ID}/send/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ message: text, content: text }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        sendBtn.disabled = false;
+        // Refresh to get server-confirmed message
+        loadMessages(false);
+    })
+    .catch(() => {
+        sendBtn.disabled = false;
+        showToast('Failed to send', 'error');
+    });
+}
+
+function addOptimisticBubble(text) {
+    const area = document.getElementById('messagesArea');
+    // Remove empty state if present
+    const empty = area.querySelector('.msg-empty');
+    if (empty) empty.remove();
+
+    const now = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',hour12:true});
+    const div = document.createElement('div');
+    div.className = 'msg-row out first';
+    div.innerHTML = `
+        <div class="bubble" style="opacity:0.7;">
+            <div class="bubble-text">${escapeHtml(text)}</div>
+            <div class="bubble-meta">
+                <span class="bubble-time">${now}</span>
+                <span class="tick">✓</span>
+            </div>
+        </div>`;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+}
+
+// ── POLLING ──────────────────────────────────────────────────
+function startPolling() {
+    pollTimer = setInterval(() => loadMessages(false), 3000);
+}
+
+function refreshMessages() {
+    loadMessages(true);
+}
+
+// ── INPUT HELPERS ────────────────────────────────────────────
+function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── EMOJI ────────────────────────────────────────────────────
+const EMOJIS = ['😀','😂','😍','🥺','😭','😡','🤔','👍','👎','❤️','🔥','💯',
+                '✅','🎉','🙏','😊','😎','🤣','😘','😅','🥳','👋','🤝','💪',
+                '🏠','🔒','🚨','⚠️','📋','✍️','📅','🕐'];
+
+function toggleEmojiPicker(e) {
+    e.stopPropagation();
+    const picker = document.getElementById('emojiPicker');
+    if (!picker.innerHTML.trim()) {
+        picker.innerHTML = EMOJIS.map(em =>
+            `<button class="emoji-pick-btn" onclick="insertEmoji('${em}')">${em}</button>`
+        ).join('');
+    }
+    picker.classList.toggle('open');
+}
+
+function insertEmoji(emoji) {
+    const input = document.getElementById('msgInput');
+    input.value += emoji;
+    input.focus();
+    autoResize(input);
+}
+
+// ── UTILS ────────────────────────────────────────────────────
+function getInitials(name) {
+    return name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+}
+
+function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+    return h;
+}
+
+function escapeHtml(text) {
+    return text
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/\n/g,'<br>');
+}
+
+function getCookie(name) {
+    const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : '';
+}
+
+function showToast(msg, type='success') {
+    const el = document.createElement('div');
+    el.style.cssText = `
+        position:fixed; top:80px; left:50%; transform:translateX(-50%);
+        background:${type==='success'?'#25d366':'#ef4444'};
+        color:white; padding:12px 20px; border-radius:10px;
+        font-weight:700; font-size:13px; z-index:9999;
+        box-shadow:0 4px 16px rgba(0,0,0,0.2);
+    `;
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 3000);
+}
+
+// cleanup on leave
+window.addEventListener('beforeunload', () => clearInterval(pollTimer));
+</script>
+{% endblock %}

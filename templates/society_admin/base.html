@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MySociety - Community Management{% endblock %}</title>
+
+    <style>
+        /* ---- Mobile (default) ---- */
+        @media (max-width: 640px) {
+            body { font-size: 14px; }
+            .header { padding: 14px 14px; }
+            .logo { font-size: 18px; gap: 8px; }
+            .role-badge { font-size: 10px; padding: 3px 8px; }
+            .icon-btn { width: 36px; height: 36px; font-size: 16px; }
+            .main-content { padding: 16px 14px 110px; }
+            .card { padding: 16px; border-radius: 12px; }
+            .bottom-nav { padding: 8px 0 env(safe-area-inset-bottom); }
+            .nav-item { font-size: 11px; gap: 2px; }
+            .nav-icon { font-size: 20px; }
+        }
+
+        @media (min-width: 641px) and (max-width: 900px) {
+            .header-content, .main-content { padding-left: 16px; padding-right: 16px; }
+            .logo { font-size: 20px; }
+            .nav-icon { font-size: 21px; }
+        }
+
+        @media (min-width: 1200px) {
+            .main-content { padding-bottom: 80px; }
+            .card { padding: 24px; }
+        }
+
+        /* Touch & UX */
+        .nav-item, .icon-btn, .btn { -webkit-tap-highlight-color: transparent; }
+        .logo span, .nav-item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        html { scroll-behavior: smooth; }
+        .bottom-nav { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: linear-gradient(135deg, {% block header_gradient %}#6366f1 0%, #4f46e5 100%{% endblock %});
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .role-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            text-decoration: none;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .icon-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* ── Notification badge on icon ── */
+        .notif-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            padding: 0 4px;
+            border: 2px solid transparent;
+            line-height: 1;
+            /* pulse animation when count > 0 */
+            animation: badge-pulse 2s infinite;
+        }
+
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+            50%       { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 20px 90px;
+            min-height: calc(100vh - 160px);
+        }
+
+        /* ========== BOTTOM NAV ========== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.12);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 200;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: #64748b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .nav-item.active { color: {% block nav_active_color %}#6366f1{% endblock %}; }
+        .nav-icon { font-size: 22px; }
+
+        /* ========== COMMON UI ========== */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, {% block btn_gradient %}#6366f1 0%, #4f46e5 100%{% endblock %});
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99,102,241,0.4);
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            margin-bottom: 22px;
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+    <div class="header-content">
+        <div class="logo">
+            <span>{% block logo_icon %}🏢{% endblock %}</span>
+            <span>MySociety</span>
+            {% if current_role %}
+                <span class="role-badge">{{ current_role|title }}</span>
+            {% endif %}
+        </div>
+
+        <div class="header-actions">
+
+            <!-- Notification / Messages icon -->
+            <a href="{% url 'society_admin_notifications' %}"
+               class="icon-btn"
+               title="Messages & Notifications"
+               id="notifIconLink">
+                🔔
+                {% if notification_count and notification_count > 0 %}
+                    <span class="notif-badge" id="notifBadge">
+                        {% if notification_count > 99 %}99+{% else %}{{ notification_count }}{% endif %}
+                    </span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'society_admin_settings' %}" class="icon-btn" title="Profile">
+                {{ user.username|slice:":1"|upper }}
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="card" style="background:#fef9c3;border-left:4px solid #f59e0b;color:#92400e;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ===== BOTTOM NAV ===== -->
+<nav class="bottom-nav">
+
+{% if current_role == "resident" %}
+    <a href="{% url 'resident_dashboard' %}" class="nav-item {% block nav_home %}{% endblock %}">
+        <div class="nav-icon">🏠</div>
+        Home
+    </a>
+    <a href="{% url 'resident_visitors' %}" class="nav-item">
+        <div class="nav-icon">👥</div>
+        Visitors
+    </a>
+    <a href="{% url 'resident_services' %}" class="nav-item {% block nav_services %}{% endblock %}">
+        <div class="nav-icon">🛠️</div>
+        Services
+    </a>
+    <a href="{% url 'resident_notices' %}" class="nav-item">
+        <div class="nav-icon">📢</div>
+        Community
+    </a>
+
+{% elif current_role == "society_admin" %}
+    <a href="{% url 'society_admin_dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}">
+        <div class="nav-icon">📊</div>
+        Dashboard
+    </a>
+    <a href="{% url 'society_admin_residents' %}" class="nav-item">
+        <div class="nav-icon">👥</div>
+        Residents
+    </a>
+    <a href="{% url 'society_admin_guards' %}" class="nav-item">
+        <div class="nav-icon">🛡️</div>
+        <span>Guards</span>
+    </a>
+    <a href="{% url 'society_admin_notices' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'society_admin_notices' %}active{% endif %}">
+        <div class="nav-icon">📢</div>
+        <span>Notices</span>
+    </a>
+    <a href="{% url 'society_admin_settings' %}" class="nav-item">
+        <div class="nav-icon">⚙️</div>
+        Settings
+    </a>
+
+{% elif current_role == "guard" %}
+    <a href="{% url 'guard_dashboard' %}" class="nav-item">
+        <div class="nav-icon">🛡️</div>
+        Gate
+    </a>
+{% endif %}
+
+</nav>
+
+<!-- ── Live badge polling (every 30s) ── -->
+<script>
+(function () {
+    function refreshBadge() {
+        fetch('/api/unread-count/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+                const count = data.count || 0;
+                const link  = document.getElementById('notifIconLink');
+                if (!link) return;
+
+                let badge = document.getElementById('notifBadge');
+
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.id = 'notifBadge';
+                        badge.className = 'notif-badge';
+                        link.appendChild(badge);
+                    }
+                    badge.textContent = count > 99 ? '99+' : count;
+                } else {
+                    if (badge) badge.remove();
+                }
+            })
+            .catch(() => {}); // fail silently
+    }
+
+    // Poll every 30 seconds
+    setInterval(refreshBadge, 30000);
+})();
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

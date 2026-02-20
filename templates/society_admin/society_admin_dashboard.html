@@ -1,0 +1,1177 @@
+{% extends "society_admin/base.html" %}
+
+{% block title %}MyGate - Society Admin Dashboard{% endblock %}
+{% block role_name %}Society Admin{% endblock %}
+{% block logo_icon %}🏢{% endblock %}
+{% block header_gradient %}#6366f1 0%, #4f46e5 100%{% endblock %}
+{% block nav_active_color %}#6366f1{% endblock %}
+{% block btn_gradient %}#6366f1 0%, #4f46e5 100%{% endblock %}
+
+{% block navigation %}
+<a href="{% url 'society_admin_dashboard' %}" class="nav-item active">
+    <div class="nav-icon">📊</div>
+    <span>Dashboard</span>
+</a>
+<a href="#" class="nav-item">
+    <div class="nav-icon">👥</div>
+    <span>Residents</span>
+</a>
+<a href="#" class="nav-item">
+    <div class="nav-icon">🛡️</div>
+    <span>Guards</span>
+</a>
+<a href="#" class="nav-item">
+    <div class="nav-icon">📢</div>
+    <span>Notices</span>
+</a>
+<a href="#" class="nav-item">
+    <div class="nav-icon">📈</div>
+    <span>Analytics</span>
+</a>
+<a href="#" class="nav-item">
+    <div class="nav-icon">⚙️</div>
+    <span>Settings</span>
+</a>
+{% endblock %}
+
+{% block extra_styles %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+
+<style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f0f2f8;
+        color: #1a1d2e;
+    }
+
+    /* ── HERO ── */
+    .admin-hero {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #4338ca 100%);
+        color: white;
+        padding: 32px 36px;
+        border-radius: 24px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(67, 56, 202, 0.35);
+    }
+
+    .admin-hero::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -60px;
+        width: 380px; height: 380px;
+        background: radial-gradient(circle, rgba(165,180,252,0.18) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .admin-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: -40px;
+        width: 260px; height: 260px;
+        background: radial-gradient(circle, rgba(129,140,248,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .hero-content { position: relative; z-index: 1; }
+
+    .hero-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .admin-greeting {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #a5b4fc;
+        margin-bottom: 6px;
+    }
+
+    .admin-title {
+        font-size: clamp(22px, 4vw, 34px);
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 6px;
+        line-height: 1.15;
+    }
+
+    .admin-subtitle {
+        font-size: 14px;
+        color: rgba(255,255,255,0.7);
+        font-weight: 500;
+    }
+
+    .hero-datetime {
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .hero-time {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: clamp(24px, 4vw, 36px);
+        font-weight: 600;
+        color: white;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .hero-date {
+        font-size: 13px;
+        color: rgba(255,255,255,0.65);
+        font-weight: 500;
+    }
+
+    .society-code-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .society-code-card {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 14px;
+        padding: 14px 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        transition: background 0.25s;
+    }
+    .society-code-card:hover { background: rgba(255,255,255,0.15); }
+
+    .code-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #a5b4fc;
+        margin-bottom: 4px;
+    }
+
+    .code-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        color: white;
+    }
+
+    .copy-btn {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.25);
+        color: white;
+        padding: 9px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        transition: all 0.25s ease;
+        white-space: nowrap;
+    }
+    .copy-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(-2px);
+    }
+    .copy-btn.copied {
+        background: rgba(16,185,129,0.35);
+        border-color: rgba(52,211,153,0.4);
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.85);
+    }
+
+    .hero-badge .dot {
+        width: 8px; height: 8px;
+        background: #34d399;
+        border-radius: 50%;
+        animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+        0%,100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+        50% { box-shadow: 0 0 0 5px rgba(52,211,153,0); }
+    }
+
+    /* ── METRICS ── */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        cursor: default;
+    }
+    .metric-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 36px rgba(0,0,0,0.1);
+    }
+
+    .metric-card-accent {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 4px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .accent-indigo { background: linear-gradient(90deg, #6366f1, #818cf8); }
+    .accent-emerald { background: linear-gradient(90deg, #10b981, #34d399); }
+    .accent-sky { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+    .accent-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .accent-violet { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+    .accent-rose { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+
+    .metric-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+    }
+
+    .metric-icon-wrap {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    .icon-indigo { background: #eef2ff; }
+    .icon-emerald { background: #ecfdf5; }
+    .icon-sky { background: #f0f9ff; }
+    .icon-amber { background: #fffbeb; }
+    .icon-violet { background: #f5f3ff; }
+    .icon-rose { background: #fff1f2; }
+
+    .metric-value {
+        font-size: 38px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1;
+        margin-bottom: 4px;
+        letter-spacing: -1px;
+    }
+
+    .metric-label {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .metric-change {
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+    .change-positive { background: #ecfdf5; color: #059669; }
+    .change-negative { background: #fff1f2; color: #e11d48; }
+    .change-neutral { background: #f8fafc; color: #64748b; }
+
+    /* ── SECTION HEADERS ── */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ── QUICK ACTIONS ── */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 14px;
+        margin-bottom: 28px;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 18px;
+        padding: 22px 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        text-align: center;
+        border: 2px solid transparent;
+        text-decoration: none;
+        display: block;
+    }
+    .action-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 32px rgba(99,102,241,0.15);
+        border-color: #6366f1;
+    }
+
+    .action-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    .action-card:hover .action-icon { transform: scale(1.15); }
+
+    .action-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    /* ── PENDING ── */
+    .pending-section {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border: 1px solid #fde68a;
+        border-left: 5px solid #f59e0b;
+        padding: 24px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px rgba(245,158,11,0.1);
+    }
+
+    .pending-title {
+        font-size: 17px;
+        font-weight: 800;
+        margin-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #78350f;
+    }
+
+    /* ── BADGES ── */
+    .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .badge-approved { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .badge-active { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-open { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .badge-resolved { background: #d1fae5; color: #065f46; }
+
+    /* ── REQUEST ITEMS ── */
+    .request-item {
+        background: white;
+        padding: 18px 20px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        transition: all 0.2s;
+    }
+    .request-item:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
+
+    .request-avatar {
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #818cf8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .request-info h4 {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #0f172a;
+    }
+    .request-info p {
+        font-size: 13px;
+        color: #64748b;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .request-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ── BUTTONS ── */
+    .btn {
+        padding: 9px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        white-space: nowrap;
+    }
+    .btn-sm { padding: 7px 14px; font-size: 12px; }
+    .btn-success {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16,185,129,0.25);
+    }
+    .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16,185,129,0.35); }
+    .btn-danger {
+        background: linear-gradient(135deg, #f43f5e, #e11d48);
+        color: white;
+        box-shadow: 0 4px 12px rgba(244,63,94,0.25);
+    }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(244,63,94,0.35); }
+    .btn-ghost {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    .btn-ghost:hover { background: #e2e8f0; transform: translateY(-1px); }
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(99,102,241,0.35); }
+
+    /* ── CARDS ── */
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+    }
+
+    .card-header {
+        font-size: 17px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #0f172a;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f1f5f9;
+    }
+
+    /* ── COMPLAINT ITEMS ── */
+    .complaint-item {
+        padding: 18px;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        border: 1.5px solid #e2e8f0;
+        transition: all 0.25s;
+        background: #fafcff;
+    }
+    .complaint-item:hover {
+        border-color: #6366f1;
+        box-shadow: 0 4px 16px rgba(99,102,241,0.1);
+        background: white;
+    }
+
+    .complaint-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .complaint-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #0f172a;
+    }
+
+    .complaint-meta {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+
+    .complaint-description {
+        font-size: 14px;
+        color: #475569;
+        line-height: 1.65;
+        margin-bottom: 14px;
+    }
+
+    /* Priority indicators */
+    .priority-high { border-left: 4px solid #ef4444; }
+    .priority-medium { border-left: 4px solid #f59e0b; }
+    .priority-low { border-left: 4px solid #10b981; }
+
+    /* ── RESIDENT / GUARD ITEMS ── */
+    .person-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        margin-bottom: 10px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        transition: all 0.25s;
+    }
+    .person-item:hover {
+        background: white;
+        border-color: #6366f1;
+        box-shadow: 0 4px 14px rgba(99,102,241,0.1);
+    }
+
+    .person-avatar {
+        width: 44px; height: 44px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+        font-weight: 800;
+        font-family: 'JetBrains Mono', monospace;
+        color: white;
+    }
+    .avatar-resident { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+    .avatar-guard { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+
+    .person-info { flex: 1; min-width: 0; }
+    .person-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: #0f172a;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .person-sub {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    /* ── STATS ROW (visitor analytics) ── */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 14px;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 20px 16px;
+        border-radius: 14px;
+        text-align: center;
+        border: 2px solid #e2e8f0;
+        transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .stat-box:hover {
+        border-color: #6366f1;
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(99,102,241,0.15);
+    }
+
+    .stat-number {
+        font-size: 34px;
+        font-weight: 800;
+        color: #4f46e5;
+        margin-bottom: 6px;
+        letter-spacing: -1px;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    /* ── ACTIVITY FEED ── */
+    .activity-feed {
+        max-height: 460px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+    .activity-feed::-webkit-scrollbar { width: 5px; }
+    .activity-feed::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+    .activity-feed::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    .activity-item {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px 14px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        background: #f8fafc;
+        transition: all 0.2s;
+    }
+    .activity-item:hover { background: #f1f5f9; }
+    .activity-item.notice { background: #fffbeb; }
+    .activity-item.notice:hover { background: #fef3c7; }
+
+    .activity-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+    .dot-blue { background: #0ea5e9; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .activity-time {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-bottom: 3px;
+        font-weight: 600;
+    }
+    .activity-text {
+        font-size: 13px;
+        color: #334155;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    /* ── GRID LAYOUTS ── */
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── EMPTY STATES ── */
+    .empty-state {
+        text-align: center;
+        padding: 36px 20px;
+        color: #94a3b8;
+    }
+    .empty-state .es-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+    .empty-state p { font-size: 14px; font-weight: 600; margin: 0; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+        .admin-hero { padding: 22px 20px; border-radius: 18px; }
+        .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .metric-value { font-size: 28px; }
+        .action-grid { grid-template-columns: repeat(3, 1fr); }
+        .hero-top { flex-direction: column; }
+        .hero-datetime { text-align: left; }
+        .request-item { flex-direction: column; align-items: flex-start; }
+        .request-actions { width: 100%; }
+        .card { padding: 18px; }
+        .pending-section { padding: 18px; }
+    }
+
+    @media (max-width: 400px) {
+        .metrics-grid { grid-template-columns: 1fr 1fr; }
+        .action-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .admin-hero,
+    .metrics-grid,
+    .pending-section,
+    .card { animation: fadeUp 0.45s ease both; }
+
+    .metrics-grid { animation-delay: 0.05s; }
+    .action-grid { animation-delay: 0.1s; }
+    .pending-section { animation-delay: 0.15s; }
+
+    /* ── SEARCH BAR ── */
+    .search-bar-wrap {
+        position: relative;
+        max-width: 300px;
+    }
+    .search-bar {
+        width: 100%;
+        padding: 9px 16px 9px 40px;
+        border-radius: 12px;
+        border: 1.5px solid #e2e8f0;
+        background: white;
+        font-size: 13px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #334155;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .search-bar:focus { border-color: #6366f1; }
+    .search-icon {
+        position: absolute;
+        left: 12px; top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 15px;
+    }
+
+    /* Scrollable resident/guard lists */
+    .person-list { max-height: 340px; overflow-y: auto; padding-right: 4px; }
+    .person-list::-webkit-scrollbar { width: 5px; }
+    .person-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+    .person-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ── -->
+<div class="admin-hero">
+    <div class="hero-content">
+        <div class="hero-top">
+            <div>
+                <div class="admin-greeting">Society Admin Portal</div>
+                <div class="admin-title">Welcome back! 👋</div>
+                <div class="admin-subtitle">{{ society_name }} &nbsp;·&nbsp; {{ total_apartments }} Units</div>
+            </div>
+            <div class="hero-datetime">
+                <div class="hero-time" id="liveClock">--:--</div>
+                <div class="hero-date" id="liveDate">Loading...</div>
+            </div>
+        </div>
+
+        <div class="society-code-row">
+            <div class="society-code-card">
+                <div>
+                    <div class="code-label">Society Code</div>
+                    <div class="code-value" id="societyCode">{{ society_code }}</div>
+                </div>
+                <button class="copy-btn" id="copyBtn" onclick="copySocietyCode()">📋 Copy</button>
+            </div>
+            {% if pending_users %}
+            <div class="hero-badge">
+                <span class="dot"></span>
+                {{ pending_users|length }} pending approval{{ pending_users|length|pluralize }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ── METRICS ── -->
+<div class="metrics-grid">
+
+    <div class="metric-card">
+        <div class="metric-card-accent accent-indigo"></div>
+        <div class="metric-top">
+            <div>
+                <div class="metric-value">{{ total_apartments }}</div>
+                <div class="metric-label">Total Flats</div>
+            </div>
+            <div class="metric-icon-wrap icon-indigo">🏠</div>
+        </div>
+        {% if total_apartments > 0 %}
+            <div class="metric-change change-positive">↑ {{ occupancy_pct }}% occupancy</div>
+        {% else %}
+            <div class="metric-change change-neutral">No units yet</div>
+        {% endif %}
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-accent accent-emerald"></div>
+        <div class="metric-top">
+            <div>
+                <div class="metric-value">{{ total_residents }}</div>
+                <div class="metric-label">Active Residents</div>
+            </div>
+            <div class="metric-icon-wrap icon-emerald">👥</div>
+        </div>
+        {% if new_residents_week > 0 %}
+            <div class="metric-change change-positive">↑ {{ new_residents_week }} new this week</div>
+        {% else %}
+            <div class="metric-change change-neutral">No new residents this week</div>
+        {% endif %}
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-accent accent-sky"></div>
+        <div class="metric-top">
+            <div>
+                <div class="metric-value">{{ today_visitors }}</div>
+                <div class="metric-label">Today's Visitors</div>
+            </div>
+            <div class="metric-icon-wrap icon-sky">👤</div>
+        </div>
+        {% if visitor_change > 0 %}
+            <div class="metric-change change-positive">↑ {{ visitor_change }} more than yesterday</div>
+        {% elif visitor_change < 0 %}
+            <div class="metric-change change-negative">↓ {{ visitor_change|slice:"1:" }} fewer than yesterday</div>
+        {% else %}
+            <div class="metric-change change-neutral">Same as yesterday</div>
+        {% endif %}
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-accent accent-amber"></div>
+        <div class="metric-top">
+            <div>
+                <div class="metric-value">{{ pending_deliveries }}</div>
+                <div class="metric-label">Pending Deliveries</div>
+            </div>
+            <div class="metric-icon-wrap icon-amber">📦</div>
+        </div>
+        {% if delivered_today > 0 %}
+            <div class="metric-change change-positive">↑ {{ delivered_today }} delivered today</div>
+        {% elif pending_deliveries > 0 %}
+            <div class="metric-change change-negative">{{ pending_deliveries }} awaiting pickup</div>
+        {% else %}
+            <div class="metric-change change-neutral">All clear</div>
+        {% endif %}
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-accent accent-violet"></div>
+        <div class="metric-top">
+            <div>
+                <div class="metric-value">{{ total_guards }}</div>
+                <div class="metric-label">Security Guards</div>
+            </div>
+            <div class="metric-icon-wrap icon-violet">🛡️</div>
+        </div>
+        {% if total_guards > 0 %}
+            <div class="metric-change change-positive">{{ total_guards }} on duty</div>
+        {% else %}
+            <div class="metric-change change-negative">No guards assigned</div>
+        {% endif %}
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-accent accent-rose"></div>
+        <div class="metric-top">
+            <div>
+                <div class="metric-value">{{ open_complaints_count }}</div>
+                <div class="metric-label">Open Complaints</div>
+            </div>
+            <div class="metric-icon-wrap icon-rose">⚠️</div>
+        </div>
+        {% if resolved_today > 0 %}
+            <div class="metric-change change-positive">↑ {{ resolved_today }} resolved today</div>
+        {% elif open_complaints_count == 0 %}
+            <div class="metric-change change-positive">All clear! 🎉</div>
+        {% else %}
+            <div class="metric-change change-negative">{{ open_complaints_count }} need attention</div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- ── QUICK ACTIONS ── -->
+<div class="section-header">
+    <div class="section-title">⚡ Quick Actions</div>
+</div>
+<div class="action-grid">
+    <a href="#" class="action-card">
+        <span class="action-icon">📢</span>
+        <div class="action-title">Send Notice</div>
+    </a>
+    <a href="#" class="action-card">
+        <span class="action-icon">✅</span>
+        <div class="action-title">Approve Members</div>
+    </a>
+    <a href="#" class="action-card">
+        <span class="action-icon">📊</span>
+        <div class="action-title">View Reports</div>
+    </a>
+    <a href="#" class="action-card">
+        <span class="action-icon">🔧</span>
+        <div class="action-title">Services</div>
+    </a>
+    <a href="#" class="action-card">
+        <span class="action-icon">💰</span>
+        <div class="action-title">Billing</div>
+    </a>
+    <a href="#" class="action-card">
+        <span class="action-icon">📋</span>
+        <div class="action-title">Access Logs</div>
+    </a>
+</div>
+
+<!-- ── PENDING APPROVALS ── -->
+<div class="pending-section">
+    <div class="pending-title">
+        <span>⏳ Pending Member Approvals</span>
+        <span class="badge badge-pending">{{ pending_users|length }} Request{{ pending_users|length|pluralize }}</span>
+    </div>
+
+    {% for u in pending_users %}
+    <div class="request-item">
+        <div class="request-avatar">👤</div>
+        <div class="request-info" style="flex:1;">
+            <h4>
+                {{ u.user.username }}
+                {% if u.apartment %}<span style="font-weight:500;color:#64748b;"> · Flat {{ u.apartment.flat_number }}</span>{% endif %}
+            </h4>
+            <p>{{ u.get_role_display }} &nbsp;·&nbsp; <span class="badge badge-pending" style="padding:2px 8px;font-size:11px;">{{ u.status|title }}</span></p>
+        </div>
+        <div class="request-actions">
+            <a href="{% url 'approve_user' u.id %}" class="btn btn-success btn-sm">✓ Approve</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <span class="es-icon">🎉</span>
+        <p>No pending member approvals</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ── COMPLAINTS + ACTIVITY (2-col on desktop) ── -->
+<div class="two-col">
+
+    <!-- Complaints -->
+    <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+            <span>🎫 Active Complaints</span>
+            <span class="badge badge-open">{{ open_complaints_count }} Open</span>
+        </div>
+
+        {% for c in complaints %}
+        <div class="complaint-item {% if c.priority == 'high' %}priority-high{% elif c.priority == 'medium' %}priority-medium{% else %}priority-low{% endif %}">
+            <div class="complaint-header">
+                <div class="complaint-title">{{ c.title }}</div>
+                <span class="badge {% if c.priority == 'high' %}badge-open{% elif c.priority == 'medium' %}badge-pending{% else %}badge-approved{% endif %}">
+                    {{ c.get_priority_display }}
+                </span>
+            </div>
+            <div class="complaint-meta">
+                {{ c.user.username }}{% if c.apartment %} · Flat {{ c.apartment.flat_number }}{% endif %} &nbsp;·&nbsp; {{ c.created_at|timesince }} ago
+            </div>
+            <div class="complaint-description">{{ c.description|truncatewords:25 }}</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="badge badge-active">{{ c.get_status_display }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <span class="es-icon">🎉</span>
+            <p>No complaints — great job!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+            <span>🕐 Recent Activity</span>
+            <button class="btn btn-ghost btn-sm">View All</button>
+        </div>
+
+        <div class="activity-feed">
+            {% for v in recent_visitors %}
+            <div class="activity-item">
+                <div class="activity-dot dot-blue"></div>
+                <div>
+                    <div class="activity-time">{{ v.created_at|timesince }} ago</div>
+                    <div class="activity-text">🚶 {{ v.get_visitor_type_display }} entry: <strong>{{ v.name }}</strong></div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for a in recent_announcements %}
+            <div class="activity-item notice">
+                <div class="activity-dot dot-yellow"></div>
+                <div>
+                    <div class="activity-time">{{ a.created_at|timesince }} ago</div>
+                    <div class="activity-text">📢 Notice: <strong>{{ a.title }}</strong></div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not recent_visitors and not recent_announcements %}
+            <div class="empty-state">
+                <span class="es-icon">💤</span>
+                <p>No recent activity today</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<div style="margin-bottom:24px;"></div>
+
+<!-- ── RESIDENTS + GUARDS (2-col on desktop) ── -->
+<div class="two-col">
+
+    <!-- Residents -->
+    <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+            <span>🏠 Active Residents</span>
+            <span class="badge badge-approved">{{ total_residents }} Total</span>
+        </div>
+        <div class="person-list">
+            {% for u in residents %}
+            <div class="person-item">
+                <div class="person-avatar avatar-resident">
+                    {{ u.user.username|first|upper }}
+                </div>
+                <div class="person-info">
+                    <div class="person-name">{{ u.user.username }}</div>
+                    <div class="person-sub">
+                        Flat {{ u.apartment.flat_number }}
+                        {% if u.phone %}&nbsp;·&nbsp; 📞 {{ u.phone }}{% endif %}
+                    </div>
+                </div>
+                <span class="badge badge-approved">Active</span>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <span class="es-icon">🏠</span>
+                <p>No approved residents yet</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Guards -->
+    <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+            <span>🛡️ Active Guards</span>
+            <span class="badge badge-approved">{{ total_guards }} Total</span>
+        </div>
+        <div class="person-list">
+            {% for u in guards %}
+            <div class="person-item">
+                <div class="person-avatar avatar-guard">
+                    {{ u.user.username|first|upper }}
+                </div>
+                <div class="person-info">
+                    <div class="person-name">{{ u.user.username }}</div>
+                    <div class="person-sub">
+                        {{ u.get_role_display }}
+                        {% if u.phone %}&nbsp;·&nbsp; 📞 {{ u.phone }}{% endif %}
+                    </div>
+                </div>
+                <span class="badge badge-active">On Duty</span>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <span class="es-icon">🛡️</span>
+                <p>No guards assigned yet</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<div style="margin-bottom:24px;"></div>
+
+<!-- ── VISITOR ANALYTICS ── -->
+<div class="card">
+    <div class="card-header">
+        <span>📊 Visitor Analytics — Today</span>
+        <span class="badge badge-active">{{ today_visitors }} Total</span>
+    </div>
+
+    <div class="stats-row">
+        {% for row in visitor_stats %}
+        <div class="stat-box">
+            <div class="stat-number">{{ row.count }}</div>
+            <div class="stat-label">{{ row.visitor_type|title }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-state" style="grid-column:1/-1;">
+            <span class="es-icon">📭</span>
+            <p>No visitors recorded today</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ── Live Clock ──
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('liveClock').textContent =
+            now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        document.getElementById('liveDate').textContent =
+            now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Copy Society Code ──
+    function copySocietyCode() {
+        const code = document.getElementById('societyCode').textContent.trim();
+        const btn = document.getElementById('copyBtn');
+        navigator.clipboard.writeText(code).then(() => {
+            btn.textContent = '✓ Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = '📋 Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(() => {
+            alert('Society Code: ' + code);
+        });
+    }
+
+    // ── Metric card subtle entry animation ──
+    const cards = document.querySelectorAll('.metric-card');
+    cards.forEach((card, i) => {
+        card.style.animationDelay = `${i * 0.06}s`;
+        card.style.animation = 'fadeUp 0.4s ease both';
+    });
+</script>
+{% endblock %}

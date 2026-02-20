@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Guard Dashboard - MyGate{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .shift-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .shift-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .shift-title {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .shift-status {
+        background: #27ae60;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .shift-details {
+        display: flex;
+        gap: 20px;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .quick-entry {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .entry-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .entry-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+    .entry-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+
+    .entry-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .entry-subtitle {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .voice-btn {
+        background: #3498db;
+        color: white;
+        padding: 16px 20px;
+        border-radius: 50px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+
+    .voice-btn:hover {
+        background: #2980b9;
+        transform: scale(1.02);
+    }
+
+    .voice-btn:active {
+        transform: scale(0.98);
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-box {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .approval-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .approval-info h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .approval-info p {
+        font-size: 13px;
+        color: #666;
+        margin: 3px 0;
+    }
+
+    .approval-actions {
+        display: flex;
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .temperature-check {
+        background: #e8f5e9;
+        border: 2px solid #4caf50;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .temp-icon {
+        font-size: 36px;
+    }
+
+    .temp-info h4 {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .temp-info p {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .leaderboard-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
+
+    .leaderboard-rank {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2c3e50;
+        width: 40px;
+    }
+
+    .leaderboard-info {
+        flex: 1;
+    }
+
+    .leaderboard-name {
+        font-weight: 600;
+        margin-bottom: 3px;
+    }
+
+    .leaderboard-points {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .leaderboard-badge {
+        font-size: 24px;
+    }
+
+    .announcement-time {
+        font-size: 11px;
+        color: #999;
+        display: block;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="shift-header">
+    <div class="shift-info">
+        <div class="shift-title">Good {{ greeting }}, {{ request.user.first_name|default:request.user.username }}! 👋</div>
+        <div class="shift-status">🟢 On Duty</div>
+    </div>
+    <div class="shift-details">
+        <div>⏰ Shift: 6:00 AM - 2:00 PM</div>
+        <div>📍 Gate: Main Entrance</div>
+        <div>🕐 Time: {{ current_time }}</div>
+    </div>
+</div>
+
+<button class="voice-btn" id="voiceBtn">
+    <span>🎤</span>
+    <span>Voice Entry Command (Tap to Speak)</span>
+</button>
+
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-number">{{ today_entries }}</div>
+        <div class="stat-label">Today's Entries</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ pending_count }}</div>
+        <div class="stat-label">Pending Approvals</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ parcels_today }}</div>
+        <div class="stat-label">Parcels Logged</div>
+    </div>
+</div>
+
+<div class="section-title">Quick Entry</div>
+<div class="quick-entry">
+    <a href="{% url 'guard_entry' %}?type=visitor" class="entry-card">
+        <div class="entry-icon">👤</div>
+        <div class="entry-title">Visitor Entry</div>
+        <div class="entry-subtitle">Log new visitor</div>
+    </a>
+    <a href="{% url 'guard_entry' %}?type=daily_help" class="entry-card">
+        <div class="entry-icon">🏃</div>
+        <div class="entry-title">Daily Help</div>
+        <div class="entry-subtitle">Staff check-in</div>
+    </a>
+    <a href="{% url 'guard_entry' %}?type=vehicle" class="entry-card">
+        <div class="entry-icon">🚗</div>
+        <div class="entry-title">Vehicle Entry</div>
+        <div class="entry-subtitle">Log vehicle</div>
+    </a>
+    <a href="{% url 'guard_parcels' %}" class="entry-card">
+        <div class="entry-icon">📦</div>
+        <div class="entry-title">Parcel</div>
+        <div class="entry-subtitle">Delivery received</div>
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span>Pending Approvals</span>
+        <span class="badge badge-pending">{{ pending_visitors.count }} Waiting</span>
+    </div>
+
+    {% if pending_visitors %}
+        {% for v in pending_visitors %}
+        <div class="approval-item">
+            <div class="approval-info">
+                <h4>{{ v.name }} - {{ v.get_visitor_type_display }}</h4>
+                <p>Purpose: {{ v.purpose|default:"Visit" }}</p>
+                <p>Mobile: {{ v.mobile }}</p>
+                <p>Apartment: {{ v.apartment.block }}-{{ v.apartment.flat_number }}</p>
+            </div>
+            <div class="approval-actions">
+                <button class="btn btn-success btn-small" onclick="callResident('{{ v.id }}', '{{ v.apartment.block }}', '{{ v.apartment.flat_number }}')">
+                    📞 Call
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">✓</div>
+            <p>No pending approvals</p>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">Recent Check-ins</div>
+    
+    <div class="temperature-check">
+        <div class="temp-icon">🌡️</div>
+        <div class="temp-info">
+            <h4>Temperature & Mask Check</h4>
+            <p>Last reading: 36.8°C • Mask: ✓ Worn</p>
+        </div>
+    </div>
+
+    {% if recent_checkins %}
+        {% for checkin in recent_checkins %}
+        <div class="approval-item">
+            <div class="approval-info">
+                <h4>{{ checkin.get_visitor_type_display }} - {{ checkin.name }}</h4>
+                <p>{{ checkin.apartment.block }}-{{ checkin.apartment.flat_number }} • Check-in: {{ checkin.created_at|time:"g:i A" }}</p>
+                {% if checkin.status == 'checked_in' %}
+                <p>Status: ✓ Active</p>
+                {% endif %}
+            </div>
+            <span class="badge badge-approved">Active</span>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p>No recent check-ins</p>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">🏆 Guard Leaderboard - This Week</div>
+    
+    {% if leaderboard %}
+        {% for guard in leaderboard %}
+        <div class="leaderboard-item">
+            <div class="leaderboard-rank">{{ forloop.counter }}</div>
+            <div class="leaderboard-info">
+                <div class="leaderboard-name">
+                    {% if guard.user == request.user %}You ({{ guard.user.first_name|default:guard.user.username }}){% else %}{{ guard.user.first_name|default:guard.user.username }}{% endif %}
+                </div>
+                <div class="leaderboard-points">{{ guard.points }} points • {{ guard.entries }} entries logged</div>
+            </div>
+            <div class="leaderboard-badge">
+                {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🏆</div>
+            <p>No leaderboard data available</p>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">Today's Tasks</div>
+    
+    <div class="approval-item">
+        <div class="approval-info">
+            <h4>Morning Patrol</h4>
+            <p>Check all common areas and parking</p>
+            <span class="announcement-time">Scheduled: 10:00 AM</span>
+        </div>
+        <a href="{% url 'guard_patrol' %}" class="btn btn-primary btn-small">Start Patrol</a>
+    </div>
+
+    <div class="approval-item">
+        <div class="approval-info">
+            <h4>Shift Handover</h4>
+            <p>Transfer duties to afternoon shift guard</p>
+            <span class="announcement-time">Due: 2:00 PM</span>
+        </div>
+        <span class="badge badge-pending">Pending</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Voice command simulation
+    document.getElementById('voiceBtn').addEventListener('click', function() {
+        this.style.background = '#e74c3c';
+        this.innerHTML = '<span>🔴</span><span>Listening... Speak now</span>';
+        
+        setTimeout(() => {
+            alert('Voice command: "Visitor entry for apartment B-504" - Processing...');
+            this.style.background = '#3498db';
+            this.innerHTML = '<span>🎤</span><span>Voice Entry Command (Tap to Speak)</span>';
+        }, 2000);
+    });
+
+    // Call resident functionality
+    function callResident(visitorId, block, flat) {
+        if(confirm(`Call resident at ${block}-${flat} for visitor approval?`)) {
+            alert('📞 Calling resident...');
+            // Here you can add AJAX call to notify resident
+        }
+    }
+</script>
+{% endblock %}

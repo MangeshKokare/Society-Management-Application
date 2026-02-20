@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Entry Log{% endblock %}
+{% block role_name %}Security Guard{% endblock %}
+{% block logo_icon %}🛡️{% endblock %}
+{% block header_gradient %}#2c3e50 0%, #34495e 100%{% endblock %}
+{% block nav_active_color %}#2c3e50{% endblock %}
+{% block btn_gradient %}#2c3e50 0%, #34495e 100%{% endblock %}
+
+{% block navigation %}
+<a href="guard_index.html" class="nav-item">
+    <div class="nav-icon">🏠</div>
+    <span>Dashboard</span>
+</a>
+<a href="guard_entry.html" class="nav-item active">
+    <div class="nav-icon">✅</div>
+    <span>Entry Log</span>
+</a>
+<a href="guard_patrol.html" class="nav-item">
+    <div class="nav-icon">🚶</div>
+    <span>Patrol</span>
+</a>
+<a href="guard_parcels.html" class="nav-item">
+    <div class="nav-icon">📦</div>
+    <span>Parcels</span>
+</a>
+<a href="guard_profile.html" class="nav-item">
+    <div class="nav-icon">👤</div>
+    <span>Profile</span>
+</a>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .entry-form {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #2c3e50;
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+    }
+
+    .entry-type-selector {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .type-option {
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .type-option:hover {
+        border-color: #2c3e50;
+        background: #f8f9fa;
+    }
+
+    .type-option.selected {
+        border-color: #2c3e50;
+        background: #2c3e50;
+        color: white;
+    }
+
+    .type-icon {
+        font-size: 32px;
+        margin-bottom: 5px;
+    }
+
+    .type-label {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .biometric-section {
+        background: #e8f5e9;
+        border: 2px dashed #4caf50;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .biometric-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+
+    .biometric-text {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .scan-btn {
+        background: #4caf50;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .scan-btn:hover {
+        background: #388e3c;
+    }
+
+    .photo-capture {
+        background: #f0f0f0;
+        border: 2px dashed #999;
+        border-radius: 8px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+
+    .photo-capture:hover {
+        background: #e8e8e8;
+    }
+
+    .recent-entries {
+        margin-top: 30px;
+    }
+
+    .entry-item {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .entry-details h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .entry-details p {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 3px;
+    }
+
+    .entry-status {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+    }
+
+    .filter-tab {
+        padding: 10px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 20px;
+        background: white;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: all 0.3s;
+    }
+
+    .filter-tab.active {
+        background: #2c3e50;
+        color: white;
+        border-color: #2c3e50;
+    }
+
+    .offline-indicator {
+        background: #ff9800;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section-title">New Entry</div>
+
+<form class="entry-form"
+      method="POST"
+      enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="entry-type-selector">
+        <div class="type-option selected">
+            <div class="type-icon">👤</div>
+            <div class="type-label">Visitor</div>
+        </div>
+        <div class="type-option">
+            <div class="type-icon">🏃</div>
+            <div class="type-label">Daily Help</div>
+        </div>
+        <div class="type-option">
+            <div class="type-icon">🚗</div>
+            <div class="type-label">Vehicle</div>
+        </div>
+        <div class="type-option">
+            <div class="type-icon">📦</div>
+            <div class="type-label">Delivery</div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Visitor Name *</label>
+        <input type="text"
+            name="name"
+            class="form-input"
+            placeholder="Enter full name"
+            required>
+
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Phone Number *</label>
+        <input type="tel"
+            name="mobile"
+            class="form-input"
+            placeholder="+91 98765 43210"
+            required>
+
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Going to Apartment *</label>
+        <select name="apartment" class="form-select" required>
+            <option value="">Select apartment...</option>
+            {% for apt in apartments %}
+                <option value="{{ apt.id }}">
+                    {{ apt.block }}-{{ apt.flat_number }}
+                </option>
+            {% endfor %}
+        </select>
+
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Purpose of Visit</label>
+        <select name="purpose" class="form-select">
+            <option>Select purpose...</option>
+            <option>Personal Visit</option>
+            <option>Delivery</option>
+            <option>Service/Repair</option>
+            <option>Meeting</option>
+            <option>Other</option>
+        </select>
+    </div>
+
+    <div class="biometric-section">
+        <div class="biometric-icon">👆</div>
+        <div class="biometric-text">Capture Fingerprint (Optional)</div>
+        <button class="scan-btn">Scan Fingerprint</button>
+    </div>
+
+    <div class="photo-capture" onclick="document.getElementById('photoInput').click()">
+        <div style="font-size: 48px; margin-bottom: 10px;">📷</div>
+        <div style="font-size: 14px; color: #666;">Tap to capture visitor photo</div>
+        <input type="file"
+            id="photoInput"
+            name="photo"
+            accept="image/*"
+            capture="environment"
+            hidden>
+    </div>
+
+
+    <div class="form-group">
+        <label class="form-label">Temperature Check</label>
+        <input type="number" class="form-input" placeholder="36.5°C" step="0.1">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Mask Status</label>
+        <select class="form-select">
+            <option>Wearing Mask</option>
+            <option>Not Wearing Mask</option>
+        </select>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" style="flex: 1;">📞 Call Resident</button>
+        <button type="submit" class="btn btn-success" style="flex: 1;">
+            ✅ Allow Entry
+        </button>
+
+    </div>
+</form>
+
+
+<div class="offline-indicator">
+    <span>📶</span>
+    <span>Offline Mode Available - Entries will sync when online</span>
+</div>
+
+<div class="recent-entries">
+    <div class="section-title">Today's Entries</div>
+
+    {% for visitor in recent_entries %}
+    <div class="entry-item">
+        <div style="display:flex;gap:12px;align-items:center;">
+            {% if visitor.photos.first %}
+                <img src="{{ visitor.photos.first.photo.url }}"
+                     style="width:55px;height:55px;border-radius:8px;object-fit:cover;">
+            {% else %}
+                <div style="width:55px;height:55px;border-radius:8px;
+                            background:#eee;display:flex;align-items:center;
+                            justify-content:center;">👤</div>
+            {% endif %}
+
+            <div class="entry-details">
+                <h4>{{ visitor.name }} - Visitor</h4>
+                <p>📍 {{ visitor.apartment.block }}-{{ visitor.apartment.flat_number }}</p>
+                <p>📞 {{ visitor.mobile }}</p>
+                <span class="announcement-time">
+                    Entry: {{ visitor.check_in_time|date:"h:i A" }}
+                </span>
+            </div>
+        </div>
+
+        <div class="entry-status">
+            {% if visitor.status == "checked_in" %}
+                <span class="badge badge-approved">Inside</span>
+            {% else %}
+                <span class="badge badge-active">Exited</span>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+        <p style="color:#777;">No entries today</p>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Entry type selection
+    document.querySelectorAll('.type-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.type-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            this.classList.add('selected');
+        });
+    });
+
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+
+    // Biometric scan
+    document.querySelector('.scan-btn').addEventListener('click', function() {
+        this.textContent = '🔄 Scanning...';
+        setTimeout(() => {
+            this.textContent = '✅ Fingerprint Captured';
+            this.style.background = '#27ae60';
+        }, 2000);
+    });
+
+    // Photo capture
+    document.querySelector('.photo-capture').addEventListener('click', function() {
+    });
+</script>
+{% endblock %}

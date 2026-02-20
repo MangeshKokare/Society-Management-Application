@@ -1,0 +1,192 @@
+{% extends "service_provider\service_provider_base.html" %}
+
+{% block title %}Client Details{% endblock %}
+{% block nav_clients %}active{% endblock %}
+
+{% block content %}
+
+<!-- Back Button -->
+<div style="margin-bottom: 16px;">
+    <a href="{% url 'service_provider_clients' %}" class="btn btn-secondary">
+        ← Back to Clients
+    </a>
+</div>
+
+<!-- Client Header -->
+<div class="card">
+    <div style="display: flex; gap: 24px; align-items: start;">
+        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                    color: white; font-size: 48px; flex-shrink: 0;">
+            👤
+        </div>
+        
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                <div>
+                    <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">
+                        {{ hired.resident.first_name }} {{ hired.resident.last_name }}
+                    </h1>
+                    <div style="font-size: 16px; color: #666; margin-bottom: 4px;">
+                        🏢 {{ hired.resident.userprofile.apartment.society.name }}
+                    </div>
+                    <div style="font-size: 14px; color: #666;">
+                        {{ hired.resident.userprofile.apartment.block }}-{{ hired.resident.userprofile.apartment.flat_number }}
+                    </div>
+                </div>
+                
+                {% if hired.status == 'active' %}
+                    <span class="badge badge-success" style="font-size: 16px; padding: 10px 20px;">
+                        🟢 Active Client
+                    </span>
+                {% elif hired.status == 'paused' %}
+                    <span class="badge badge-warning" style="font-size: 16px; padding: 10px 20px;">
+                        ⏸️ Paused
+                    </span>
+                {% else %}
+                    <span class="badge badge-danger" style="font-size: 16px; padding: 10px 20px;">
+                        ⛔ Terminated
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Information -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">📞 Contact Information</h2>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+        <div style="padding: 16px; background: #f8f9ff; border-radius: 10px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">Phone Number</div>
+            <div style="font-size: 18px; font-weight: 700;">{{ hired.resident.userprofile.phone }}</div>
+            <a href="tel:{{ hired.resident.userprofile.phone }}" class="btn btn-primary" 
+               style="margin-top: 12px; width: 100%; text-align: center;">
+                📞 Call Now
+            </a>
+        </div>
+        
+        <div style="padding: 16px; background: #f8f9ff; border-radius: 10px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">Email Address</div>
+            <div style="font-size: 16px; font-weight: 600; word-break: break-all;">
+                {{ hired.resident.email|default:"Not provided" }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Details -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">🛠️ Service Details</h2>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+        <div style="padding: 16px; background: #f8f9ff; border-radius: 10px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">🕐 Service Timing</div>
+            <div style="font-size: 18px; font-weight: 700;">{{ hired.timing }}</div>
+        </div>
+        
+        <div style="padding: 16px; background: #f8f9ff; border-radius: 10px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">📅 Working Days</div>
+            <div style="font-size: 18px; font-weight: 700;">{{ hired.days }}</div>
+        </div>
+        
+        <div style="padding: 16px; background: #e8f5e9; border-radius: 10px;">
+            <div style="font-size: 12px; color: #2e7d32; margin-bottom: 6px;">💰 Monthly Payment</div>
+            <div style="font-size: 22px; font-weight: 800; color: #2e7d32;">₹{{ hired.monthly_payment }}</div>
+        </div>
+        
+        <div style="padding: 16px; background: #f8f9ff; border-radius: 10px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 6px;">📆 Service Duration</div>
+            <div style="font-size: 16px; font-weight: 700;">
+                {% if hired.end_date %}
+                    {{ hired.start_date|date:"d M Y" }} - {{ hired.end_date|date:"d M Y" }}
+                {% else %}
+                    Since {{ hired.start_date|date:"d M Y" }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Special Instructions -->
+{% if hired.special_instructions %}
+<div class="card" style="background: #fff3cd;">
+    <div class="card-header" style="border-color: #ffe0b2;">
+        <h2 class="card-title" style="color: #856404;">📝 Special Instructions</h2>
+    </div>
+    <div style="font-size: 16px; color: #856404; line-height: 1.6;">
+        {{ hired.special_instructions }}
+    </div>
+</div>
+{% endif %}
+
+<!-- Service Timeline -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">📊 Service Timeline</h2>
+    </div>
+    
+    <div style="position: relative; padding-left: 30px;">
+        <!-- Timeline Line -->
+        <div style="position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: #e0e0e0;"></div>
+        
+        <!-- Start Date -->
+        <div style="position: relative; margin-bottom: 24px;">
+            <div style="position: absolute; left: -26px; width: 16px; height: 16px; 
+                        background: #28a745; border-radius: 50%; border: 3px solid white;"></div>
+            <div style="font-size: 12px; color: #999; margin-bottom: 4px;">
+                {{ hired.created_at|date:"d M Y, h:i A" }}
+            </div>
+            <div style="font-weight: 700; font-size: 16px;">Service Requested</div>
+            <div style="font-size: 14px; color: #666;">Initial hire request created</div>
+        </div>
+        
+        <!-- Start Date -->
+        <div style="position: relative; margin-bottom: 24px;">
+            <div style="position: absolute; left: -26px; width: 16px; height: 16px; 
+                        background: #667eea; border-radius: 50%; border: 3px solid white;"></div>
+            <div style="font-size: 12px; color: #999; margin-bottom: 4px;">
+                {{ hired.start_date|date:"d M Y" }}
+            </div>
+            <div style="font-weight: 700; font-size: 16px;">Service Started</div>
+            <div style="font-size: 14px; color: #666;">Active service period began</div>
+        </div>
+        
+        <!-- Current Status -->
+        <div style="position: relative;">
+            <div style="position: absolute; left: -26px; width: 16px; height: 16px; 
+                        {% if hired.status == 'active' %}background: #28a745;
+                        {% elif hired.status == 'paused' %}background: #ffa726;
+                        {% else %}background: #e74c3c;{% endif %}
+                        border-radius: 50%; border: 3px solid white;"></div>
+            <div style="font-size: 12px; color: #999; margin-bottom: 4px;">
+                {{ hired.updated_at|date:"d M Y, h:i A" }}
+            </div>
+            <div style="font-weight: 700; font-size: 16px;">
+                Current Status: {{ hired.get_status_display }}
+            </div>
+            <div style="font-size: 14px; color: #666;">Last updated on {{ hired.updated_at|date:"d M Y" }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+{% if hired.status == 'active' %}
+<div class="card">
+    <div style="display: flex; gap: 12px;">
+        <a href="tel:{{ hired.resident.userprofile.phone }}" class="btn btn-primary" style="flex: 1; text-align: center;">
+            📞 Call Client
+        </a>
+        <a href="{% url 'service_provider_clients' %}" class="btn btn-secondary">
+            Back to Clients
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGate - Emergency</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-size: 20px;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .alert-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .alert-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .alert-text {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .sos-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 25px rgba(220, 53, 69, 0.4);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .sos-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(220, 53, 69, 0.5);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 25px 0 15px;
+            color: #333;
+        }
+
+        .emergency-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .emergency-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .emergency-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+        }
+
+        .emergency-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .emergency-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .emergency-number {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .contact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .contact-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+        }
+
+        .contact-details h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .contact-role {
+            font-size: 13px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-call {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-message {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .info-card {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card p {
+            font-size: 14px;
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 5px 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="back-btn">←</a>
+            <div class="logo">
+                <span>🚨</span>
+                <span>Emergency</span>
+            </div>
+            <div style="width: 40px;"></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="alert-banner">
+            <div class="alert-icon">🚨</div>
+            <div class="alert-title">Emergency Alert</div>
+            <div class="alert-text">In case of emergency, press SOS button below or call security directly</div>
+        </div>
+
+        <button class="sos-btn">
+            <span style="font-size: 32px;">🆘</span>
+            <span>PRESS FOR SOS</span>
+        </button>
+
+        <div class="info-card">
+            <p><strong>⚠️ Important:</strong> The SOS button will immediately alert security, management, and emergency contacts. Use only in genuine emergencies.</p>
+        </div>
+
+        <div class="section-title">Quick Emergency Services</div>
+        <div class="emergency-grid">
+            <div class="emergency-card">
+                <div class="emergency-icon">🚓</div>
+                <div class="emergency-name">Police</div>
+                <div class="emergency-number">100</div>
+            </div>
+            <div class="emergency-card">
+                <div class="emergency-icon">🚒</div>
+                <div class="emergency-name">Fire</div>
+                <div class="emergency-number">101</div>
+            </div>
+            <div class="emergency-card">
+                <div class="emergency-icon">🚑</div>
+                <div class="emergency-name">Ambulance</div>
+                <div class="emergency-number">102</div>
+            </div>
+            <div class="emergency-card">
+                <div class="emergency-icon">🏥</div>
+                <div class="emergency-name">Hospital</div>
+                <div class="emergency-number">108</div>
+            </div>
+        </div>
+
+        <div class="section-title">Society Emergency Contacts</div>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <div class="contact-info">
+                    <div class="contact-avatar">🛡️</div>
+                    <div class="contact-details">
+                        <h3>Security Office</h3>
+                        <span class="contact-role">Main Gate</span>
+                    </div>
+                </div>
+            </div>
+            <div class="contact-actions">
+                <button class="btn btn-call">📞 Call</button>
+                <button class="btn btn-message">💬 Message</button>
+            </div>
+        </div>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <div class="contact-info">
+                    <div class="contact-avatar">👤</div>
+                    <div class="contact-details">
+                        <h3>Vikram Singh</h3>
+                        <span class="contact-role">Head Security</span>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: #666; margin-bottom: 10px;">📱 +91 98765 12345</p>
+            <div class="contact-actions">
+                <button class="btn btn-call">📞 Call</button>
+                <button class="btn btn-message">💬 Message</button>
+            </div>
+        </div>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <div class="contact-info">
+                    <div class="contact-avatar">👤</div>
+                    <div class="contact-details">
+                        <h3>Ramesh Kumar</h3>
+                        <span class="contact-role">Society Manager</span>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: #666; margin-bottom: 10px;">📱 +91 98123 45678</p>
+            <div class="contact-actions">
+                <button class="btn btn-call">📞 Call</button>
+                <button class="btn btn-message">💬 Message</button>
+            </div>
+        </div>
+
+        <div class="section-title">Nearby Facilities</div>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <div class="contact-info">
+                    <div class="contact-avatar">🏥</div>
+                    <div class="contact-details">
+                        <h3>Apollo Hospital</h3>
+                        <span class="contact-role">2.5 km away</span>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: #666; margin-bottom: 10px;">📱 +91 020-12345678<br>📍 Baner Road, Pune</p>
+            <div class="contact-actions">
+                <button class="btn btn-call">📞 Call</button>
+                <button class="btn btn-message">🗺️ Directions</button>
+            </div>
+        </div>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <div class="contact-info">
+                    <div class="contact-avatar">🚓</div>
+                    <div class="contact-details">
+                        <h3>Baner Police Station</h3>
+                        <span class="contact-role">1.8 km away</span>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: #666; margin-bottom: 10px;">📱 +91 020-87654321<br>📍 Baner, Pune</p>
+            <div class="contact-actions">
+                <button class="btn btn-call">📞 Call</button>
+                <button class="btn btn-message">🗺️ Directions</button>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <span>Home</span>
+        </a>
+        <a href="visitors.html" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <span>Visitors</span>
+        </a>
+        <a href="services.html" class="nav-item">
+            <div class="nav-icon">🛠️</div>
+            <span>Services</span>
+        </a>
+        <a href="community.html" class="nav-item">
+            <div class="nav-icon">💬</div>
+            <span>Community</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <div class="nav-icon">⚙️</div>
+            <span>Profile</span>
+        </a>
+    </nav>
+</body>
+</html>

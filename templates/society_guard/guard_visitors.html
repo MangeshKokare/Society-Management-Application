@@ -1,0 +1,890 @@
+{% extends "society_guard/guard_base.html" %}
+
+{% block title %}Visitors - MyGate Guard{% endblock %}
+{% block page_title %}Visitors{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* Tabs - Side by Side in One Line */
+    .tabs {
+        display: flex;
+        background: white;
+        border-radius: 12px;
+        padding: 5px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        gap: 5px;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 10px 5px;
+        text-align: center;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #7f8c8d;
+        white-space: nowrap;
+    }
+
+    .tab.active {
+        background: #3498db;
+        color: white;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .visitor-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .visitor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .visitor-info h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 3px;
+    }
+
+    .visitor-type {
+        display: inline-block;
+        padding: 3px 10px;
+        background: #ecf0f1;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 8px;
+    }
+
+    .visitor-details {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .visitor-details div {
+        margin-bottom: 3px;
+    }
+
+    .visitor-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-approve {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-reject {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-call {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-checkout {
+        background: #f39c12;
+        color: white;
+    }
+
+    .search-bar {
+        margin-bottom: 15px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        font-size: 14px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+
+    .stats-mini {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .stat-mini {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .stat-mini-number {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .stat-mini-label {
+        font-size: 11px;
+        color: #666;
+        margin-top: 2px;
+    }
+
+    .filter-chips {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .filter-chip {
+        padding: 6px 14px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .filter-chip.active {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+    }
+    
+    .entry-code-scanner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .scanner-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .code-input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .code-input {
+        flex: 1;
+        padding: 15px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-align: center;
+        font-family: 'Courier New', monospace;
+    }
+
+    .code-input::placeholder {
+        color: rgba(255,255,255,0.5);
+    }
+
+    .code-input:focus {
+        outline: none;
+        border-color: rgba(255,255,255,0.6);
+        background: rgba(255,255,255,0.15);
+    }
+
+    .verify-btn {
+        width: 100%;
+        padding: 15px;
+        background: white;
+        color: #667eea;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .verify-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .verified-visitor-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .verified-badge {
+        display: inline-block;
+        background: #4caf50;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .visitor-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .visitor-info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #666;
+    }
+
+    .info-value {
+        color: #333;
+    }
+
+    .checkin-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 15px;
+    }
+
+    .error-message {
+        background: #ffebee;
+        color: #c62828;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .time-display {
+        display: inline-block;
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 5px;
+    }
+
+    .duration-display {
+        display: inline-block;
+        background: #fff3e0;
+        color: #e65100;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 5px;
+    }
+
+    .image-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        cursor: zoom-out;
+    }
+
+    .image-modal img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        animation: zoomIn 0.25s ease;
+    }
+
+    @keyframes zoomIn {
+        from { transform: scale(0.85); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- 🔐 ENTRY CODE SCANNER -->
+<div class="entry-code-scanner">
+    <div class="scanner-title">🔐 Entry Code Verification</div>
+    
+    <div class="code-input-group">
+        <input
+            type="text"
+            id="entryCodeInput"
+            maxlength="6"
+            placeholder="000000"
+            class="code-input"
+            autocomplete="off"
+        >
+    </div>
+
+    <button class="verify-btn" onclick="verifyEntryCode()">
+        🔍 Verify Code
+    </button>
+
+    <div id="entryCodeResult"></div>
+</div>
+
+<div class="search-bar">
+    <input type="text" class="search-input" placeholder="🔍 Search by name, mobile, or flat..." id="searchInput">
+</div>
+
+<div class="stats-mini">
+    <div class="stat-mini">
+        <div class="stat-mini-number">{{ pending_count }}</div>
+        <div class="stat-mini-label">Pending</div>
+    </div>
+    <div class="stat-mini">
+        <div class="stat-mini-number">{{ active_count }}</div>
+        <div class="stat-mini-label">Inside</div>
+    </div>
+    <div class="stat-mini">
+        <div class="stat-mini-number">{{ today_total }}</div>
+        <div class="stat-mini-label">Today</div>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('pending')">Pending</div>
+    <div class="tab" onclick="switchTab('active')">Inside</div>
+    <div class="tab" onclick="switchTab('history')">History</div>
+</div>
+
+<!-- Pending Tab -->
+<div class="tab-content active" id="pending">
+    {% if pending_visitors %}
+        {% for visitor in pending_visitors %}
+        <div class="visitor-card">
+            <div class="visitor-header" style="display:flex; gap:12px;">
+                
+                {% with visitor.photos.first as photo %}
+                    {% if photo %}
+                        <img src="{{ photo.photo.url }}"
+                            onclick="openImageModal('{{ photo.photo.url }}')"
+                            style="width:55px;height:55px;
+                                    border-radius:10px;
+                                    object-fit:cover;
+                                    cursor:zoom-in;">
+                    {% else %}
+                        <div style="width:55px;height:55px;
+                                    background:#e5e7eb;
+                                    border-radius:10px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;">
+                            👤
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <div class="visitor-info">
+                    <span class="visitor-type">{{ visitor.get_visitor_type_display }}</span>
+                    <h3>{{ visitor.name }}</h3>
+                </div>
+
+                <span class="badge badge-pending">Pending</span>
+            </div>
+
+            
+            <div class="visitor-details">
+                <div>📱 {{ visitor.mobile }}</div>
+                <div>🏠 {{ visitor.apartment.block }}-{{ visitor.apartment.flat_number }}</div>
+                <div>📝 {{ visitor.purpose|default:"Visit" }}</div>
+                <div>🕐 {{ visitor.created_at|time:"g:i A" }}</div>
+            </div>
+
+            <div class="visitor-actions">
+                <button class="action-btn btn-call" onclick="callResident('{{ visitor.id }}', '{{ visitor.apartment.block }}', '{{ visitor.apartment.flat_number }}')">
+                    📞 Call
+                </button>
+                <button class="action-btn btn-approve" onclick="approveVisitor('{{ visitor.id }}')">
+                    ✓ Approve
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">✓</div>
+            <p>No pending approvals</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Active Tab -->
+<div class="tab-content" id="active">
+    {% if active_visitors %}
+        {% for visitor in active_visitors %}
+        <div class="visitor-card">
+            <div class="visitor-header" style="display:flex; gap:12px; align-items:flex-start;">
+
+                {% with visitor.photos.first as photo %}
+                    {% if photo %}
+                        <img src="{{ photo.photo.url }}"
+                            onclick="openImageModal('{{ photo.photo.url }}')"
+                            style="width:55px;height:55px;
+                                    border-radius:10px;
+                                    object-fit:cover;
+                                    cursor:zoom-in;">
+                    {% else %}
+                        <div style="width:55px;height:55px;
+                                    background:#e5e7eb;
+                                    border-radius:10px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;">
+                            👤
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <div class="visitor-info">
+                    <span class="visitor-type">{{ visitor.get_visitor_type_display }}</span>
+                    <h3>{{ visitor.name }}</h3>
+                </div>
+
+                <span class="badge badge-approved">Inside</span>
+            </div>
+
+            
+            <div class="visitor-details">
+                <div>📱 {{ visitor.mobile }}</div>
+                <div>🏠 {{ visitor.apartment.block }}-{{ visitor.apartment.flat_number }}</div>
+                
+                {% if visitor.check_in_time %}
+                <div>
+                    🟢 In since: {{ visitor.check_in_time|time:"g:i A" }}
+                    <span class="time-display">{{ visitor.check_in_time|timesince }} ago</span>
+                </div>
+                {% else %}
+                <div>⏱️ In since: {{ visitor.created_at|time:"g:i A" }}</div>
+                {% endif %}
+
+                {% if visitor.checked_in_by %}
+                <div style="font-size: 11px; color: #999;">
+                    Checked in by: {{ visitor.checked_in_by.username }}
+                </div>
+                {% endif %}
+
+                {% if visitor.check_in_time %}
+                    {% now "U" as current_time %}
+                    {% with duration=visitor.check_in_time|timesince %}
+                        {% if "hour" in duration %}
+                            {% with hours=duration|slice:":1" %}
+                                {% if hours|add:"0" > 3 %}
+                                <div style="color: #e74c3c; font-weight: 600; margin-top: 5px;">
+                                    ⚠️ Overstay alert! ({{ duration }})
+                                </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+            </div>
+
+            <div class="visitor-actions">
+                <button class="action-btn btn-checkout" onclick="checkoutVisitor('{{ visitor.id }}')">
+                    🚪 Check Out
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">👥</div>
+            <p>No visitors inside currently</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- History Tab -->
+<div class="tab-content" id="history">
+    <div class="filter-chips">
+        <div class="filter-chip active" onclick="filterHistory('all')">All</div>
+        <div class="filter-chip" onclick="filterHistory('today')">Today</div>
+        <div class="filter-chip" onclick="filterHistory('yesterday')">Yesterday</div>
+        <div class="filter-chip" onclick="filterHistory('week')">This Week</div>
+    </div>
+
+    {% if history_visitors %}
+        {% for visitor in history_visitors %}
+        <div class="visitor-card history-item" data-date="{{ visitor.created_at|date:'Y-m-d' }}">
+            <div class="visitor-header" style="display:flex; gap:12px; align-items:flex-start;">
+
+                {% with visitor.photos.first as photo %}
+                    {% if photo %}
+                        <img src="{{ photo.photo.url }}"
+                            onclick="openImageModal('{{ photo.photo.url }}')"
+                            style="width:55px;height:55px;
+                                    border-radius:10px;
+                                    object-fit:cover;
+                                    cursor:zoom-in;">
+                    {% else %}
+                        <div style="width:55px;height:55px;
+                                    background:#e5e7eb;
+                                    border-radius:10px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;">
+                            👤
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <div class="visitor-info">
+                    <span class="visitor-type">{{ visitor.get_visitor_type_display }}</span>
+                    <h3>{{ visitor.name }}</h3>
+                </div>
+            </div>
+
+            
+            <div class="visitor-details">
+                <div>📱 {{ visitor.mobile }}</div>
+                <div>🏠 {{ visitor.apartment.block }}-{{ visitor.apartment.flat_number }}</div>
+                
+                {% if visitor.check_in_time and visitor.check_out_time %}
+                <div>🟢 In: {{ visitor.check_in_time|date:"d M, h:i A" }}</div>
+                <div>🔴 Out: {{ visitor.check_out_time|date:"d M, h:i A" }}</div>
+                {% else %}
+                <div>📅 {{ visitor.created_at|date:"d M Y" }} • {{ visitor.created_at|time:"g:i A" }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p>No visitor history</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Image Preview Modal -->
+<div id="imageModal" class="image-modal" onclick="closeImageModal()">
+    <img id="modalImage" onclick="event.stopPropagation()">
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ===============================
+// ENTRY CODE VERIFICATION
+// ===============================
+
+function verifyEntryCode() {
+    const code = document.getElementById("entryCodeInput").value.trim();
+    const resultDiv = document.getElementById("entryCodeResult");
+
+    if (code.length !== 6) {
+        resultDiv.innerHTML = '<div class="error-message">❌ Please enter a valid 6-digit code</div>';
+        return;
+    }
+
+    // Show loading
+    resultDiv.innerHTML = '<div class="verified-visitor-card" style="text-align:center;">🔄 Verifying...</div>';
+
+    fetch("{% url 'guard_verify_visitor_code' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ entry_code: code })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            resultDiv.innerHTML = `<div class="error-message">❌ ${data.error}</div>`;
+            return;
+        }
+
+        const v = data.visitor;
+
+        // Visitor photo HTML
+        const photoHtml = v.photo_url
+            ? `<img src="${v.photo_url}"
+                    onclick="openImageModal('${v.photo_url}')"
+                    style="
+                        width:80px;
+                        height:80px;
+                        border-radius:14px;
+                        object-fit:cover;
+                        cursor:zoom-in;
+                        margin:10px auto;
+                        display:block;
+                    ">`
+            : `<div style="
+                    width:80px;
+                    height:80px;
+                    background:#e5e7eb;
+                    border-radius:14px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:32px;
+                    margin:10px auto;
+                ">👤</div>`;
+
+        resultDiv.innerHTML = `
+            <div class="verified-visitor-card" style="text-align:center;">
+                <span class="verified-badge">✅ VERIFIED</span>
+
+                ${photoHtml}
+
+                <h3 style="margin: 10px 0; color: #333;">${v.name}</h3>
+
+                
+                <div class="visitor-info-row">
+                    <span class="info-label">📱 Mobile</span>
+                    <span class="info-value">${v.mobile}</span>
+                </div>
+                
+                <div class="visitor-info-row">
+                    <span class="info-label">🏠 Apartment</span>
+                    <span class="info-value">${v.apartment}</span>
+                </div>
+                
+                <div class="visitor-info-row">
+                    <span class="info-label">🎯 Purpose</span>
+                    <span class="info-value">${v.purpose || "Visit"}</span>
+                </div>
+                
+                <div class="visitor-info-row">
+                    <span class="info-label">👤 Type</span>
+                    <span class="info-value">${v.visitor_type}</span>
+                </div>
+                
+                <div class="visitor-info-row">
+                    <span class="info-label">⏰ Expected At</span>
+                    <span class="info-value">${v.expected_at}</span>
+                </div>
+
+                <button
+                    class="checkin-btn"
+                    onclick="checkInVisitor(${v.id})"
+                >
+                    ✅ CHECK IN VISITOR
+                </button>
+            </div>
+        `;
+
+        // Clear input
+        document.getElementById("entryCodeInput").value = "";
+    })
+    .catch(error => {
+        resultDiv.innerHTML = '<div class="error-message">❌ Network error. Please try again.</div>';
+        console.error('Error:', error);
+    });
+}
+
+function checkInVisitor(visitorId) {
+    if (!confirm("✅ Confirm check-in for this visitor?")) return;
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = `/guard/visitor/checkin/${visitorId}/`;
+
+    const csrf = document.createElement("input");
+    csrf.type = "hidden";
+    csrf.name = "csrfmiddlewaretoken";
+    csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Allow Enter key to verify code
+document.getElementById("entryCodeInput").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        verifyEntryCode();
+    }
+});
+
+// Auto-format input (optional - only allow numbers)
+document.getElementById("entryCodeInput").addEventListener("input", function(event) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// ===============================
+// TAB SWITCHING
+// ===============================
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(tabName).classList.add('active');
+}
+
+// ===============================
+// GUARD ACTIONS
+// ===============================
+
+function callResident(visitorId, block, flat) {
+    if(confirm(`📞 Call resident at ${block}-${flat} for visitor approval?`)) {
+        alert('Calling resident... (In production, this would trigger actual call)');
+    }
+}
+
+function approveVisitor(visitorId) {
+    if(confirm('Approve this visitor for entry?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/guard/visitor/approve/' + visitorId + '/';
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function checkoutVisitor(visitorId) {
+    if(confirm('✅ Mark this visitor as checked out?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/guard/visitor/checkout/' + visitorId + '/';
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// ===============================
+// HISTORY FILTER
+// ===============================
+
+function filterHistory(filter) {
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    const items = document.querySelectorAll('.history-item');
+    const today = new Date().toISOString().split('T')[0];
+    
+    items.forEach(item => {
+        if (filter === 'all') {
+            item.style.display = 'block';
+        } else if (filter === 'today') {
+            item.style.display = item.dataset.date === today ? 'block' : 'none';
+        }
+    });
+}
+
+// ===============================
+// SEARCH FUNCTIONALITY
+// ===============================
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('.visitor-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+    });
+});
+</script>
+<script>
+function openImageModal(src) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+
+    modalImg.src = src;
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function closeImageModal() {
+    document.getElementById("imageModal").style.display = "none";
+    document.body.style.overflow = "";
+}
+</script>
+
+<!-- Hidden CSRF token for AJAX requests -->
+<form style="display: none;">
+    {% csrf_token %}
+</form>
+{% endblock %}

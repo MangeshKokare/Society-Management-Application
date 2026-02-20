@@ -1,0 +1,381 @@
+{% extends "society_guard/guard_base.html" %}
+
+{% block title %}Shift Reports{% endblock %}
+{% block page_title %}Shift Reports{% endblock %}
+
+{% block extra_styles %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .reports-header {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #4338ca 100%);
+        color: white;
+        padding: 32px 24px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+    }
+
+    .reports-header h1 {
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 16px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 20px;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .filter-select {
+        padding: 12px 16px;
+        border: 2px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1E293B;
+        cursor: pointer;
+        background: white;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: #6366f1;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: #6366f1;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #F1F5F9;
+        color: #64748B;
+    }
+
+    .btn-secondary:hover {
+        background: #E2E8F0;
+    }
+
+    .shifts-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .shifts-table thead th {
+        text-align: left;
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #F8FAFC;
+    }
+
+    .shifts-table tbody tr {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        transition: all 0.2s ease;
+    }
+
+    .shifts-table tbody tr:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .shifts-table tbody td {
+        padding: 16px;
+        border-top: 1px solid #F1F5F9;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .shifts-table tbody td:first-child {
+        border-left: 1px solid #F1F5F9;
+        border-radius: 10px 0 0 10px;
+    }
+
+    .shifts-table tbody td:last-child {
+        border-right: 1px solid #F1F5F9;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-completed {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .status-active {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .status-missed {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .guard-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .guard-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .guard-details h4 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 2px;
+    }
+
+    .guard-details p {
+        font-size: 12px;
+        color: #64748B;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Reports Header -->
+<div class="reports-header">
+    <a href="{% url 'guard_admin_management' %}" class="btn btn-secondary" style="margin-bottom: 16px;">
+        ← Back to Dashboard
+    </a>
+    
+    <h1>📊 Shift Reports</h1>
+    <p style="font-size: 14px; opacity: 0.9;">
+        {{ start_date|date:"d M Y" }} - {{ end_date|date:"d M Y" }}
+    </p>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_shifts }}</div>
+            <div class="stat-label">Total Shifts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ completed_shifts }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ active_shifts }}</div>
+            <div class="stat-label">Active</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ missed_shifts }}</div>
+            <div class="stat-label">Missed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ attendance_rate }}%</div>
+            <div class="stat-label">Attendance Rate</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card">
+    <h2 class="card-title">🔍 Filters</h2>
+    
+    <form method="GET" action="{% url 'view_shift_history' %}" class="filter-bar">
+        <select name="days" class="filter-select" onchange="this.form.submit()">
+            <option value="7" {% if days_filter == 7 %}selected{% endif %}>Last 7 Days</option>
+            <option value="14" {% if days_filter == 14 %}selected{% endif %}>Last 14 Days</option>
+            <option value="30" {% if days_filter == 30 %}selected{% endif %}>Last 30 Days</option>
+            <option value="90" {% if days_filter == 90 %}selected{% endif %}>Last 90 Days</option>
+        </select>
+        
+        <select name="guard" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Guards</option>
+            {% for guard in all_guards %}
+            <option value="{{ guard.id }}" {% if selected_guard == guard.id|stringformat:"s" %}selected{% endif %}>
+                {{ guard.user.get_full_name|default:guard.user.username }}
+            </option>
+            {% endfor %}
+        </select>
+        
+        <button type="submit" class="btn btn-primary">
+            🔍 Apply Filters
+        </button>
+        
+        <a href="{% url 'view_shift_history' %}" class="btn btn-secondary">
+            🔄 Reset
+        </a>
+    </form>
+</div>
+
+<!-- Shifts Table -->
+<div class="card">
+    <h2 class="card-title">📋 Shift Records</h2>
+    
+    <table class="shifts-table">
+        <thead>
+            <tr>
+                <th>Guard</th>
+                <th>Date</th>
+                <th>Shift Type</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shift in shifts %}
+            <tr>
+                <td>
+                    <div class="guard-info">
+                        <div class="guard-avatar">
+                            {{ shift.guard.user.username|slice:":2"|upper }}
+                        </div>
+                        <div class="guard-details">
+                            <h4>{{ shift.guard.user.get_full_name|default:shift.guard.user.username }}</h4>
+                            <p>GRD{{ shift.guard.id|stringformat:"03d" }}</p>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ shift.date|date:"d M Y" }}</td>
+                <td>{{ shift.get_shift_type_display }}</td>
+                <td>
+                    {% if shift.check_in %}
+                        {{ shift.check_in|date:"h:i A" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if shift.check_out %}
+                        {{ shift.check_out|date:"h:i A" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if shift.check_in and shift.check_out %}
+                        {% widthratio shift.check_out|timesince:shift.check_in 1 1 %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if shift.check_in and shift.check_out %}
+                        <span class="status-badge status-completed">✓ Completed</span>
+                    {% elif shift.check_in %}
+                        <span class="status-badge status-active">⏱ Active</span>
+                    {% else %}
+                        <span class="status-badge status-missed">✗ Missed</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'shift_detail' shift.id %}" class="btn btn-secondary" style="padding: 8px 14px; font-size: 12px;">
+                        View Details
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align: center; color: #64748B; padding: 40px;">
+                    No shifts found for the selected filters
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

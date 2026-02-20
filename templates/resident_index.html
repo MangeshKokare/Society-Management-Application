@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Resident Dashboard{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .welcome-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .welcome-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .welcome-subtitle {
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .quick-action-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .quick-action-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    .quick-action-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .visitor-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .visitor-info h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .visitor-info p {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .visitor-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-small {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .announcement-item {
+        background: #fff9e6;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 10px;
+    }
+
+    .announcement-item h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .announcement-item p {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .announcement-time {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .emergency-btn {
+        background: #ff4757;
+        color: white;
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .emergency-btn:hover {
+        background: #ee3344;
+        transform: scale(1.02);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-title">
+    Welcome back, {{ user.username }}! 
+</div>
+<!-- <div class="welcome-subtitle">
+    Apartment {{ apartment.flat_number }} • {{ apartment.society.name }}
+
+</div> -->
+
+<!-- 
+<button class="emergency-btn" onclick="sendSOS()">
+    <span>🚨</span>
+    <span>SOS / PANIC ALERT</span>
+</button> -->
+
+
+
+
+<!-- <div class="section-title">Quick Actions</div> -->
+<div class="quick-actions">
+    <a href="{% url 'resident_visitors' %}" class="quick-action-card">
+        <div class="quick-action-icon">👥</div>
+        <div class="quick-action-title">Visitors</div>
+    </a>
+    <!-- <a href="#" class="quick-action-card">
+        <div class="quick-action-icon">🏃</div>
+        <div class="quick-action-title">Daily Help</div>
+    </a> -->
+    <!-- <a href="#" class="quick-action-card">
+        <div class="quick-action-icon">📦</div>
+        <div class="quick-action-title">Parcels</div>
+    </a> -->
+    <a href="{% url 'resident_services' %}" class="quick-action-card">
+        <div class="quick-action-icon">🛠️</div>
+        <div class="quick-action-title">Services</div>
+    </a>
+    <a href="{% url 'resident_vehicles' %}" class="quick-action-card">
+        <div class="quick-action-icon">🚗</div>
+        <div class="quick-action-title">Vehicles</div>
+    </a>
+    <a href="{% url 'resident_notices' %}" class="quick-action-card">
+        <div class="quick-action-icon">📢</div>
+        <div class="quick-action-title">Notices</div>
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span>Pending Visitor Approvals</span>
+        <span class="badge badge-pending">{{ pending_count }} Pending</span>
+
+    </div>
+    
+    {% for v in pending_visitors %}
+    <div class="visitor-item">
+    <h4>{{ v.name }}</h4>
+    <p>{{ v.get_visitor_type_display }}</p>
+    </div>
+    {% endfor %}
+
+</div>
+
+<div class="card">
+    <div class="card-header">Society Announcements</div>
+
+    {% for a in announcements %}
+    <div class="announcement-item">
+        <h4>{{ a.title }}</h4>
+        <p>{{ a.message }}</p>
+        <span class="announcement-time">
+            Posted {{ a.created_at|timesince }} ago
+        </span>
+    </div>
+    {% empty %}
+    <p style="padding:15px;color:#666;">No announcements</p>
+    {% endfor %}
+</div>
+
+
+<div class="card">
+    <div class="card-header">
+        <span>Recent Activity</span>
+    </div>
+
+    {% for v in recent_activity %}
+    <div class="visitor-item">
+        <div class="visitor-info">
+            <h4>{{ v.name }}</h4>
+            <p>{{ v.get_visitor_type_display }}</p>
+            <span class="announcement-time">
+                {{ v.created_at|timesince }} ago
+            </span>
+        </div>
+        <span class="badge badge-active">
+            {{ v.get_status_display }}
+        </span>
+    </div>
+    {% empty %}
+    <p style="padding:15px;color:#666;">No recent activity</p>
+    {% endfor %}
+</div>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ pending_count }}</div>
+        <div class="stat-label">Pending Approvals</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ today_visitors_count }}</div>
+        <div class="stat-label">Today's Visitors</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ active_staff_count }}</div>
+        <div class="stat-label">Active Staff</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ deliveries_count }}</div>
+        <div class="stat-label">Parcels Received</div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+function sendSOS() {
+    if (!confirm("⚠️ Send emergency alert to security and emergency contacts?")) return;
+
+    fetch("{% url 'send_sos' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(res => res.json())
+    .then(() => alert("🚨 SOS sent successfully"));
+}
+</script>
+{% endblock %}

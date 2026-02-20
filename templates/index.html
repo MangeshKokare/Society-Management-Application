@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGate - Home</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .notification-icon, .profile-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .welcome-text {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .apartment-info {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+        }
+
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .action-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .action-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .visitor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .visitor-item:last-child {
+            border-bottom: none;
+        }
+
+        .visitor-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .visitor-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .visitor-details h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .visitor-details p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .announcement-item {
+            padding: 15px;
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .announcement-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .announcement-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .announcement-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 5px 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .view-all {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🏢</span>
+                <span>MyGate</span>
+            </div>
+            <div class="header-actions">
+                <div class="notification-icon">
+                    <span>🔔</span>
+                    <div class="notification-badge">{{ pending_count }}</div>
+                </div>
+                <div class="profile-icon">
+                    <span>👤</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="welcome-card">
+            <div class="welcome-text">Hello, {{ request.user.username }}!</div>
+            <div class="apartment-info">
+                {% if apartment %}
+                    Apartment {{ apartment.block }}-{{ apartment.flat_number }},
+                    {{ apartment.society_name }}
+                {% else %}
+                    Apartment not assigned
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="quick-actions">
+            <a href="{% url 'visitors' %}" class="action-card">
+                <div class="action-icon">👥</div>
+                <div class="action-title">Visitors</div>
+                <div class="action-subtitle">Manage entry passes</div>
+            </a>
+            <a href="{% url 'services' %}" class="action-card">
+                <div class="action-icon">🚗</div>
+                <div class="action-title">Daily Help</div>
+                <div class="action-subtitle">Maid, Driver, Cook</div>
+            </a>
+            <a href="{% url 'deliveries' %}" class="action-card">
+                <div class="action-icon">📦</div>
+                <div class="action-title">Deliveries</div>
+                <div class="action-subtitle">Track packages</div>
+            </a>
+            <a href="{% url 'emergency' %}" class="action-card">
+                <div class="action-icon">🚨</div>
+                <div class="action-title">Emergency</div>
+                <div class="action-subtitle">SOS & Contacts</div>
+            </a>
+        </div>
+
+        <div class="section-title">Recent Visitors</div>
+        <div class="card">
+            {% for v in recent_visitors %}
+            <div class="visitor-item">
+                <div class="visitor-info">
+                    <div class="visitor-avatar">
+                        {% if v.visitor_type == "delivery" %}📦{% else %}👤{% endif %}
+                    </div>
+                    <div class="visitor-details">
+                        <h4>{{ v.name }}</h4>
+                        <p>{{ v.created_at|date:"M d, h:i A" }}</p>
+                    </div>
+                </div>
+                <span class="status-badge 
+                    {% if v.status == 'approved' %}status-approved{% else %}status-pending{% endif %}">
+                    {{ v.status|title }}
+                </span>
+            </div>
+            {% empty %}
+            <p>No recent visitors</p>
+            {% endfor %}
+
+            <a href="{% url 'visitors' %}" class="view-all">View All Visitors →</a>
+        </div>
+
+        <div class="section-title">Community Announcements</div>
+        <div class="card">
+            {% for a in announcements %}
+            <div class="announcement-item">
+                <div class="announcement-title">{{ a.title }}</div>
+                <div class="announcement-text">{{ a.message }}</div>
+                <div class="announcement-time">
+                    {{ a.created_at|timesince }} ago
+                </div>
+            </div>
+            {% empty %}
+            <p>No announcements</p>
+            {% endfor %}
+
+            <a href="{% url 'community' %}" class="view-all">View All Announcements →</a>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="{% url 'home' %}" class="nav-item active">
+            <div class="nav-icon">🏠</div>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'visitors' %}" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <span>Visitors</span>
+        </a>
+        <a href="{% url 'services' %}" class="nav-item">
+            <div class="nav-icon">🛠️</div>
+            <span>Services</span>
+        </a>
+        <a href="{% url 'community' %}" class="nav-item">
+            <div class="nav-icon">💬</div>
+            <span>Community</span>
+        </a>
+        <a href="{% url 'profile' %}" class="nav-item">
+            <div class="nav-icon">⚙️</div>
+            <span>Profile</span>
+        </a>
+    </nav>
+</body>
+</html>

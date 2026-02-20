@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Helper - MyGate{% endblock %}
+
+{% block extra_styles %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        .main-content {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-label .required {
+            color: #dc3545;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #28a745;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .delete-section {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .delete-btn {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .helper-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <button class="back-btn" onclick="window.history.back()">←</button>
+        <h1 class="page-title">Edit Helper</h1>
+    </div>
+
+    <div class="form-card">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">
+                    Service Type <span class="required">*</span>
+                </label>
+                <select name="service_id" class="form-select" required>
+                    {% for service in services %}
+                        <option value="{{ service.id }}" 
+                            {% if service.id == helper.service.id %}selected{% endif %}>
+                            {{ service.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Helper Name <span class="required">*</span>
+                </label>
+                <input type="text" name="name" class="form-input" 
+                       value="{{ helper.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Mobile Number <span class="required">*</span>
+                </label>
+                <input type="tel" name="mobile" class="form-input" 
+                       value="{{ helper.mobile }}" 
+                       pattern="[0-9]{10}" required>
+                <div class="helper-hint">Enter 10-digit mobile number</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Timing <span class="required">*</span>
+                </label>
+                <input type="text" name="timing" class="form-input" 
+                       value="{{ helper.timing }}" required>
+                <div class="helper-hint">Example: 8:00 AM - 10:00 AM</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Working Days <span class="required">*</span>
+                </label>
+                <input type="text" name="days" class="form-input" 
+                       value="{{ helper.days }}" required>
+                <div class="helper-hint">Example: Mon-Sat, All Days</div>
+            </div>
+
+            <div class="form-group">
+                <div class="toggle-container">
+                    <label class="toggle-label">Active Status</label>
+                    <input type="hidden" name="active" id="activeInput" 
+                           value="{% if helper.active %}on{% else %}off{% endif %}">
+                    <div class="toggle-switch {% if helper.active %}active{% endif %}" 
+                         onclick="toggleActive(this)">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" 
+                        onclick="window.history.back()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+
+        <div class="delete-section">
+            <button class="delete-btn" onclick="deleteHelper()">
+                🗑️ Delete This Helper
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function toggleActive(el) {
+            el.classList.toggle('active');
+            const input = document.getElementById('activeInput');
+            input.value = el.classList.contains('active') ? 'on' : 'off';
+        }
+
+        function deleteHelper() {
+            if (!confirm('Are you sure you want to delete this helper? This action cannot be undone.')) {
+                return;
+            }
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch('{% url "delete_daily_helper" helper.id %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '{% url "resident_services" %}';
+                } else {
+                    alert(data.error || 'Failed to delete helper');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    </script>
+{% endblock %}

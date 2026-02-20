@@ -1,0 +1,1012 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Visitors{% endblock %}
+{% block nav_visitors %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+
+    /* 👤 Visitor Photos */
+    .visitor-photo-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    .visitor-photo {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 2px solid #eee;
+    }
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+
+    .tab {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        white-space: nowrap;
+        position: relative;
+        transition: all 0.3s;
+    }
+    .visitor-photo {
+        cursor: pointer;
+    }
+
+    .tab.active {
+        color: #667eea;
+    }
+
+    .tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #667eea;
+        border-radius: 3px 3px 0 0;
+    }
+
+    .add-visitor-btn {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        z-index: 99;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .add-visitor-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .visitor-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .visitor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 12px;
+    }
+
+    .visitor-name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .visitor-details {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 3px;
+    }
+
+    .visitor-time {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .visitor-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .pre-approve-form {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    @media (max-width: 640px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 13px;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .daily-help-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
+    .help-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .help-info {
+        font-size: 13px;
+        margin-bottom: 5px;
+        opacity: 0.95;
+    }
+
+    .help-schedule {
+        background: rgba(255,255,255,0.2);
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 12px;
+    }
+
+    .overstay-alert {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 12px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 10px;
+        font-size: 13px;
+    }
+
+    .overstay-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 15px;
+    }
+
+    .empty-text {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .empty-subtext {
+        font-size: 13px;
+    }
+
+    .all-visitors-bar {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .all-visitors-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #333;
+    }
+
+    .all-visitors-scroll {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
+        padding-bottom: 10px;
+        max-height: none;
+    }
+
+    .all-visitors-scroll.scrollable {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+        .all-visitors-scroll {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .all-visitors-scroll {
+            grid-template-columns: 1fr;
+        }
+        
+        .visitor-chip {
+            min-width: 100%;
+        }
+    }
+
+    .all-visitors-scroll::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+    }
+
+    .all-visitors-scroll::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 6px;
+    }
+
+    .visitor-chip {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        width: 100%;
+    }
+
+    .visitor-chip-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .visitor-chip-status {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .visitor-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 640px) {
+        .visitor-actions {
+            flex-direction: column;
+        }
+        
+        .visitor-actions .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 20px 15px;
+        }
+        
+        .page-title {
+            font-size: 20px;
+        }
+        
+        .tabs {
+            gap: 8px;
+        }
+        
+        .tab {
+            padding: 8px 15px;
+            font-size: 13px;
+        }
+        
+        .add-visitor-btn {
+            width: 56px;
+            height: 56px;
+            bottom: 80px;
+            right: 15px;
+            font-size: 24px;
+        }
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+        display: block;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        animation: slideIn 0.3s;
+    }
+
+    @media (max-width: 768px) {
+        .modal-content {
+            width: 95%;
+            margin: 10% auto;
+        }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .modal-close {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        background: none;
+        border: none;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.3s;
+    }
+
+    .modal-close:hover {
+        background: rgba(255,255,255,0.2);
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+        from { 
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to { 
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .entry-code-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        text-align: center;
+    }
+
+    .entry-code-title {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .entry-code-value {
+        font-size: 36px;
+        font-weight: 900;
+        letter-spacing: 8px;
+        font-family: 'Courier New', monospace;
+        margin: 10px 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .entry-code-instructions {
+        font-size: 12px;
+        opacity: 0.85;
+        margin-top: 10px;
+    }
+
+    .code-copy-btn {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 10px;
+        font-size: 13px;
+    }
+
+    .code-copy-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    .time-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    .duration-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #fff3e0;
+        color: #e65100;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Visitor Management</div>
+    <div class="page-subtitle">Manage visitors, daily help, and pre-approvals</div>
+</div>
+
+<div class="tabs">
+    <button class="tab" onclick="switchTab('all')">
+        All Visitors ({{ all_visitors|length }})
+    </button>
+    <button class="tab" onclick="switchTab('pending')">
+        Pending ({{ pending_count }})
+    </button>
+    <button class="tab" onclick="switchTab('preapproved')">
+        Pre-Approved ({{ preapproved_count }})
+    </button>
+    <button class="tab" onclick="switchTab('active')">
+        Active Inside ({{ active_count }})
+    </button>
+    <button class="tab" onclick="switchTab('history')">
+        History ({{ history_count }})
+    </button>
+</div>
+
+<!-- All Visitors Tab (Default) -->
+<div id="tab-all" class="visitor-tab">
+    <div class="all-visitors-bar">
+        <div class="all-visitors-title">All Visitors</div>
+
+        <div class="all-visitors-scroll {% if all_visitors|length > 2 %}scrollable{% endif %}">
+            {% for visitor in all_visitors %}
+            <div class="visitor-chip">
+                {% if visitor.photos.first %}
+                    <img src="{{ visitor.photos.first.photo.url }}"
+                        class="visitor-photo"
+                        style="width:40px;height:40px;margin-bottom:6px;"
+                        onclick="openImagePreview('{{ visitor.photos.first.photo.url }}')">
+
+                {% else %}
+                    <div class="visitor-photo"
+                        style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                        👤
+                    </div>
+                {% endif %}
+
+                <div class="visitor-chip-name">
+                    {{ visitor.name }}
+                </div>
+
+                <div class="visitor-chip-status">
+                    {{ visitor.get_status_display }}
+                </div>
+                <div class="visitor-chip-status">
+                    📞 {{ visitor.mobile }}
+                </div>
+
+                <div class="visitor-chip-status">
+                    ⏰ {{ visitor.created_at|date:"d M Y, g:i A" }}
+                </div>
+
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <div class="empty-text">No visitors yet</div>
+                <div class="empty-subtext">Pre-approve or wait for visitors to arrive</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Pending Tab -->
+<div id="tab-pending" class="visitor-tab" style="display:none;">
+    <div class="card">
+        <div class="card-header">
+            <span>Waiting for Approval</span>
+            <span class="badge badge-pending">{{ pending_count }}</span>
+        </div>
+
+        {% for visitor in pending_visitors|slice:":5" %}
+        <div class="visitor-card">
+            <div class="visitor-header">
+                {% if visitor.photos.exists %}
+                <div class="visitor-photo-row">
+                    {% for photo in visitor.photos.all|slice:":4" %}
+                        <img src="{{ photo.photo.url }}"
+                            class="visitor-photo"
+                            onclick="openImagePreview('{{ photo.photo.url }}')">
+
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div>
+                    <div class="visitor-name">{{ visitor.name }}</div>
+                    <div class="visitor-details">📞 {{ visitor.mobile }}</div>
+                    <div class="visitor-details">
+                        🎯 {{ visitor.purpose }}
+                    </div>
+                    <div class="visitor-time">
+                        ⏰ {{ visitor.created_at|timesince }} ago
+                    </div>
+                </div>
+
+                <span class="badge badge-pending">Waiting</span>
+            </div>
+
+            <div class="visitor-actions">
+                <form method="post" action="{% url 'approve_visitor' visitor.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-success btn-small">✅ Approve & Generate Code</button>
+                </form>
+
+                <form method="post" action="{% url 'deny_visitor' visitor.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-danger btn-small">❌ Deny</button>
+                </form>
+
+                <a href="tel:{{ visitor.mobile }}" class="btn btn-secondary btn-small">📞 Call</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-text">No pending visitors</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pre-Approved Tab -->
+<div id="tab-preapproved" class="visitor-tab" style="display:none;">
+    <div class="card">
+        <div class="card-header">
+            Pre-Approved Visitors ({{ preapproved_count }})
+        </div>
+
+        {% for visitor in preapproved_visitors %}
+        <div class="visitor-card">
+            <div class="visitor-header">
+                <div>
+                    <div class="visitor-name">{{ visitor.name }}</div>
+                    {% if visitor.photos.exists %}
+                    <div class="visitor-photo-row">
+                        {% for photo in visitor.photos.all|slice:":4" %}
+                            <img src="{{ photo.photo.url }}"
+                                class="visitor-photo"
+                                onclick="openImagePreview('{{ photo.photo.url }}')">
+
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="visitor-details">📞 {{ visitor.mobile }}</div>
+                    <div class="visitor-details">
+                        ⏰ Expected at {{ visitor.expected_at|date:"d M Y, h:i A" }}
+                    </div>
+                    <div class="visitor-details">
+                        🎯 {{ visitor.purpose }}
+                    </div>
+                </div>
+
+                <span class="badge badge-approved">Approved</span>
+            </div>
+
+
+            <!-- 🔐 ENTRY CODE DISPLAY -->
+            {% if visitor.entry_code %}
+            <div class="entry-code-card">
+                <div class="entry-code-title">🔐 ENTRY CODE</div>
+                <div class="entry-code-value">{{ visitor.entry_code }}</div>
+                <button class="code-copy-btn" onclick="copyCode('{{ visitor.entry_code }}')">
+                    📋 Copy Code
+                </button>
+                <div class="entry-code-instructions">
+                    Share this code with the visitor to show at the gate
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-text">No pre-approved visitors</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- <div class="card">
+        <div class="card-header">Pre-Approve Visitor</div>
+
+        <form method="post"
+            action="{% url 'preapprove_visitor' %}"
+            enctype="multipart/form-data"
+            class="pre-approve-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Visitor Name *</label>
+                <input type="text" name="name" class="form-input" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Phone Number *</label>
+                    <input type="tel" name="mobile" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Expected Date & Time *</label>
+                    <input type="datetime-local" name="expected_at" class="form-input">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Purpose of Visit</label>
+                <input type="text" name="purpose" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Visitor Photos</label>
+                <input type="file"
+                    name="photos"
+                    class="form-input"
+                    accept="image/*"
+                    multiple>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%">
+                ✅ Pre-Approve & Generate Code
+            </button>
+        </form>
+    </div> -->
+</div>
+
+<!-- Active Tab -->
+<div id="tab-active" class="visitor-tab" style="display:none;">
+    <div class="card">
+        <div class="card-header">
+            Active Visitors Inside ({{ active_count }})
+        </div>
+
+        {% for visitor in active_visitors|slice:":5" %}
+        <div class="visitor-card">
+            <div class="visitor-header">
+                {% if visitor.photos.exists %}
+                <div class="visitor-photo-row">
+                    {% for photo in visitor.photos.all|slice:":4" %}
+                        <img src="{{ photo.photo.url }}"
+                            class="visitor-photo"
+                            onclick="openImagePreview('{{ photo.photo.url }}')">
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div>
+                    <div class="visitor-name">{{ visitor.name }}</div>
+                    
+                    {% if visitor.check_in_time %}
+                    <div class="visitor-details">
+                        🟢 Checked in at {{ visitor.check_in_time|date:"d M Y, g:i A" }}
+                    </div>
+                    <div class="time-badge">
+                        ⏱️ Inside for {{ visitor.check_in_time|timesince }}
+                    </div>
+                    {% else %}
+                    <div class="visitor-details">
+                        📍 Inside since {{ visitor.created_at|date:"d M Y, g:i A" }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="visitor-details">
+                        🎯 {{ visitor.get_visitor_type_display }}
+                    </div>
+
+                    {% if visitor.checked_in_by %}
+                    <div class="visitor-details" style="font-size: 11px; color: #999;">
+                        Checked in by: {{ visitor.checked_in_by.username }}
+                    </div>
+                    {% endif %}
+                </div>
+                <span class="badge badge-approved">Inside</span>
+            </div>
+
+            <form method="post" action="{% url 'mark_exit' visitor.id %}">
+                {% csrf_token %}
+                <button class="btn btn-danger btn-small" style="width:100%">
+                    🚪 Mark Exit
+                </button>
+            </form>
+        </div>
+        {% empty %}
+        <p>No visitors currently inside</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- History Tab -->
+<div id="tab-history" class="visitor-tab" style="display:none;">
+    <div class="card">
+        <div class="card-header">
+            Visitor History ({{ history_count }})
+        </div>
+
+        {% for visitor in history_visitors|slice:":10" %}
+        <div class="visitor-card">
+            <div class="visitor-name">{{ visitor.name }}</div>
+            {% if visitor.photos.exists %}
+            <div class="visitor-photo-row">
+                {% for photo in visitor.photos.all|slice:":4" %}
+                    <img src="{{ photo.photo.url }}"
+                        class="visitor-photo"
+                        onclick="openImagePreview('{{ photo.photo.url }}')">
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="visitor-details">📞 {{ visitor.mobile }}</div>
+
+            {% if visitor.check_in_time and visitor.check_out_time %}
+            <div class="visitor-details">
+                🟢 In: {{ visitor.check_in_time|date:"d M Y, h:i A" }}
+            </div>
+            <div class="visitor-details">
+                🔴 Out: {{ visitor.check_out_time|date:"d M Y, h:i A" }}
+            </div>
+            {% else %}
+            <div class="visitor-details">
+                ⏰ Visited on {{ visitor.created_at|date:"d M Y, h:i A" }}
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p>No visitor history</p>
+        {% endfor %}
+    </div>
+</div>
+
+<button class="add-visitor-btn" onclick="openAddVisitorModal()">+</button>
+
+<!-- Add Visitor Modal -->
+<div id="addVisitorModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Pre-Approve New Visitor</div>
+            <button class="modal-close" onclick="closeAddVisitorModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form method="post"
+                action="{% url 'preapprove_visitor' %}"
+                enctype="multipart/form-data"
+                class="pre-approve-form"
+                style="box-shadow: none; padding: 0; margin: 0;">
+
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label">Visitor Name *</label>
+                    <input type="text" name="name" class="form-input" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" name="mobile" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Expected Date & Time *</label>
+                        <input type="datetime-local" name="expected_at" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Purpose of Visit</label>
+                    <input type="text" name="purpose" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Visitor Photos</label>
+                    <input type="file"
+                        name="photos"
+                        class="form-input"
+                        accept="image/*"
+                        multiple>
+                </div>
+                <button class="btn btn-primary" style="width:100%">
+                    ✅ Pre-Approve & Generate Code
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="imagePreviewModal" class="modal">
+    <div class="modal-content" style="max-width:90%; background:transparent; box-shadow:none;">
+        <img id="previewImage"
+             src=""
+             style="width:100%; max-height:90vh; object-fit:contain; border-radius:12px;">
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchTab(tab) {
+    // Activate tab button
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    // Hide all sections
+    document.querySelectorAll('.visitor-tab').forEach(div => {
+        div.style.display = 'none';
+    });
+
+    // Show selected section
+    document.getElementById(`tab-${tab}`).style.display = 'block';
+}
+
+// Set "All Visitors" as default active tab on page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('.tab').classList.add('active');
+});
+
+// Modal functions
+function openAddVisitorModal() {
+    document.getElementById('addVisitorModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAddVisitorModal() {
+    document.getElementById('addVisitorModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('addVisitorModal');
+    if (event.target === modal) {
+        closeAddVisitorModal();
+    }
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeAddVisitorModal();
+    }
+});
+
+// Copy entry code to clipboard
+function copyCode(code) {
+    navigator.clipboard.writeText(code).then(function() {
+        alert('✅ Entry code ' + code + ' copied to clipboard!');
+    }, function() {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('✅ Entry code ' + code + ' copied!');
+    });
+}
+</script>
+
+<script>
+function openImagePreview(imageUrl) {
+    const modal = document.getElementById("imagePreviewModal");
+    const img = document.getElementById("previewImage");
+    img.src = imageUrl;
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
+// Close on click outside
+document.getElementById("imagePreviewModal").onclick = function () {
+    this.classList.remove("active");
+    document.body.style.overflow = "auto";
+};
+</script>
+
+{% endblock %}

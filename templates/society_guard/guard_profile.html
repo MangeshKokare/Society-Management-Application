@@ -1,0 +1,762 @@
+{% extends "society_guard/guard_base.html" %}
+
+{% block title %}My Profile - MyGate{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* Profile Container */
+    .profile-container {
+        background: white;
+        border-radius: 16px;
+        padding: 0;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    /* Profile Header Section */
+    .profile-header-section {
+        background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+        padding: 24px 20px 80px;
+        position: relative;
+        text-align: center;
+    }
+
+    .profile-header-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    /* Profile Avatar */
+    .profile-avatar-wrapper {
+        position: relative;
+        z-index: 10;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3B82F6;
+        font-size: 48px;
+        font-weight: 700;
+        margin: 0 auto 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        border: 4px solid rgba(255,255,255,0.3);
+    }
+
+    .profile-name-header {
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .profile-role-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: white;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Profile Content - White Background */
+    .profile-content {
+        background: white;
+        margin-top: -60px;
+        border-radius: 24px 24px 0 0;
+        padding: 24px 20px;
+        position: relative;
+        z-index: 5;
+    }
+
+    /* Form Section */
+    .profile-form-section {
+        margin-bottom: 24px;
+    }
+
+    /* Info Grid */
+    .profile-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .profile-info-item {
+        background: #F8FAFC;
+        border-radius: 12px;
+        padding: 14px 16px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .profile-info-item.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .profile-info-item:hover {
+        background: #F1F5F9;
+    }
+
+    .profile-info-label {
+        display: block;
+        font-size: 11px;
+        color: #64748B;
+        margin-bottom: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .profile-info-value {
+        font-size: 15px;
+        color: #1E293B;
+        font-weight: 600;
+        display: block;
+    }
+
+    .profile-info-value input,
+    .profile-info-value textarea {
+        width: 100%;
+        padding: 0;
+        border: none;
+        background: transparent;
+        font-size: 15px;
+        color: #1E293B;
+        font-weight: 600;
+        font-family: inherit;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .profile-info-value textarea {
+        resize: none;
+        min-height: 40px;
+        line-height: 1.4;
+    }
+
+    .profile-info-value input[readonly],
+    .profile-info-value textarea[readonly] {
+        cursor: default;
+    }
+
+    .profile-info-value input:focus,
+    .profile-info-value textarea:focus {
+        outline: none;
+        border-bottom-color: #3B82F6;
+        background: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        margin: -4px -8px;
+    }
+
+    .profile-info-value input::placeholder,
+    .profile-info-value textarea::placeholder {
+        color: #94A3B8;
+        font-weight: 500;
+    }
+
+    /* Edit Button */
+    .btn-edit-profile {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #3B82F6, #1E40AF);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-edit-profile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-edit-profile:active {
+        transform: translateY(0);
+    }
+
+    .btn-save-profile {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .btn-save-profile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 14px;
+        padding: 20px 16px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        border: 2px solid #F1F5F9;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        border-color: #3B82F6;
+    }
+
+    .stat-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 800;
+        color: #3B82F6;
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #64748B;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Section Card */
+    .section-card {
+        background: white;
+        border-radius: 16px;
+        padding: 0;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .section-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #E2E8F0;
+        background: #F8FAFC;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1E293B;
+        margin: 0;
+    }
+
+    /* Settings Item */
+    .setting-item {
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #F1F5F9;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+
+    .setting-item:hover {
+        background: #F8FAFC;
+    }
+
+    .setting-item:active {
+        background: #F1F5F9;
+    }
+
+    .setting-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .setting-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .setting-info h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1E293B;
+        margin-bottom: 4px;
+    }
+
+    .setting-info p {
+        font-size: 13px;
+        color: #64748B;
+        margin: 0;
+    }
+
+    .setting-right {
+        color: #CBD5E1;
+        font-size: 20px;
+        font-weight: 300;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+        position: relative;
+        width: 52px;
+        height: 28px;
+        background: #CBD5E1;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch.active {
+        background: #10B981;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 22px;
+        height: 22px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .toggle-switch.active .toggle-slider {
+        transform: translateX(24px);
+    }
+
+    /* Logout Button */
+    .btn-logout {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #EF4444, #DC2626);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 20px;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+    }
+
+    .btn-logout:hover {
+        background: linear-gradient(135deg, #DC2626, #B91C1C);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 640px) {
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 40px;
+        }
+
+        .profile-name-header {
+            font-size: 20px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Profile Container -->
+<div class="profile-container">
+    <!-- Header with Gradient Background -->
+    <div class="profile-header-section">
+        <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+                {{ request.user.username|slice:":1"|upper }}
+            </div>
+            <h2 class="profile-name-header">{{ request.user.get_full_name|default:request.user.username }}</h2>
+            <div class="profile-role-badge">{{ profile.role|title }}</div>
+        </div>
+    </div>
+
+    <!-- White Content Area -->
+    <div class="profile-content">
+        <form method="post" id="profileForm">
+            {% csrf_token %}
+            
+            <div class="profile-info-grid">
+                <div class="profile-info-item">
+                    <span class="profile-info-label">Apartment</span>
+                    <span class="profile-info-value">
+                        {{ profile.apartment.flat_number }}, Block {{ profile.apartment.block }}
+                    </span>
+                </div>
+
+                <div class="profile-info-item">
+                    <span class="profile-info-label">Society</span>
+                    <span class="profile-info-value">
+                        {{ profile.apartment.society.name }}
+                    </span>
+                </div>
+
+                <div class="profile-info-item">
+                    <span class="profile-info-label">Email</span>
+                    <span class="profile-info-value">
+                        <input type="email" 
+                               name="email" 
+                               value="{{ request.user.email }}" 
+                               readonly
+                               placeholder="Enter email">
+                    </span>
+                </div>
+
+                <div class="profile-info-item">
+                    <span class="profile-info-label">Phone</span>
+                    <span class="profile-info-value">
+                        <input type="tel" 
+                               name="phone" 
+                               value="{{ profile.phone|default:'' }}" 
+                               readonly
+                               placeholder="Enter phone">
+                    </span>
+                </div>
+
+                <div class="profile-info-item full-width">
+                    <span class="profile-info-label">Address</span>
+                    <span class="profile-info-value">
+                        <textarea name="address" 
+                                  readonly
+                                  placeholder="Enter your address"
+                                  rows="2">{{ profile.address|default:'' }}</textarea>
+                    </span>
+                </div>
+            </div>
+
+            <button class="btn-edit-profile" onclick="enableEdit(event)" type="button" id="editBtn">
+                <span>✏️</span>
+                Edit Profile
+            </button>
+            
+            <button type="submit" id="saveBtn" class="btn-save-profile" style="display:none">
+                <span>✓</span>
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <div class="stat-number">{{ visitors_count|default:5 }}</div>
+        <div class="stat-label">Total Visitors</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">🔧</span>
+        <div class="stat-number">{{ active_services_count|default:0 }}</div>
+        <div class="stat-label">Active Services</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">📦</span>
+        <div class="stat-number">{{ deliveries_count|default:0 }}</div>
+        <div class="stat-label">Deliveries</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">📝</span>
+        <div class="stat-number">{{ posts_count|default:0 }}</div>
+        <div class="stat-label">Community Posts</div>
+    </div>
+</div>
+
+<!-- Apartment Details -->
+<div class="section-card">
+    <div class="section-header">
+        <span style="font-size: 20px;">🏠</span>
+        <h3 class="section-title">Apartment Details</h3>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">🏢</div>
+            <div class="setting-info">
+                <h4>Apartment Number</h4>
+                <p>{{ profile.apartment.flat_number }}, Block {{ profile.apartment.block }}</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">👨‍👩‍👧‍👦</div>
+            <div class="setting-info">
+                <h4>Family Members</h4>
+                <p>4 Members</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">🚗</div>
+            <div class="setting-info">
+                <h4>Vehicles</h4>
+                <p>2 Vehicles Registered</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+</div>
+
+<!-- Preferences -->
+<div class="section-card">
+    <div class="section-header">
+        <span style="font-size: 20px;">⚙️</span>
+        <h3 class="section-title">Preferences</h3>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">🔔</div>
+            <div class="setting-info">
+                <h4>Push Notifications</h4>
+                <p>Get notified about visitors</p>
+            </div>
+        </div>
+        <div class="toggle-switch active" onclick="toggleSwitch(this)">
+            <div class="toggle-slider"></div>
+        </div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">📧</div>
+            <div class="setting-info">
+                <h4>Email Notifications</h4>
+                <p>Receive updates via email</p>
+            </div>
+        </div>
+        <div class="toggle-switch active" onclick="toggleSwitch(this)">
+            <div class="toggle-slider"></div>
+        </div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">🌙</div>
+            <div class="setting-info">
+                <h4>Dark Mode</h4>
+                <p>Switch to dark theme</p>
+            </div>
+        </div>
+        <div class="toggle-switch" onclick="toggleSwitch(this)">
+            <div class="toggle-slider"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Settings -->
+<div class="section-card">
+    <div class="section-header">
+        <span style="font-size: 20px;">🔐</span>
+        <h3 class="section-title">Account</h3>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">🔑</div>
+            <div class="setting-info">
+                <h4>Change Password</h4>
+                <p>Update your password</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">🔒</div>
+            <div class="setting-info">
+                <h4>Privacy Settings</h4>
+                <p>Manage your privacy</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">💳</div>
+            <div class="setting-info">
+                <h4>Payment Methods</h4>
+                <p>Manage payment options</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+</div>
+
+<!-- Support -->
+<div class="section-card">
+    <div class="section-header">
+        <span style="font-size: 20px;">❓</span>
+        <h3 class="section-title">Support</h3>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">📖</div>
+            <div class="setting-info">
+                <h4>Help & FAQ</h4>
+                <p>Get help and support</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">📱</div>
+            <div class="setting-info">
+                <h4>Contact Support</h4>
+                <p>Reach out to our team</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+    <div class="setting-item">
+        <div class="setting-left">
+            <div class="setting-icon">ℹ️</div>
+            <div class="setting-info">
+                <h4>About MyGate</h4>
+                <p>Version 3.2.1</p>
+            </div>
+        </div>
+        <div class="setting-right">›</div>
+    </div>
+</div>
+
+<!-- Logout Button -->
+<a href="{% url 'logout' %}" class="btn-logout">
+    🚪 Logout
+</a>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function enableEdit(event) {
+        event.preventDefault();
+        
+        // Enable all readonly inputs and textareas
+        document.querySelectorAll("#profileForm input[readonly], #profileForm textarea[readonly]")
+            .forEach(el => {
+                el.removeAttribute("readonly");
+                el.style.borderBottomColor = "#3B82F6";
+            });
+
+        // Show save button, hide edit button
+        document.getElementById("saveBtn").style.display = "flex";
+        document.getElementById("editBtn").style.display = "none";
+    }
+
+    function toggleSwitch(element) {
+        element.classList.toggle('active');
+        
+        // Add haptic feedback
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
+        
+        // Here you can add AJAX call to save the preference
+        const isActive = element.classList.contains('active');
+        console.log('Toggle state:', isActive);
+    }
+
+    // Form submission handler
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        const email = this.querySelector('input[name="email"]').value;
+        const phone = this.querySelector('input[name="phone"]').value;
+        
+        if (email && !email.includes('@')) {
+            e.preventDefault();
+            alert('Please enter a valid email address');
+            return false;
+        }
+        
+        if (phone && phone.length < 10) {
+            e.preventDefault();
+            alert('Please enter a valid phone number (at least 10 digits)');
+            return false;
+        }
+        
+        // Show loading state
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.innerHTML = '<span>⏳</span> Saving...';
+        saveBtn.disabled = true;
+    });
+</script>
+{% endblock %}

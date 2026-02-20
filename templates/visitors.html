@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+
+{% block title %}MyGate - Visitors{% endblock %}
+{% block nav_visitors %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+
+    .tab {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        white-space: nowrap;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .tab.active {
+        color: #667eea;
+    }
+
+    .tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #667eea;
+        border-radius: 3px 3px 0 0;
+    }
+
+    .add-visitor-btn {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        z-index: 99;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .add-visitor-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .visitor-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .visitor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 12px;
+    }
+
+    .visitor-name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .visitor-details {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 3px;
+    }
+
+    .visitor-time {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .visitor-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .pre-approve-form {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 13px;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .daily-help-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
+    .help-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .help-info {
+        font-size: 13px;
+        margin-bottom: 5px;
+        opacity: 0.95;
+    }
+
+    .help-schedule {
+        background: rgba(255,255,255,0.2);
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 12px;
+    }
+
+    .overstay-alert {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 12px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 10px;
+        font-size: 13px;
+    }
+
+    .overstay-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 15px;
+    }
+
+    .empty-text {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .empty-subtext {
+        font-size: 13px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Visitor Management</div>
+    <div class="page-subtitle">Manage visitors, daily help, and pre-approvals</div>
+</div>
+
+<div class="tabs">
+    <button class="tab active">Pending (5)</button>
+    <button class="tab">Pre-Approved (3)</button>
+    <button class="tab">Daily Help (4)</button>
+    <button class="tab">Active Inside (12)</button>
+    <button class="tab">History</button>
+</div>
+
+<div id="pending-tab" class="tab-content">
+    <div class="card">
+        <div class="card-header">
+            <span>Waiting for Approval</span>
+            <span class="badge badge-pending">5</span>
+        </div>
+
+        <div class="visitor-card">
+            <div class="visitor-header">
+                <div>
+                    <div class="visitor-name">Rajesh Kumar</div>
+                    <div class="visitor-details">📞 +91 98765 43210</div>
+                    <div class="visitor-details">🎯 Purpose: Delivery - Amazon Package</div>
+                    <div class="visitor-details">📍 Verified by: Main Gate Guard</div>
+                    <div class="visitor-time">⏰ 2 minutes ago</div>
+                </div>
+                <span class="badge badge-pending">Waiting</span>
+            </div>
+            <div class="visitor-actions">
+                <button class="btn btn-success btn-small">✅ Approve</button>
+                <button class="btn btn-danger btn-small">❌ Deny</button>
+                <button class="btn btn-secondary btn-small">📞 Call</button>
+            </div>
+        </div>
+
+        <div class="visitor-card">
+            <div class="visitor-header">
+                <div>
+                    <div class="visitor-name">Priya Sharma</div>
+                    <div class="visitor-details">📞 +91 87654 32109</div>
+                    <div class="visitor-details">🎯 Purpose: Personal Visit - Lunch</div>
+                    <div class="visitor-details">🌡️ Temperature: 36.8°C • Mask: ✓</div>
+                    <div class="visitor-time">⏰ 5 minutes ago</div>
+                </div>
+                <span class="badge badge-pending">Waiting</span>
+            </div>
+            <div class="visitor-actions">
+                <button class="btn btn-success btn-small">✅ Approve</button>
+                <button class="btn btn-danger btn-small">❌ Deny</button>
+                <button class="btn btn-secondary btn-small">📞 Call</button>
+            </div>
+        </div>
+
+        <div class="visitor-card">
+            <div class="visitor-header">
+                <div>
+                    <div class="visitor-name">Swiggy Delivery</div>
+                    <div class="visitor-details">📞 +91 99999 88888</div>
+                    <div class="visitor-details">🎯 Purpose: Food Delivery - Order #45829</div>
+                    <div class="visitor-details">🚗 Vehicle: Bike - KA 01 AB 1234</div>
+                    <div class="visitor-time">⏰ 8 minutes ago</div>
+                </div>
+                <span class="badge badge-pending">Waiting</span>
+            </div>
+            <div class="visitor-actions">
+                <button class="btn btn-success btn-small">✅ Approve</button>
+                <button class="btn btn-danger btn-small">❌ Deny</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">⚠️ Overstay Alerts</div>
+        
+        <div class="overstay-alert">
+            <div class="overstay-title">Guest still inside - Expected exit 2 hours ago</div>
+            <div>Ramesh Patel • Entered at 8:00 AM • Expected duration: 2 hours</div>
+        </div>
+
+        <div class="overstay-alert">
+            <div class="overstay-title">Contractor working overtime</div>
+            <div>ABC Electricals • Entered at 9:00 AM • Expected completion: 12:00 PM</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Pre-Approve Visitor</div>
+    
+    <div class="pre-approve-form">
+        <div class="form-group">
+            <label class="form-label">Visitor Name *</label>
+            <input type="text" class="form-input" placeholder="Enter full name">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" class="form-input" placeholder="+91 98765 43210">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Expected Date *</label>
+                <input type="date" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Expected Time</label>
+                <input type="time" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Expected Duration</label>
+                <select class="form-select">
+                    <option>Select duration...</option>
+                    <option>30 minutes</option>
+                    <option>1 hour</option>
+                    <option>2 hours</option>
+                    <option>4 hours</option>
+                    <option>Full day</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Purpose of Visit</label>
+            <input type="text" class="form-input" placeholder="e.g., Lunch meeting, Delivery, Service">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Vehicle Details (Optional)</label>
+            <input type="text" class="form-input" placeholder="e.g., Car - KA 01 AB 1234">
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%;">✅ Pre-Approve Visitor</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Your Daily Help</div>
+
+    <div class="daily-help-card">
+        <div class="help-name">Lakshmi - Maid</div>
+        <div class="help-info">📞 +91 98765 11111</div>
+        <div class="help-info">👆 Fingerprint Registered</div>
+        <div class="help-info">✅ Auto-approved for entry</div>
+        <div class="help-schedule">
+            <strong>Schedule:</strong> Monday to Saturday • 8:30 AM - 10:30 AM
+        </div>
+    </div>
+
+    <div class="daily-help-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+        <div class="help-name">Ravi - Cook</div>
+        <div class="help-info">📞 +91 98765 22222</div>
+        <div class="help-info">👆 Fingerprint Registered</div>
+        <div class="help-info">✅ Auto-approved for entry</div>
+        <div class="help-schedule">
+            <strong>Schedule:</strong> All days • 6:00 AM - 9:00 AM, 6:00 PM - 8:00 PM
+        </div>
+    </div>
+
+    <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">+ Add Daily Help</button>
+</div>
+
+<div class="card">
+    <div class="card-header">Active Visitors Inside (12)</div>
+
+    <div class="visitor-card">
+        <div class="visitor-header">
+            <div>
+                <div class="visitor-name">Rajesh Kumar - Guest</div>
+                <div class="visitor-details">📍 Inside since: 9:45 AM (2h 15m)</div>
+                <div class="visitor-details">🎯 Purpose: Personal Visit</div>
+            </div>
+            <span class="badge badge-approved">Inside</span>
+        </div>
+        <button class="btn btn-danger btn-small" style="width: 100%;">🚪 Mark Exit</button>
+    </div>
+
+    <div class="visitor-card">
+        <div class="visitor-header">
+            <div>
+                <div class="visitor-name">Suresh - Plumber</div>
+                <div class="visitor-details">📍 Inside since: 9:00 AM (3h)</div>
+                <div class="visitor-details">🎯 Purpose: Bathroom leak repair</div>
+            </div>
+            <span class="badge badge-approved">Inside</span>
+        </div>
+        <button class="btn btn-danger btn-small" style="width: 100%;">🚪 Mark Exit</button>
+    </div>
+</div>
+
+<button class="add-visitor-btn">+</button>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Approve/Deny actions
+    document.querySelectorAll('.btn-success').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if(confirm('✅ Approve this visitor entry?')) {
+                alert('Visitor approved! Security notified.');
+                this.closest('.visitor-card').remove();
+            }
+        });
+    });
+
+    document.querySelectorAll('.btn-danger').forEach(btn => {
+        if(btn.textContent.includes('Deny')) {
+            btn.addEventListener('click', function() {
+                if(confirm('❌ Deny this visitor entry?')) {
+                    alert('Visitor denied. Security notified.');
+                    this.closest('.visitor-card').remove();
+                }
+            });
+        }
+    });
+
+    // Add visitor button
+    document.querySelector('.add-visitor-btn').addEventListener('click', function() {
+        alert('Opening visitor pre-approval form...');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+</script>
+{% endblock %}

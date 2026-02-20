@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGate - Community</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .notification-icon, .profile-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .announcement-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .announcement-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .announcement-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .announcement-meta h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .announcement-time {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .announcement-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .announcement-category {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .category-important {
+            background: #ffe5e5;
+            color: #d63031;
+        }
+
+        .category-event {
+            background: #e5f5ff;
+            color: #0984e3;
+        }
+
+        .category-maintenance {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .author-info h4 {
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+
+        .author-info p {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .post-menu {
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .post-content {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .action-btn:hover {
+            color: #667eea;
+        }
+
+        .poll-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .poll-question {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .poll-option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .poll-option:hover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .poll-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(90deg, #f0f3ff 0%, white 100%);
+        }
+
+        .poll-percentage {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .fab-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            z-index: 50;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 5px 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🏢</span>
+                <span>MyGate</span>
+            </div>
+            <div class="header-actions">
+                <div class="notification-icon">
+                    <span>🔔</span>
+                    <div class="notification-badge">{{ pending_visitors_count }}</div>
+                </div>
+                <div class="profile-icon">
+                    <span>👤</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1 class="page-title">Community</h1>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('feed')">Feed</div>
+            <div class="tab" onclick="switchTab('announcements')">Announcements</div>
+            <div class="tab" onclick="switchTab('polls')">Polls</div>
+        </div>
+
+        <div id="feed-section">
+        {% for post in posts %}
+        <div class="post-card">
+            <div class="post-header">
+                <div class="post-author">
+                    <div class="author-avatar">👤</div>
+                    <div class="author-info">
+                        <h4>{{ post.user.get_full_name|default:post.user.username }}</h4>
+                        <p>{{ post.apartment }} • {{ post.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                <div class="post-menu">⋮</div>
+            </div>
+
+            <div class="post-content">{{ post.content }}</div>
+
+            {% if post.image %}
+            <img src="{{ post.image.url }}" class="post-image">
+            {% endif %}
+
+            <div class="post-actions">
+                <div class="action-btn">❤️ {{ post.likes }} Likes</div>
+                <div class="action-btn">💬 {{ post.comments }} Comments</div>
+                <div class="action-btn">🔗 Share</div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No community posts yet</p>
+        {% endfor %}
+        </div>
+
+
+        <div id="announcements-section" style="display:none;">
+        {% for a in announcements %}
+        <div class="announcement-card">
+            <div class="announcement-header">
+                <div class="announcement-icon">📢</div>
+                <div class="announcement-meta">
+                    <h3>{{ a.title }}</h3>
+                    <div class="announcement-time">
+                        Posted {{ a.created_at|timesince }} ago
+                    </div>
+                </div>
+            </div>
+
+            <div class="announcement-content">{{ a.message }}</div>
+
+            <span class="announcement-category category-important">Announcement</span>
+        </div>
+        {% empty %}
+        <p>No announcements</p>
+        {% endfor %}
+        </div>
+
+
+        <div id="polls-section" style="display:none;">
+        {% for poll in polls %}
+        <div class="poll-card">
+            <div class="post-header">
+                <div class="post-author">
+                    <div class="author-avatar">📊</div>
+                    <div class="author-info">
+                        <h4>{{ poll.created_by }}</h4>
+                        <p>{{ poll.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="poll-question">{{ poll.question }}</div>
+
+            {% for opt in poll.options.all %}
+            <div class="poll-option">
+                <span>{{ opt.text }}</span>
+                <span class="poll-percentage">{{ opt.votes }} votes</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% empty %}
+        <p>No polls available</p>
+        {% endfor %}
+        </div>
+
+    </main>
+
+    <a href="{% url 'community' %}" class="fab-btn">✏️</a>
+
+    <nav class="bottom-nav">
+        <a href="{% url 'home' %}" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <span>Home</span>
+        </a>
+
+        <a href="{% url 'visitors' %}" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <span>Visitors</span>
+        </a>
+
+        <a href="{% url 'services' %}" class="nav-item">
+            <div class="nav-icon">🛠️</div>
+            <span>Services</span>
+        </a>
+
+        <a href="{% url 'community' %}" class="nav-item active">
+            <div class="nav-icon">💬</div>
+            <span>Community</span>
+        </a>
+
+        <a href="{% url 'profile' %}" class="nav-item">
+            <div class="nav-icon">⚙️</div>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+
+    <script>
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('feed-section').style.display = 'none';
+            document.getElementById('announcements-section').style.display = 'none';
+            document.getElementById('polls-section').style.display = 'none';
+
+            if (tab === 'feed') {
+                document.getElementById('feed-section').style.display = 'block';
+            } else if (tab === 'announcements') {
+                document.getElementById('announcements-section').style.display = 'block';
+            } else if (tab === 'polls') {
+                document.getElementById('polls-section').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

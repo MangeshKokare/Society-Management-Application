@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MySociety - Community Management{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, {% block header_gradient %}#667eea 0%, #764ba2 100%{% endblock %});
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .role-badge {
+            font-size: 11px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-left: 10px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            color: white;
+            text-decoration: none;
+        }
+
+        .notification-icon:hover, .profile-icon:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px 80px 20px;
+            min-height: calc(100vh - 180px);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 5px 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: {% block nav_active_color %}#667eea{% endblock %};
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, {% block btn_gradient %}#667eea 0%, #764ba2 100%{% endblock %});
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+        }
+
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee3344;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-active {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .sos-icon {
+            width: 40px;
+            height: 40px;
+            background: #ff4757;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            font-size: 18px;
+        }
+
+        .sos-icon:hover {
+            background: #ee3344;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+
+            .header-content {
+                padding: 0 10px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            .role-badge {
+                display: none; /* cleaner header on mobile */
+            }
+
+            .header-actions {
+                gap: 10px;
+            }
+
+            .notification-icon,
+            .profile-icon,
+            .sos-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .main-content {
+                padding: 15px 15px 100px 15px; /* more space for bottom-nav */
+            }
+        }
+
+        /* Mobile phones */
+        @media (max-width: 480px) {
+
+            .header {
+                padding: 12px 15px;
+            }
+
+            .logo span:last-child {
+                display: none; /* hides "MySociety", keeps icon */
+            }
+
+            .bottom-nav {
+                padding: 8px 0;
+            }
+
+            .nav-item {
+                font-size: 10px;
+                padding: 5px 10px;
+            }
+
+            .nav-icon {
+                font-size: 18px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>{% block logo_icon %}🏢{% endblock %}</span>
+                <span>MySociety</span>
+                {% if current_role %}
+                <span class="role-badge">
+                    {{ current_role|title }}
+                </span>
+                {% endif %}
+
+            </div>
+            <div class="header-actions">
+
+                <!-- SOS Button -->
+                <div class="sos-icon" title="SOS / Panic Alert" onclick="sendSOS()">
+                    🚨
+                </div>
+
+                <!-- Notification Icon -->
+                <a href="{% url 'resident_notifications' %}" class="notification-icon">
+                    <span>🔔</span>
+                    {% if notification_count > 0 %}
+                    <div class="notification-badge">
+                        {{ notification_count }}
+                    </div>
+                    {% endif %}
+                </a>
+
+                <!-- Profile Icon -->
+                <a href="{% url 'profile' %}" class="profile-icon" title="My Profile">
+                    {{ current_user.username|slice:":1"|upper }}
+                </a>
+
+            </div>
+
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <nav class="bottom-nav">
+
+    {% if current_role == "resident" %}
+        <a href="{% url 'resident_dashboard' %}" class="nav-item {% block nav_home %}{% endblock %}">
+            <div class="nav-icon">🏠</div>
+            <span>Home</span>
+        </a>
+
+        <a href="{% url 'resident_visitors' %}" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <span>Visitors</span>
+        </a>
+
+        <a href="{% url 'resident_services' %}" class="nav-item {% block nav_services %}{% endblock %}">
+            <div class="nav-icon">🛠️</div>
+            <span>Services</span>
+        </a>
+
+        <a href="{% url 'resident_vehicles' %}" class="nav-item {% block nav_vehicles %}{% endblock %}">
+            <div class="nav-icon">🚗</div>
+            <span>My Vehicles</span>
+        </a>
+
+        <a href="{% url 'resident_notices' %}" class="nav-item ">
+            <div class="nav-icon">📢</div>
+            <span>Community</span>
+        </a>
+
+    {% elif current_role == "admin" %}
+        <a href="{% url 'admin_dashboard' %}" class="nav-item">
+            <div class="nav-icon">📊</div>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="{% url 'admin_residents' %}" class="nav-item">
+            <div class="nav-icon">👥</div>
+            <span>Residents</span>
+        </a>
+
+    {% elif current_role == "guard" %}
+        <a href="{% url 'guard_dashboard' %}" class="nav-item">
+            <div class="nav-icon">🛡️</div>
+            <span>Gate</span>
+        </a>
+    {% endif %}
+
+    </nav>
+
+
+    {% block scripts %}{% endblock %}
+
+<script>
+function getCSRF() {
+    return "{{ csrf_token }}";
+}
+</script>
+<script>
+function sendSOS() {
+    if (!confirm("⚠️ Send emergency alert to security and emergency contacts?")) return;
+
+    fetch("{% url 'send_sos' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(res => res.json())
+    .then(() => alert("🚨 SOS sent successfully"))
+    .catch(() => alert("❌ Failed to send SOS"));
+}
+</script>
+
+</body>
+</html>

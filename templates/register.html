@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MyGate | Register</title>
+
+<style>
+body{
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    font-family: system-ui;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card{
+    background:white;
+    padding:30px;
+    width:420px;
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+input,select,button{
+    width:100%;
+    padding:12px;
+    margin-bottom:12px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    font-size:14px;
+}
+
+button{
+    background:#667eea;
+    color:white;
+    font-weight:bold;
+    border:none;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#5568d3;
+}
+
+.hidden{display:none;}
+.error{color:red;text-align:center;margin-bottom:10px;}
+
+h2{text-align:center;margin-bottom:20px;}
+.section-title{
+    font-size:13px;
+    font-weight:600;
+    color:#666;
+    margin:12px 0 6px;
+}
+</style>
+
+<script>
+function setRequired(container, value){
+    container.querySelectorAll("input, select").forEach(el => {
+        if (value) {
+            el.setAttribute("required", "required");
+        } else {
+            el.removeAttribute("required");
+        }
+    });
+}
+
+function toggleFields(role){
+    const societyFields = document.getElementById("society-fields");
+    const residentFields = document.getElementById("resident-fields");
+    const providerFields = document.getElementById("provider-fields");
+
+    // Hide all
+    societyFields.classList.add("hidden");
+    residentFields.classList.add("hidden");
+    providerFields.classList.add("hidden");
+
+    // Disable required everywhere
+    setRequired(societyFields, false);
+    setRequired(residentFields, false);
+    setRequired(providerFields, false);
+
+    if(role === "society_admin"){
+        societyFields.classList.remove("hidden");
+        setRequired(societyFields, true);
+    }
+
+    if(role === "resident" || role === "guard" || role === "guard_admin"){
+        residentFields.classList.remove("hidden");
+        setRequired(residentFields, true);
+    }
+
+
+    if(role === "service_provider"){
+        providerFields.classList.remove("hidden");
+        setRequired(providerFields, true);
+    }
+}
+</script>
+
+</head>
+
+<body>
+
+<div class="card">
+<h2>🏢 MyGate Register</h2>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<form method="POST">
+{% csrf_token %}
+
+<!-- ================= COMMON ================= -->
+<input name="username" placeholder="Username" required>
+<input type="password" name="password" placeholder="Password" required>
+
+<select name="role" onchange="toggleFields(this.value)" required>
+    <option value="">Select Role</option>
+    <option value="society_admin">Society Admin</option>
+    <option value="resident">Resident</option>
+    <option value="guard">Guard</option>
+    <option value="guard_admin">Guard Admin</option>
+
+    <option value="service_provider">Service Provider</option>
+</select>
+
+<!-- ================= SOCIETY ADMIN ================= -->
+<div id="society-fields" class="hidden">
+    <div class="section-title">Society Details</div>
+    <input name="society_name" placeholder="Society Name" required>
+    <input name="address" placeholder="Society Address" required>
+    <input name="city" placeholder="City" required>
+    <input name="state" placeholder="State" required>
+    <input name="phone" placeholder="Admin Phone Number" required>
+</div>
+
+<!-- ================= RESIDENT / GUARD ================= -->
+<div id="resident-fields" class="hidden">
+    <div class="section-title">Society Access</div>
+    <input name="society_code" placeholder="Society Code" style="text-transform:uppercase" required>
+
+    <input name="block" placeholder="Block (Residents only)">
+    <input name="flat_number" placeholder="Flat Number (Residents only)">
+    <input name="phone" placeholder="Phone Number" required>
+</div>
+
+<!-- ================= SERVICE PROVIDER ================= -->
+<div id="provider-fields" class="hidden">
+    <div class="section-title">Service Provider Details</div>
+
+    <input name="name" placeholder="Full Name" required>
+    <input name="mobile" placeholder="Mobile Number" required>
+    <input name="alternate_mobile" placeholder="Alternate Mobile (optional)">
+
+    <select name="service" required>
+        <option value="">Select Service</option>
+        {% for s in services %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="gender" required>
+        <option value="">Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+    </select>
+
+    <input name="age" placeholder="Age">
+
+    <input name="area" placeholder="Area / Locality" required>
+    <input name="city" placeholder="City" required>
+    <input name="pincode" placeholder="Pincode" required>
+
+    <input name="experience_years" placeholder="Experience (Years)">
+    <input name="hourly_rate" placeholder="Hourly Rate (₹)">
+    <input name="monthly_rate" placeholder="Monthly Rate (₹)">
+    <input name="preferred_timings" placeholder="Preferred Timings (e.g. 6 AM - 10 AM)" required>
+    <input name="available_days" placeholder="Available Days (e.g. Mon-Sat)" required>
+
+    <label style="font-size:13px;">
+        <input type="checkbox" name="police_verification">
+        Police Verified
+    </label>
+</div>
+
+<button>Create Account</button>
+
+<div style="text-align:center;margin-top:14px;">
+    <a href="{% url 'login' %}" style="
+        text-decoration:none;
+        font-size:14px;
+        color:#667eea;
+        font-weight:600;
+    ">
+        Already have an account? Login
+    </a>
+</div>
+</form>
+
+</div>
+</body>
+</html>
