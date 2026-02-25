@@ -189,6 +189,8 @@ urlpatterns = [
      name="delete_vehicle"
      ),
 
+    path('guard/attendance/json/',     views.guard_attendance_json,     name='guard_attendance_json'),
+    path('guard/attendance/download/', views.guard_attendance_download,  name='guard_attendance_download'),
 path(
     "vehicles/<int:vehicle_id>/edit/",
     views.edit_vehicle,
@@ -341,5 +343,13 @@ path(
     path('guard/chats/',              views.guard_chat_list, name='guard_chat_list'),
     path('guard/chat/<int:chat_id>/', views.guard_chat_room, name='guard_chat_room'),
 
-    path('api/unread-count/', unread_count_api, name='unread_count_api')
+    path('api/unread-count/', unread_count_api, name='unread_count_api'),
+
+    path('api/bills/create/',           views.api_create_bill,   name='api_create_bill'),
+    path('api/bills/<int:bill_id>/',    views.api_bill_detail,   name='api_bill_detail'),
+    path('api/bills/<int:bill_id>/remind/', views.api_bill_remind, name='api_bill_remind'),
+    path('api/bills/<int:bill_id>/delete/', views.api_bill_delete, name='api_bill_delete'),
+    path('api/bills/pay/<int:bp_id>/', views.api_resident_pay_bill, name='api_resident_pay_bill'),
+
+    path('api/chats/mark-all-read/', views.api_mark_all_chats_read),
 ]

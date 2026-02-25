@@ -7,6 +7,7 @@ from django.db.models import Count
 from .models import ServiceReview
 from django.http import HttpResponse
 import csv
+from datetime import date
 from django.views.decorators.http import require_POST
 import json
 import traceback
@@ -521,73 +522,89 @@ def preapprove_visitor(request):
         return redirect("resident_visitors")
 
 
-
-
-
-
-
-
 @login_required
 @role_required("resident")
 def approve_visitor(request, id):
-    """
-    Resident approves pending visitor at gate
-    Generates entry code for guard verification
-    """
     try:
         visitor = Visitor.objects.get(
             id=id,
             apartment=request.user.userprofile.apartment,
             status="pending"
         )
-        
-        # Generate entry code
+
         visitor.entry_code = generate_entry_code()
-        visitor.status = "approved"
+        visitor.status = "approved"  # approved, NOT checked_in
+        visitor.approved_at = timezone.now()
+        visitor.approved_by = request.user
         visitor.save()
 
-        # Notify resident
         Notification.objects.create(
             user=request.user,
             sender=request.user,
-            visitor=visitor,  # ✅ REQUIRED
+            visitor=visitor,
             title="✅ Visitor Approved",
-            message=f"{visitor.name} has been approved. Entry Code: {visitor.entry_code}"
+            message=f"{visitor.name} approved. Entry Code: {visitor.entry_code}"
         )
-
 
         messages.success(
             request,
-            f"✅ Visitor approved! Entry Code: <strong>{visitor.entry_code}</strong><br>"
-            f"Guard will verify this code before check-in."
+            f"Visitor approved! Entry Code: {visitor.entry_code}"
         )
 
     except Visitor.DoesNotExist:
-        messages.error(request, "❌ Visitor not found")
+        messages.error(request, "Visitor not found")
 
     return redirect("resident_visitors")
-
 
 
 @login_required
 @role_required("resident")
 def deny_visitor(request, id):
-    visitor = Visitor.objects.get(
-        id=id,
-        apartment=request.user.userprofile.apartment
-    )
-    visitor.delete()
-    Notification.objects.create(
-        user=request.user,
-        sender=request.user,
-        visitor=visitor,  # ✅ REQUIRED
-        title="Visitor Denied",
-        message=f"{visitor.name} has been denied"
-    )
+    try:
+        visitor = Visitor.objects.get(
+            id=id,
+            apartment=request.user.userprofile.apartment,
+            status="pending"
+        )
 
+        visitor.status = "rejected"
+        visitor.rejected_at = timezone.now()
+        visitor.save()
+
+        Notification.objects.create(
+            user=request.user,
+            sender=request.user,
+            visitor=visitor,
+            title="❌ Visitor Rejected",
+            message=f"{visitor.name} has been denied entry"
+        )
+
+        messages.warning(request, f"{visitor.name} has been denied")
+
+    except Visitor.DoesNotExist:
+        messages.error(request, "Visitor not found")
 
     return redirect("resident_visitors")
 
+
+@login_required
+@role_required("guard", "guard_admin")
+def verify_entry_code(request, id):
+    visitor = get_object_or_404(Visitor, id=id, status="approved")
+
+    if request.method == "POST":
+        code = request.POST.get("code")
+
+        if code == visitor.entry_code:
+            visitor.status = "checked_in"
+            visitor.check_in_time = timezone.now()
+            visitor.save()
+
+            messages.success(request, "Visitor checked in successfully")
+        else:
+            messages.error(request, "Invalid entry code")
+
+    return redirect("guard_dashboard")
 
 @login_required
 @role_required("resident")
@@ -998,36 +1015,149 @@ def resident_notices(request):
         messages.error(request, f"Error loading community page: {str(e)}")
         return redirect('home')
 
+
+@login_required
+@require_POST
+def api_mark_all_chats_read(request):
+    ChatMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).exclude(sender=request.user).update(is_read=True)
+
+    new_count = ChatMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+
+    return JsonResponse({
+        'success': True,
+        'total_unread': new_count
+    })
+
 @login_required
 @role_required("resident")
 def resident_notifications(request):
-    user = request.user
+    user    = request.user
+    profile = user.userprofile
 
-    # Get all chatrooms where resident is participant
-    chatrooms = ChatRoom.objects.filter(
-        Q(user1=user) | Q(user2=user)
-    ).select_related("user1", "user2").prefetch_related("messages")
+    # ── Alerts / Notifications ─────────────────────────────────
+    # Only notifications addressed to this user (visitor check-ins
+    # for their flat are sent here by the guard check-in view)
+    notifications = Notification.objects.filter(
+        user=user
+    ).order_by('-created_at')
 
-    chats = []
+    unread_qs = notifications.filter(is_read=False)
+    unread_count = unread_qs.count()
 
-    for room in chatrooms:
-        other_user = room.get_other_user(user)
+    # Mark them read
+    if unread_count > 0:
+        unread_qs.update(is_read=True)
 
-        messages = room.messages.all()
+    # After updating → set unread_count = 0
+    unread_count = 0
 
-        chats.append({
-            "chatroom": room,
-            "other_user": other_user,
-            "messages": messages
+    # ── Bills assigned to this resident ────────────────────────
+    # Auto-mark overdue rows before rendering
+    today = timezone.now().date()
+    BillPayer.objects.filter(
+        user=user,
+        status='pending',
+        bill__due_date__lt=today
+    ).update(status='overdue')
+
+    all_bp = BillPayer.objects.filter(
+        user=user
+    ).select_related('bill').order_by('-bill__created_at')
+
+    pending_bill_payers = [bp for bp in all_bp if bp.status == 'pending']
+    overdue_bill_payers = [bp for bp in all_bp if bp.status == 'overdue']
+    paid_bill_payers    = [bp for bp in all_bp if bp.status == 'paid']
+
+    # ── Unread chat messages ────────────────────────────────────
+    total_unread = ChatMessage.objects.filter(
+        receiver=user,
+        is_read=False
+    ).exclude(sender=user).count()
+
+    return render(request, 'resident_notifications.html', {
+        'profile':              profile,
+        'user':                 user,
+        # Alerts
+        'notifications':        notifications,
+        'unread_count':         unread_count,
+        # Payments
+        'pending_bill_payers':  pending_bill_payers,
+        'overdue_bill_payers':  overdue_bill_payers,
+        'paid_bill_payers':     paid_bill_payers,
+        'pending_bills_count':  len(pending_bill_payers),
+        'overdue_bills_count':  len(overdue_bill_payers),
+        'paid_bills_count':     len(paid_bill_payers),
+        # Chat
+        'total_unread':         total_unread,
+    })
+
+
+# ─────────────────────────────────────────
+# POST /api/bills/pay/<bp_id>/
+# Resident marks their own BillPayer row as paid
+# ─────────────────────────────────────────
+@login_required
+@require_POST
+def api_resident_pay_bill(request, bp_id):
+    try:
+        data      = json.loads(request.body)
+        method    = data.get('method', 'upi')
+        reference = data.get('reference', '').strip()
+
+        bp = BillPayer.objects.select_related(
+            'bill__society'
+        ).get(id=bp_id, user=request.user)
+
+        if bp.status == 'paid':
+            return JsonResponse({'success': False, 'error': 'This bill is already paid'})
+
+        bp.status            = 'paid'
+        bp.paid_at           = timezone.now()
+        bp.payment_reference = reference
+        bp.save()
+
+        # Update parent Bill status if everyone has paid
+        bill = bp.bill
+        if not bill.billpayer_set.filter(status__in=['pending', 'overdue']).exists():
+            bill.status = 'paid'
+            bill.save(update_fields=['status'])
+
+        # Notify society admin
+        try:
+            admin_profile = bill.society.userprofile_set.filter(
+                role='society_admin', status='approved'
+            ).first()
+            if admin_profile:
+                Notification.objects.create(
+                    user=admin_profile.user,
+                    sender=request.user,
+                    title=f"✅ Payment Received: {bill.title}",
+                    message=(
+                        f"{request.user.get_full_name() or request.user.username} "
+                        f"paid ₹{bill.amount} via {method.upper()}."
+                        + (f" Ref: {reference}" if reference else '')
+                    )
+                )
+        except Exception:
+            pass
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Payment of ₹{bill.amount} recorded!'
         })
 
-    return render(
-        request,
-        "resident_notifications.html",
-        {
-            "chats": chats,
-        }
-    )
+    except BillPayer.DoesNotExist:
+        return JsonResponse(
+            {'success': False, 'error': 'Bill not found or not assigned to you'}, status=404
+        )
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 
@@ -1477,9 +1607,321 @@ def guard_dashboard(request):
         # User
         "guard_name": request.user.first_name or request.user.username,
         "society_name": society.name if society else "MyGate Society",
+        "available_months": _available_months(),
+        "today_month":      timezone.now().astimezone(
+                                pytz.timezone("Asia/Kolkata")
+                            ).strftime("%Y-%m"),
     }
 
     return render(request, "society_guard/guard_index.html", context)
+
+def _available_months(n=6):
+    india_tz = pytz.timezone("Asia/Kolkata")
+    now = timezone.now().astimezone(india_tz)
+    months = []
+    year, month = now.year, now.month
+    for i in range(n):
+        val = f"{year}-{month:02d}"
+        months.append({
+            "value": val,
+            "label": date(year, month, 1).strftime("%B %Y"),
+            "selected": i == 0,
+        })
+        # go back one month
+        month -= 1
+        if month == 0:
+            month = 12
+            year -= 1
+    return months
+# ──────────────────────────────────────────────────────────────
+#  HELPER: parse "YYYY-MM" from request, default to current month
+# ──────────────────────────────────────────────────────────────
+def _parse_month(request):
+    india_tz = pytz.timezone("Asia/Kolkata")
+    now = timezone.now().astimezone(india_tz)
+    raw = request.GET.get("month", "")
+    try:
+        year, month = map(int, raw.split("-"))
+        return year, month
+    except Exception:
+        return now.year, now.month
+
+
+# ──────────────────────────────────────────────────────────────
+#  HELPER: build attendance records for a guard for a month
+# ──────────────────────────────────────────────────────────────
+def _get_attendance_data(guard_profile, year, month):
+    """
+    Returns (records_list, summary_dict) for the given guard & month.
+    Each record is a dict with: date, date_display, status,
+    check_in, check_out, duration_minutes, duration_display.
+    """
+    india_tz = pytz.timezone("Asia/Kolkata")
+    today = timezone.now().astimezone(india_tz).date()
+
+    # Days in month
+    _, days_in_month = calendar.monthrange(year, month)
+    start_date = date(year, month, 1)
+    end_date   = date(year, month, days_in_month)
+
+    # Fetch all shifts for this guard in this month
+    shifts = GuardShift.objects.filter(
+        guard=guard_profile,
+        date__range=(start_date, end_date)
+    ).order_by("date")
+
+    shift_map = {s.date: s for s in shifts}
+
+    records = []
+    summary = {"present": 0, "absent": 0, "late": 0, "total_minutes": 0, "worked_days": 0}
+
+    for day_offset in range(days_in_month):
+        d = start_date + timedelta(days=day_offset)
+        if d > today:
+            # Future – skip
+            continue
+
+        shift = shift_map.get(d)
+
+        if shift is None:
+            # No shift assigned → absent (unless it's a known holiday/leave)
+            record = {
+                "date": d.isoformat(),
+                "date_display": d.strftime("%d %b, %a"),
+                "status": "absent",
+                "check_in": None,
+                "check_out": None,
+                "duration_minutes": None,
+                "duration_display": "—",
+            }
+            summary["absent"] += 1
+        else:
+            check_in_time  = None
+            check_out_time = None
+            duration_min   = None
+            duration_disp  = "—"
+            status         = "absent"
+
+            if shift.check_in:
+                ci_local = shift.check_in.astimezone(india_tz)
+                check_in_time = ci_local.strftime("%I:%M %p")
+
+                # Late check-in: more than 15 min after shift start
+                shift_start = india_tz.localize(
+                    timezone.datetime.combine(d, shift.start_time)
+                )
+                late_by = (ci_local - shift_start).total_seconds() / 60
+                status = "late" if late_by > 15 else "present"
+
+                if shift.check_out:
+                    co_local = shift.check_out.astimezone(india_tz)
+                    check_out_time = co_local.strftime("%I:%M %p")
+                    duration_min   = int((co_local - ci_local).total_seconds() / 60)
+                    hours   = duration_min // 60
+                    minutes = duration_min % 60
+                    duration_disp = f"{hours}h {minutes}m"
+                    summary["total_minutes"] += duration_min
+                    summary["worked_days"]   += 1
+
+                if status == "late":
+                    summary["late"]    += 1
+                    summary["present"] += 1          # late counts as present too
+                else:
+                    summary["present"] += 1
+            else:
+                summary["absent"] += 1
+
+            record = {
+                "date": d.isoformat(),
+                "date_display": d.strftime("%d %b, %a"),
+                "status": status,
+                "check_in": check_in_time,
+                "check_out": check_out_time,
+                "duration_minutes": duration_min,
+                "duration_display": duration_disp,
+            }
+
+        records.append(record)
+
+    # Average hours
+    if summary["worked_days"] > 0:
+        avg_min = summary["total_minutes"] / summary["worked_days"]
+        summary["avg_hours"] = f"{int(avg_min//60)}h {int(avg_min%60)}m"
+    else:
+        summary["avg_hours"] = "—"
+
+    return list(reversed(records)), summary   # most-recent first for display
+
+
+# ──────────────────────────────────────────────────────────────
+#  VIEW 1: JSON for the table (AJAX)
+# ──────────────────────────────────────────────────────────────
+@login_required(login_url="login")
+def guard_attendance_json(request):
+    profile = request.user.userprofile
+    year, month = _parse_month(request)
+    records, summary = _get_attendance_data(profile, year, month)
+    return JsonResponse({"records": records, "summary": summary})
+
+
+# ──────────────────────────────────────────────────────────────
+#  VIEW 2: XLS download
+# ──────────────────────────────────────────────────────────────
+@login_required(login_url="login")
+def guard_attendance_download(request):
+    profile = request.user.userprofile
+    year, month = _parse_month(request)
+    records_desc, summary = _get_attendance_data(profile, year, month)
+    records = list(reversed(records_desc))   # chronological for XLS
+
+    # ── Build workbook ──
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Attendance"
+
+    # ── Color palette ──
+    C_HEADER_BG  = "1A237E"   # dark navy
+    C_HEADER_FG  = "FFFFFF"
+    C_SUBHEADER  = "E8EAF6"   # light indigo tint
+    C_PRESENT    = "D1FAE5"
+    C_ABSENT     = "FEE2E2"
+    C_LATE       = "FEF3C7"
+    C_ALT_ROW    = "F8FAFC"
+    C_SUMMARY_BG = "EEF2FF"
+
+    thin = Side(style="thin", color="DEE2E6")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    # ── Column widths ──
+    col_widths = [5, 18, 16, 14, 14, 16]
+    for i, w in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    # ── Title block ──
+    ws.merge_cells("A1:F1")
+    title_cell = ws["A1"]
+    title_cell.value = "MyGate — Guard Attendance Report"
+    title_cell.font = Font(name="Arial", bold=True, size=14, color=C_HEADER_FG)
+    title_cell.fill = PatternFill("solid", fgColor=C_HEADER_BG)
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 32
+
+    ws.merge_cells("A2:F2")
+    month_label = date(year, month, 1).strftime("%B %Y")
+    guard_name  = request.user.get_full_name() or request.user.username
+    sub_cell = ws["A2"]
+    sub_cell.value = f"{guard_name}  ·  {month_label}  ·  Society: {profile.society.name if profile.society else '—'}"
+    sub_cell.font = Font(name="Arial", size=10, color="475569")
+    sub_cell.fill = PatternFill("solid", fgColor=C_SUBHEADER)
+    sub_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[2].height = 20
+
+    # blank spacer
+    ws.row_dimensions[3].height = 6
+
+    # ── Summary row ──
+    ws["A4"] = "Present"
+    ws["B4"] = summary["present"]
+    ws["C4"] = "Absent"
+    ws["D4"] = summary["absent"]
+    ws["E4"] = "Late Days"
+    ws["F4"] = summary["late"]
+
+    ws["A5"] = "Avg Hours/Day"
+    ws["B5"] = summary["avg_hours"]
+
+    for row in [4, 5]:
+        for col in range(1, 7):
+            cell = ws.cell(row=row, column=col)
+            cell.fill = PatternFill("solid", fgColor=C_SUMMARY_BG)
+            cell.font = Font(name="Arial", size=10, bold=(col % 2 == 1))
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = border
+        ws.row_dimensions[row].height = 18
+
+    ws.row_dimensions[6].height = 8   # spacer
+
+    # ── Table header ──
+    headers = ["#", "Date", "Status", "Check-In", "Check-Out", "Duration"]
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=7, column=col)
+        cell.value = h
+        cell.font = Font(name="Arial", bold=True, size=10, color=C_HEADER_FG)
+        cell.fill = PatternFill("solid", fgColor=C_HEADER_BG)
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = border
+    ws.row_dimensions[7].height = 22
+
+    # ── Data rows ──
+    status_bg = {
+        "present": C_PRESENT,
+        "late":    C_LATE,
+        "absent":  C_ABSENT,
+        "holiday": "EDE9FE",
+        "leave":   "E0F2FE",
+    }
+    status_label = {
+        "present": "✓ Present",
+        "late":    "⏰ Late",
+        "absent":  "✗ Absent",
+        "holiday": "🎉 Holiday",
+        "leave":   "🏖 Leave",
+    }
+
+    for i, r in enumerate(records, 1):
+        row_num  = 7 + i
+        row_bg   = C_ALT_ROW if i % 2 == 0 else "FFFFFF"
+        status   = r["status"]
+        stat_bg  = status_bg.get(status, "FFFFFF")
+
+        data = [
+            i,
+            r["date_display"],
+            status_label.get(status, status.title()),
+            r["check_in"]  or "—",
+            r["check_out"] or "—",
+            r["duration_display"],
+        ]
+
+        for col, val in enumerate(data, 1):
+            cell = ws.cell(row=row_num, column=col)
+            cell.value = val
+            cell.font  = Font(name="Arial", size=10)
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = border
+            # status column gets coloured background
+            if col == 3:
+                cell.fill = PatternFill("solid", fgColor=stat_bg)
+                cell.font = Font(name="Arial", size=10, bold=True)
+            else:
+                cell.fill = PatternFill("solid", fgColor=row_bg)
+
+        ws.row_dimensions[row_num].height = 18
+
+    # ── Footer ──
+    footer_row = 7 + len(records) + 2
+    ws.merge_cells(f"A{footer_row}:F{footer_row}")
+    fc = ws[f"A{footer_row}"]
+    from django.utils import timezone as dj_tz
+    fc.value = f"Generated on {dj_tz.now().strftime('%d %b %Y %I:%M %p')} IST · MyGate Society Management"
+    fc.font = Font(name="Arial", size=9, italic=True, color="94A3B8")
+    fc.alignment = Alignment(horizontal="center")
+
+    # ── Freeze panes ──
+    ws.freeze_panes = "A8"
+
+    # ── Stream response ──
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    filename = f"attendance_{guard_name.replace(' ','_')}_{year}_{month:02d}.xlsx"
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
 
 @login_required
 @role_required("guard", "guard_admin")
@@ -3340,12 +3782,11 @@ def guard_entry(request):
                     mobile=mobile,
                     visitor_type='guest',
                     purpose=request.POST.get('purpose', ''),
-                    status='checked_in',
-                    check_in_time=timezone.now(),
+                    status='pending',   # ✅ CHANGE HERE
                     checked_in_by=request.user
                 )
 
-                # ✅ SAVE PHOTO IF UPLOADED
+                # Save photo
                 photo = request.FILES.get("photo")
                 if photo:
                     VisitorPhoto.objects.create(
@@ -3354,8 +3795,7 @@ def guard_entry(request):
                         taken_by=request.user
                     )
 
-
-                messages.success(request, f"✓ Visitor {name} checked in successfully")
+                messages.success(request, f"✓ Visitor {name} request sent to resident for approval")
 
             return redirect('guard_entry')
 
@@ -5343,116 +5783,105 @@ def society_admin_create_announcement(request):
 @login_required
 @role_required("society_admin")
 def society_admin_settings(request):
-    """
-    Society Admin Settings Page
-    Handles profile updates for society and admin information
-    """
     profile = request.user.userprofile
     society = profile.society
 
     if request.method == "POST":
         action = request.POST.get("action")
 
+        # ─── UPDATE PROFILE & SOCIETY INFO ───────────────────────────────────
         if action == "update_profile":
             try:
-                # ============ UPDATE SOCIETY INFORMATION ============
-                society_name = request.POST.get("society_name", "").strip()
+                # Society fields
+                society_name    = request.POST.get("society_name", "").strip()
                 society_address = request.POST.get("society_address", "").strip()
-                society_city = request.POST.get("society_city", "").strip()
-                society_state = request.POST.get("society_state", "").strip()
+                society_city    = request.POST.get("society_city", "").strip()
+                society_state   = request.POST.get("society_state", "").strip()
 
-                if society_name:
-                    society.name = society_name
-                if society_address:
-                    society.address = society_address
-                if society_city:
-                    society.city = society_city
-                if society_state:
-                    society.state = society_state
-
+                if society_name:    society.name    = society_name
+                if society_address: society.address = society_address
+                if society_city:    society.city    = society_city
+                if society_state:   society.state   = society_state
                 society.save()
 
-                # ============ UPDATE ADMIN INFORMATION ============
-                username = request.POST.get("username", "").strip()
-                email = request.POST.get("email", "").strip()
-                phone = request.POST.get("phone", "").strip()
+                # Admin user fields
+                username  = request.POST.get("username", "").strip()
+                email     = request.POST.get("email", "").strip()
+                phone     = request.POST.get("phone", "").strip()
                 full_name = request.POST.get("full_name", "").strip()
 
-                # Update username
                 if username and username != request.user.username:
-                    # Check if username already exists
                     if User.objects.filter(username=username).exclude(id=request.user.id).exists():
-                        return JsonResponse({
-                            "success": False,
-                            "error": "Username already taken"
-                        })
+                        return JsonResponse({"success": False, "error": "Username already taken"})
                     request.user.username = username
 
-                # Update email
                 if email:
                     request.user.email = email
 
-                # Update full name
                 if full_name:
                     name_parts = full_name.split(" ", 1)
                     request.user.first_name = name_parts[0]
-                    request.user.last_name = name_parts[1] if len(name_parts) > 1 else ""
+                    request.user.last_name  = name_parts[1] if len(name_parts) > 1 else ""
 
                 request.user.save()
 
-                # Update phone in profile
                 if phone:
                     profile.phone = phone
                     profile.save()
 
-                # Return success response with updated values
                 return JsonResponse({
                     "success": True,
                     "message": "Settings saved successfully!",
                     "updated_values": {
-                        "society_name": society.name,
+                        "society_name":    society.name,
                         "society_address": society.address,
-                        "society_city": society.city,
-                        "society_state": society.state,
-                        "username": request.user.username,
-                        "email": request.user.email,
-                        "phone": profile.phone,
-                        "full_name": f"{request.user.first_name} {request.user.last_name}".strip()
+                        "society_city":    society.city,
+                        "society_state":   society.state,
+                        "username":        request.user.username,
+                        "email":           request.user.email,
+                        "phone":           profile.phone,
+                        "full_name": f"{request.user.first_name} {request.user.last_name}".strip(),
                     }
                 })
 
             except Exception as e:
-                return JsonResponse({
-                    "success": False,
-                    "error": f"Error saving settings: {str(e)}"
-                })
+                return JsonResponse({"success": False, "error": f"Error saving settings: {str(e)}"})
 
+        # ─── CHANGE PASSWORD ──────────────────────────────────────────────────
+        elif action == "change_password":
+            current  = request.POST.get("current_password", "")
+            new_pw   = request.POST.get("new_password", "")
+            confirm  = request.POST.get("confirm_password", "")
+
+            if not request.user.check_password(current):
+                return JsonResponse({"success": False, "error": "Current password is incorrect"})
+            if len(new_pw) < 8:
+                return JsonResponse({"success": False, "error": "New password must be at least 8 characters"})
+            if new_pw != confirm:
+                return JsonResponse({"success": False, "error": "Passwords do not match"})
+
+            request.user.set_password(new_pw)
+            request.user.save()
+            # Re-authenticate so the session isn't invalidated
+            update_session_auth_hash(request, request.user)
+            return JsonResponse({"success": True, "message": "Password updated successfully!"})
+
+        # ─── SECURITY SETTINGS ────────────────────────────────────────────────
         elif action == "update_security":
-            # Handle security settings update
-            # This can be expanded based on your security model
-            messages.success(request, "Security settings updated successfully")
-            return redirect("society_admin_settings")
+            # Expand this as you add security preference fields to your model
+            return JsonResponse({"success": True, "message": "Security settings saved!"})
 
+        # ─── NOTIFICATION PREFERENCES ─────────────────────────────────────────
         elif action == "update_notifications":
-            # Handle notification preferences update
-            # This can be expanded based on your notification model
-            messages.success(request, "Notification preferences updated successfully")
-            return redirect("society_admin_settings")
+            # Expand this as you add notification preference fields to your model
+            return JsonResponse({"success": True, "message": "Notification preferences saved!"})
 
-    # GET request - display the form
+    # ─── GET ─────────────────────────────────────────────────────────────────
     context = {
         "society": society,
-        "society_name": society.name,
-        "society_code": society.society_code,
-        "user": request.user,
+        "user":    request.user,
     }
-
-    return render(
-        request,
-        "society_admin/society_admin_settings.html",
-        context
-    )
-
+    return render(request, "society_admin/society_admin_settings.html", context)
 
 
 
@@ -6047,7 +6476,6 @@ def get_chats(request):
     for chatroom in chatrooms:
         other_user = chatroom.get_other_user(user)
         last_message_obj = chatroom.get_last_message()
-        
         if not last_message_obj:
             continue  # Skip empty chats
         
@@ -6064,15 +6492,25 @@ def get_chats(request):
         is_read = last_message_obj.is_read
         
         # Format time
-        time_diff = timezone.now() - last_message_obj.created_at
+        created = last_message_obj.created_at
+
+        # Convert to local time safely
+        if timezone.is_naive(created):
+            created = timezone.make_aware(created, timezone.get_current_timezone())
+
+        local_time = timezone.localtime(created)
+        now = timezone.localtime(timezone.now())
+
+        time_diff = now.date() - local_time.date()
+
         if time_diff.days == 0:
-            time_str = last_message_obj.created_at.strftime("%I:%M %p")
+            time_str = local_time.strftime("%I:%M %p")
         elif time_diff.days == 1:
             time_str = "Yesterday"
         elif time_diff.days < 7:
-            time_str = last_message_obj.created_at.strftime("%A")
+            time_str = local_time.strftime("%A")
         else:
-            time_str = last_message_obj.created_at.strftime("%d/%m/%y")
+            time_str = local_time.strftime("%d/%m/%y")
         
         chat_data = {
             'chat_id': chatroom.id,
@@ -6081,6 +6519,7 @@ def get_chats(request):
             'user_role': user_role,
             'last_message': last_message_obj.message[:50] + ('...' if len(last_message_obj.message) > 50 else ''),
             'time': time_str,
+            'timestamp': local_time.isoformat(), 
             'unread_count': chatroom.get_unread_count(user),
             'is_sent_by_me': is_sent_by_me,
             'is_delivered': is_delivered,
@@ -6142,7 +6581,8 @@ def get_chat_messages(request, chat_id):
         message_data = {
             'id': msg.id,
             'text': msg.message,
-            'time': msg.created_at.strftime("%I:%M %p"),
+            'time': timezone.localtime(msg.created_at).strftime("%I:%M %p"),
+            'timestamp': timezone.localtime(msg.created_at).isoformat(), 
             'date': date_str,
             'is_sent_by_me': is_sent_by_me,
             'is_delivered': msg.status == 'delivered',
@@ -6513,42 +6953,290 @@ def service_provider_notifications(request):
         messages.error(request, "Service provider profile not found")
         return redirect('service_provider_dashboard')
 
+import json
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from django.contrib.auth.models import User
+from .models import Bill, BillPayer, Notification, UserProfile
+
+
+# ─────────────────────────────────────────
+# POST /api/bills/create/
+# ─────────────────────────────────────────
 @login_required
-@role_required("society_admin")
+@require_POST
+def api_create_bill(request):
+    try:
+        profile = request.user.userprofile
+        society = profile.society
+
+        if profile.role != 'society_admin':
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+
+        data = json.loads(request.body)
+
+        title       = data.get('title', '').strip()
+        category    = data.get('category', '').strip()
+        amount      = data.get('amount')
+        due_date    = data.get('due_date')
+        description = data.get('description', '').strip()
+        payer_ids   = data.get('payer_ids', [])
+
+        # Basic validation
+        if not all([title, category, amount, due_date]):
+            return JsonResponse({'success': False, 'error': 'Missing required fields'})
+        if not payer_ids:
+            return JsonResponse({'success': False, 'error': 'Select at least one payer'})
+
+        # Validate payers belong to the same society
+        valid_users = User.objects.filter(
+            id__in=payer_ids,
+            userprofile__society=society,
+            userprofile__status='approved'
+        )
+
+        bill = Bill.objects.create(
+            society=society,
+            created_by=request.user,
+            title=title,
+            category=category,
+            amount=amount,
+            due_date=due_date,
+            description=description,
+        )
+
+        # Create BillPayer rows
+        bill_payers = [
+            BillPayer(bill=bill, user=u)
+            for u in valid_users
+        ]
+        BillPayer.objects.bulk_create(bill_payers)
+
+        # Send notifications to all payers
+        notifications = [
+            Notification(
+                user=u,
+                sender=request.user,
+                title=f"💳 New Bill: {title}",
+                message=(
+                    f"₹{amount} due by {due_date}."
+                    + (f" {description}" if description else '')
+                )
+            )
+            for u in valid_users
+        ]
+        Notification.objects.bulk_create(notifications)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Bill created for {len(bill_payers)} payer(s)!',
+            'bill_id': bill.id,
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ─────────────────────────────────────────
+# GET /api/bills/<bill_id>/
+# ─────────────────────────────────────────
+@login_required
+def api_bill_detail(request, bill_id):
+    try:
+        profile = request.user.userprofile
+        bill = Bill.objects.prefetch_related(
+            'billpayer_set__user__userprofile'
+        ).get(id=bill_id, society=profile.society)
+
+        payers_data = []
+        for bp in bill.billpayer_set.all():
+            up = getattr(bp.user, 'userprofile', None)
+            apt = ''
+            if up and up.apartment:
+                apt = f"{up.apartment.block}-{up.apartment.flat_number}"
+            payers_data.append({
+                'name': bp.user.get_full_name() or bp.user.username,
+                'apartment': apt,
+                'status': bp.status,
+                'paid_at': bp.paid_at.strftime('%d %b %Y') if bp.paid_at else None,
+            })
+
+        paid_count    = sum(1 for p in payers_data if p['status'] == 'paid')
+        pending_count = sum(1 for p in payers_data if p['status'] != 'paid')
+
+        return JsonResponse({
+            'success': True,
+            'bill': {
+                'id':            bill.id,
+                'title':         bill.title,
+                'category':      bill.get_category_display(),
+                'amount':        str(bill.amount),
+                'due_date':      bill.due_date.strftime('%d %b %Y'),
+                'description':   bill.description,
+                'status':        bill.status,
+                'paid_count':    paid_count,
+                'pending_count': pending_count,
+                'payers':        payers_data,
+            }
+        })
+
+    except Bill.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Bill not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ─────────────────────────────────────────
+# POST /api/bills/<bill_id>/remind/
+# ─────────────────────────────────────────
+@login_required
+@require_POST
+def api_bill_remind(request, bill_id):
+    try:
+        profile = request.user.userprofile
+        bill = Bill.objects.get(id=bill_id, society=profile.society)
+
+        if profile.role != 'society_admin':
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+
+        # Find pending payers
+        pending_payers = bill.billpayer_set.filter(status='pending').select_related('user')
+
+        if not pending_payers.exists():
+            return JsonResponse({'success': True, 'message': 'No pending payers to remind!'})
+
+        notifications = [
+            Notification(
+                user=bp.user,
+                sender=request.user,
+                title=f"⏰ Payment Reminder: {bill.title}",
+                message=f"₹{bill.amount} is due by {bill.due_date.strftime('%d %b %Y')}. Please pay at the earliest."
+            )
+            for bp in pending_payers
+        ]
+        Notification.objects.bulk_create(notifications)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Reminder sent to {len(notifications)} payer(s)!'
+        })
+
+    except Bill.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Bill not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ─────────────────────────────────────────
+# POST /api/bills/<bill_id>/delete/
+# ─────────────────────────────────────────
+@login_required
+@require_POST
+def api_bill_delete(request, bill_id):
+    try:
+        profile = request.user.userprofile
+
+        if profile.role != 'society_admin':
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+
+        bill = Bill.objects.get(id=bill_id, society=profile.society)
+        bill.delete()
+
+        return JsonResponse({'success': True, 'message': 'Bill deleted successfully'})
+
+    except Bill.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Bill not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# ─────────────────────────────────────────
+# Updated society_admin_notifications view
+# ─────────────────────────────────────────
+@login_required
 def society_admin_notifications(request):
     """
-    Society Admin Messages/Notifications Page
-    WhatsApp-like chat interface for society admins
+    Society Admin Notifications Page
+    Tabs: Alerts | Payments (bills/fines) | Messages
     """
-    user = request.user
+    from django.contrib import messages as django_messages
+    from .models import ChatMessage, Notification
 
+    user = request.user
     try:
         profile = user.userprofile
         society = profile.society
 
         if not society:
-            messages.error(request, "You are not associated with any society")
+            django_messages.error(request, "You are not associated with any society")
             return redirect('society_admin_dashboard')
 
-        # ── Total unread messages for this user ──
+        # ── Notifications / Alerts ──────────────────────────────
+        notifications = Notification.objects.filter(
+            user=user
+        ).order_by('-created_at')
+
+        unread_count = notifications.filter(is_read=False).count()
+        notifications.filter(is_read=False).update(is_read=True)
+
+        # ── Bills / Payments ────────────────────────────────────
+        # Auto-mark overdue bills before fetching
+        today = timezone.now().date()
+        Bill.objects.filter(
+            society=society,
+            status='pending',
+            due_date__lt=today
+        ).update(status='overdue')
+
+        bills = Bill.objects.filter(
+            society=society
+        ).prefetch_related('billpayer_set').order_by('-created_at')
+
+        # Annotate each bill with aggregated payer counts
+        bills_annotated = []
+        for bill in bills:
+            payers     = bill.billpayer_set.all()
+            total      = payers.count()
+            paid_c     = payers.filter(status='paid').count()
+            paid_pct   = round((paid_c / total * 100) if total else 0)
+            bill.total_payers = total
+            bill.paid_count   = paid_c
+            bill.paid_pct     = paid_pct
+            bills_annotated.append(bill)
+
+        pending_bills_count = sum(1 for b in bills_annotated if b.status == 'pending')
+        paid_bills_count    = sum(1 for b in bills_annotated if b.status == 'paid')
+        total_overdue       = sum(1 for b in bills_annotated if b.status == 'overdue')
+
+        # ── Total unread chat messages ──────────────────────────
         total_unread = ChatMessage.objects.filter(
             receiver=user,
             is_read=False
         ).count()
 
         context = {
-            'profile': profile,
-            'society': society,
-            'user': user,
-            'total_unread': total_unread,
+            'profile':             profile,
+            'society':             society,
+            'user':                user,
+            # Alerts
+            'notifications':       notifications,
+            'unread_count':        unread_count,
+            # Payments
+            'bills':               bills_annotated,
+            'pending_bills_count': pending_bills_count,
+            'paid_bills_count':    paid_bills_count,
+            'total_overdue':       total_overdue,
+            # Chat
+            'total_unread':        total_unread,
         }
-
         return render(request, 'society_admin/society_admin_notifications.html', context)
 
     except Exception as e:
-        messages.error(request, f"Error loading notifications: {str(e)}")
+        from django.contrib import messages as django_messages
+        django_messages.error(request, f"Error loading notifications: {str(e)}")
         return redirect('society_admin_dashboard')
-    
 
 
 @login_required

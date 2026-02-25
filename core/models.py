@@ -114,6 +114,7 @@ class Visitor(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('approved', 'Approved'),
+        ('rejected', 'Rejected'), 
         ('checked_in', 'Checked In'),
         ('checked_out', 'Checked Out')
     ]
@@ -147,6 +148,7 @@ class Visitor(models.Model):
         unique=True,
         db_index=True
     )
+    code_expires_at = models.DateTimeField(null=True, blank=True)
 
     # 🕒 TIME TRACKING
     check_in_time = models.DateTimeField(null=True, blank=True)
@@ -169,6 +171,24 @@ class Visitor(models.Model):
         related_name='checked_out_visitors'
     )
 
+    # ✅ RESIDENT APPROVAL TRACKING
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_visitors"
+    )
+
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    rejected_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="rejected_visitors"
+    )
     purpose = models.TextField(blank=True)
     expected_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -177,7 +197,7 @@ class Visitor(models.Model):
         # Generate code when status is approved and code doesn't exist
         if self.status == "approved" and not self.entry_code:
             self.entry_code = self._generate_unique_code()
-        
+            self.code_expires_at = timezone.now() + timedelta(minutes=10)
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -196,12 +216,20 @@ class Visitor(models.Model):
         icons = {
             'pending': '⏳',
             'approved': '✅',
+            'rejected': '❌',
             'checked_in': '🟢',
             'checked_out': '🔴'
         }
         return f"{icons.get(self.status, '❓')} {self.get_status_display()}"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['apartment', 'status']),
+        ]
 
+    
 
 
 class Delivery(models.Model):
@@ -1387,3 +1415,129 @@ class UserOnlineStatus(models.Model):
     def __str__(self):
         status = "Online" if self.is_online else f"Last seen {self.last_seen}"
         return f"{self.user.username} - {status}"
+
+
+
+class Bill(models.Model):
+    """
+    Bills and fines created by society_admin for residents/guards
+    """
+    CATEGORY_CHOICES = [
+        ('maintenance', 'Maintenance'),
+        ('fine', 'Fine'),
+        ('utility', 'Utility'),
+        ('parking', 'Parking'),
+        ('other', 'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+    ]
+
+    society = models.ForeignKey(
+        Society,
+        on_delete=models.CASCADE,
+        related_name='bills'
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='created_bills'
+    )
+
+    title = models.CharField(max_length=200)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True)
+    due_date = models.DateField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - ₹{self.amount} ({self.society.name})"
+
+    def update_status(self):
+        """Auto-update bill status based on payer payments and due date"""
+        from django.utils import timezone
+        payers = self.billpayer_set.all()
+        if payers.exists() and payers.filter(status='pending').count() == 0:
+            self.status = 'paid'
+        elif self.due_date < timezone.now().date() and payers.filter(status='pending').exists():
+            self.status = 'overdue'
+        else:
+            self.status = 'pending'
+        self.save(update_fields=['status'])
+
+    def get_category_display_icon(self):
+        icons = {
+            'maintenance': '🔧',
+            'fine': '⚠️',
+            'utility': '💡',
+            'parking': '🅿️',
+            'other': '📋',
+        }
+        return f"{icons.get(self.category, '📋')} {self.get_category_display()}"
+
+
+class BillPayer(models.Model):
+    """
+    Individual payer entry for each Bill — one row per assigned user
+    """
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+    ]
+
+    bill = models.ForeignKey(
+        Bill,
+        on_delete=models.CASCADE,
+        related_name='billpayer_set'
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='bill_payments'
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    # Optional: payment reference / transaction ID
+    payment_reference = models.CharField(max_length=100, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        unique_together = ['bill', 'user']  # one row per user per bill
+
+    def __str__(self):
+        return f"{self.user.username} — {self.bill.title} ({self.status})"
+
+    def mark_paid(self, reference=''):
+        from django.utils import timezone
+        self.status = 'paid'
+        self.paid_at = timezone.now()
+        self.payment_reference = reference
+        self.save()
+        self.bill.update_status()

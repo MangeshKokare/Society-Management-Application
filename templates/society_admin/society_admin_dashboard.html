@@ -917,26 +917,36 @@
     <div class="section-title">⚡ Quick Actions</div>
 </div>
 <div class="action-grid">
-    <a href="#" class="action-card">
+    <a href="{% url 'society_admin_notices' %}" class="action-card">
         <span class="action-icon">📢</span>
         <div class="action-title">Send Notice</div>
     </a>
-    <a href="#" class="action-card">
-        <span class="action-icon">✅</span>
-        <div class="action-title">Approve Members</div>
+
+    <a href="{% url 'society_admin_residents' %}" class="action-card">
+        <span class="action-icon">👥</span>
+        <div class="action-title">Manage Resident</div>
     </a>
-    <a href="#" class="action-card">
+
+    <a href="{% url 'society_admin_guards' %}" class="action-card">
+        <span class="action-icon">🛡️</span>
+        <div class="action-title">Manage Guards</div>
+    </a>
+<!--     
+    <a href="{% url 'society_admin_dashboard' %}" class="action-card">
         <span class="action-icon">📊</span>
         <div class="action-title">View Reports</div>
-    </a>
+    </a> -->
+
     <a href="#" class="action-card">
         <span class="action-icon">🔧</span>
         <div class="action-title">Services</div>
     </a>
+
     <a href="#" class="action-card">
         <span class="action-icon">💰</span>
         <div class="action-title">Billing</div>
     </a>
+
     <a href="#" class="action-card">
         <span class="action-icon">📋</span>
         <div class="action-title">Access Logs</div>

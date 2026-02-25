@@ -170,6 +170,28 @@
         background: #ee3344;
         transform: scale(1.02);
     }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 6px;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 6px;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
 </style>
 {% endblock %}
 
@@ -223,16 +245,42 @@
     <div class="card-header">
         <span>Pending Visitor Approvals</span>
         <span class="badge badge-pending">{{ pending_count }} Pending</span>
-
     </div>
-    
+
     {% for v in pending_visitors %}
     <div class="visitor-item">
-    <h4>{{ v.name }}</h4>
-    <p>{{ v.get_visitor_type_display }}</p>
-    </div>
-    {% endfor %}
+        
+        <div class="visitor-info">
+            <h4>{{ v.name }}</h4>
+            <p>{{ v.get_visitor_type_display }}</p>
+            <p>📞 {{ v.mobile }}</p>
+            <p class="announcement-time">
+                Requested {{ v.created_at|timesince }} ago
+            </p>
+        </div>
 
+        <div class="visitor-actions">
+            <!-- APPROVE -->
+            <form method="POST" action="{% url 'approve_visitor' v.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-small btn-success">
+                    ✅ Approve
+                </button>
+            </form>
+
+            <!-- REJECT -->
+            <form method="POST" action="{% url 'deny_visitor' v.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-small btn-danger">
+                    ❌ Reject
+                </button>
+            </form>
+        </div>
+
+    </div>
+    {% empty %}
+        <p style="padding:15px;color:#666;">No pending approvals</p>
+    {% endfor %}
 </div>
 
 <div class="card">

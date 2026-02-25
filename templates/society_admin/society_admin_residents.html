@@ -861,18 +861,21 @@ function confirmDelete() {
     
     const formData = new FormData();
     formData.append('resident_id', residentId);
+    // ✅ Add CSRF token — grab it from the edit form's hidden input
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
     
     fetch('/society-admin/resident/delete/', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             closeModal('deleteModal');
             showSuccess(data.message || 'Resident deleted successfully!');
-            
-            // Remove the card from the page
             setTimeout(() => {
                 location.reload();
             }, 1500);

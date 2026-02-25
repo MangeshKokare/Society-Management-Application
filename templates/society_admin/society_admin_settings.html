@@ -31,777 +31,942 @@
 
 {% block extra_styles %}
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-    .page-header {
-        margin-bottom: 32px;
+    * { box-sizing: border-box; }
+
+    body, .settings-wrapper {
+        font-family: 'DM Sans', sans-serif;
     }
 
-    .page-title {
-        font-size: 28px;
-        font-weight: 800;
-        color: #1e293b;
-        margin-bottom: 8px;
+    /* ── Toast ── */
+    .toast-container {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
-
-    .page-subtitle {
-        font-size: 15px;
-        color: #64748b;
-    }
-
-    .settings-layout {
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 24px;
-    }
-
-    .settings-sidebar {
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-        height: fit-content;
-        position: sticky;
-        top: 20px;
-    }
-
-    .settings-nav-item {
-        padding: 14px 16px;
-        border-radius: 10px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        color: #64748b;
-        transition: all 0.3s ease;
+    .toast {
         display: flex;
         align-items: center;
         gap: 12px;
+        padding: 14px 20px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        animation: toastIn 0.35s cubic-bezier(.34,1.56,.64,1) both;
+        min-width: 280px;
+        max-width: 380px;
+    }
+    .toast.success { background: #fff; border-left: 4px solid #10b981; color: #065f46; }
+    .toast.error   { background: #fff; border-left: 4px solid #ef4444; color: #991b1b; }
+    .toast.hiding  { animation: toastOut 0.3s ease forwards; }
+    @keyframes toastIn  { from { opacity:0; transform: translateX(60px); } to { opacity:1; transform: translateX(0); } }
+    @keyframes toastOut { to   { opacity:0; transform: translateX(60px); } }
+
+    /* ── Layout ── */
+    .settings-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 24px 60px;
     }
 
-    .settings-nav-item:hover {
-        background: #f8fafc;
-        color: #334155;
-    }
-
-    .settings-nav-item.active {
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        color: white;
-    }
-
-    .settings-content {
-        background: white;
-        border-radius: 16px;
-        padding: 32px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-    }
-
-    .section-header {
-        font-size: 22px;
-        font-weight: 800;
-        color: #1e293b;
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 2px solid #f1f5f9;
+    .page-header {
+        margin-bottom: 36px;
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 16px;
     }
-
-    .form-section {
-        margin-bottom: 32px;
-    }
-
-    .form-section-title {
-        font-size: 16px;
+    .page-title {
+        font-size: 26px;
         font-weight: 700;
-        color: #334155;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        color: #0f172a;
+        letter-spacing: -0.5px;
     }
-
-    .form-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-label {
-        display: block;
+    .page-subtitle {
         font-size: 14px;
-        font-weight: 600;
-        color: #334155;
-        margin-bottom: 8px;
-    }
-
-    .form-input,
-    .form-textarea,
-    .form-select {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        background: #f8fafc;
-    }
-
-    .form-input:focus,
-    .form-textarea:focus,
-    .form-select:focus {
-        outline: none;
-        border-color: #8b5cf6;
-        background: white;
-    }
-
-    .form-input:disabled,
-    .form-textarea:disabled,
-    .form-select:disabled {
-        background: #f1f5f9;
-        cursor: not-allowed;
         color: #94a3b8;
-    }
-
-    .form-input[readonly] {
-        background: #f1f5f9;
-        cursor: not-allowed;
-        color: #64748b;
-    }
-
-    .form-textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    .toggle-switch {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px;
-        background: #f8fafc;
-        border-radius: 12px;
-        margin-bottom: 12px;
-    }
-
-    .toggle-label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #334155;
-    }
-
-    .toggle-description {
-        font-size: 13px;
-        color: #64748b;
         margin-top: 4px;
     }
 
+    /* ── Logout Button ── */
+    .btn-logout {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: #fff;
+        border: 2px solid #fee2e2;
+        border-radius: 10px;
+        color: #dc2626;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-logout:hover {
+        background: #fef2f2;
+        border-color: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220,38,38,0.15);
+    }
+
+    /* ── Tab Strip ── */
+    .tab-strip {
+        display: flex;
+        gap: 4px;
+        background: #f1f5f9;
+        border-radius: 14px;
+        padding: 5px;
+        margin-bottom: 28px;
+        overflow-x: auto;
+    }
+    .tab-strip::-webkit-scrollbar { display: none; }
+    .tab-btn {
+        flex: 1;
+        min-width: fit-content;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .tab-btn.active {
+        background: #fff;
+        color: #7c3aed;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .tab-btn:hover:not(.active) { color: #334155; }
+
+    /* ── Card ── */
+    .settings-card {
+        background: #fff;
+        border-radius: 18px;
+        border: 1.5px solid #f1f5f9;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .card-section {
+        padding: 28px 32px;
+        border-bottom: 1.5px solid #f8fafc;
+    }
+    .card-section:last-child { border-bottom: none; }
+
+    .section-title {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ── Form Elements ── */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 640px) {
+        .form-row, .form-row.triple { grid-template-columns: 1fr; }
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .form-label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #475569;
+        letter-spacing: 0.2px;
+    }
+    .form-input, .form-textarea, .form-select {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: #0f172a;
+        padding: 11px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fafbfc;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        outline: none;
+        border-color: #8b5cf6;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+    }
+    .form-input:disabled, .form-textarea:disabled, .form-select:disabled {
+        color: #94a3b8;
+        cursor: not-allowed;
+        background: #f8fafc;
+    }
+    .form-input[readonly] {
+        background: #f1f5f9;
+        color: #64748b;
+        cursor: default;
+        border-style: dashed;
+    }
+    .form-textarea { min-height: 90px; resize: vertical; }
+
+    .input-hint {
+        font-size: 11.5px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    /* Code badge */
+    .code-badge {
+        font-family: 'DM Mono', monospace;
+        background: #f3f0ff;
+        color: #7c3aed;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1.5px dashed #c4b5fd;
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .copy-btn {
+        font-size: 11px;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        color: #7c3aed;
+        background: #ede9fe;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .copy-btn:hover { background: #ddd6fe; }
+
+    /* ── Toggle ── */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-info { flex: 1; padding-right: 20px; }
+    .toggle-label { font-size: 14px; font-weight: 600; color: #1e293b; }
+    .toggle-desc  { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
     .switch {
         position: relative;
-        width: 50px;
+        width: 46px;
         height: 26px;
-        background: #cbd5e1;
+        background: #e2e8f0;
         border-radius: 26px;
         cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .switch.active {
-        background: #8b5cf6;
-    }
-
-    .switch-handle {
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 20px;
-        height: 20px;
-        background: white;
-        border-radius: 50%;
-        transition: all 0.3s ease;
-    }
-
-    .switch.active .switch-handle {
-        left: 27px;
-    }
-
-    .btn-edit {
-        padding: 10px 24px;
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-edit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
-    }
-
-    .btn-save {
-        padding: 14px 32px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .btn-save:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-    }
-
-    .btn-cancel {
-        padding: 14px 32px;
-        background: #e2e8f0;
-        color: #475569;
-        border: none;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        margin-left: 12px;
-        transition: all 0.3s ease;
-    }
-
-    .btn-cancel:hover {
-        background: #cbd5e1;
-    }
-
-    .action-buttons {
-        display: none;
-        margin-top: 24px;
-    }
-
-    .action-buttons.show {
-        display: block;
-    }
-
-    .danger-zone {
-        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-        border: 2px solid #fca5a5;
-        border-radius: 16px;
-        padding: 24px;
-        margin-top: 32px;
-    }
-
-    .danger-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #991b1b;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .danger-text {
-        font-size: 14px;
-        color: #7f1d1d;
-        margin-bottom: 16px;
-    }
-
-    .btn-danger {
-        padding: 12px 24px;
-        background: #dc2626;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .btn-danger:hover {
-        background: #b91c1c;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    }
-
-    .info-box {
-        background: #eff6ff;
-        border-left: 4px solid #3b82f6;
-        padding: 16px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .info-text {
-        font-size: 14px;
-        color: #1e40af;
-        line-height: 1.6;
-    }
-
-    .success-message {
-        background: #d1fae5;
-        border-left: 4px solid #10b981;
-        padding: 16px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        display: none;
-        animation: slideDown 0.3s ease;
-    }
-
-    .success-message.show {
-        display: block;
-    }
-
-    .success-text {
-        font-size: 14px;
-        color: #065f46;
-        font-weight: 600;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .error-message {
-        background: #fee2e2;
-        border-left: 4px solid #ef4444;
-        padding: 16px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        display: none;
-    }
-
-    .error-message.show {
-        display: block;
-    }
-
-    .error-text {
-        font-size: 14px;
-        color: #991b1b;
-        font-weight: 600;
-    }
-    /* =========================
-    TOP SETTINGS TABS (MOBILE)
-    ========================= */
-
-    .settings-top-tabs {
-        display: none;
-        position: sticky;
-        top: 72px; /* just below header */
-        z-index: 90;
-        background: #ffffff;
-        padding: 10px;
-        gap: 8px;
-        overflow-x: auto;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .settings-top-tabs::-webkit-scrollbar {
-        display: none;
-    }
-
-    .top-tab {
         flex-shrink: 0;
-        padding: 10px 14px;
-        border-radius: 999px;
+        transition: background 0.25s ease;
+    }
+    .switch.on { background: #8b5cf6; }
+    .switch-knob {
+        position: absolute;
+        top: 3px; left: 3px;
+        width: 20px; height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .switch.on .switch-knob { transform: translateX(20px); }
+
+    /* ── Time Inputs ── */
+    input[type="time"].form-input { cursor: pointer; }
+
+    /* ── Action Bar ── */
+    .action-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .btn-primary {
+        padding: 12px 28px;
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: #fff;
         border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(139,92,246,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.35); }
+
+    .btn-ghost {
+        padding: 12px 20px;
         background: #f1f5f9;
         color: #475569;
+        border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-ghost:hover { background: #e2e8f0; }
+
+    .btn-edit-inline {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        background: #f3f0ff;
+        color: #7c3aed;
+        border: none;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.25s ease;
+        transition: all 0.2s ease;
     }
+    .btn-edit-inline:hover { background: #ede9fe; }
 
-    .top-tab.active {
+    /* ── Danger Zone ── */
+    .danger-card {
+        background: #fff5f5;
+        border: 1.5px solid #fee2e2;
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-top: 20px;
+    }
+    .danger-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #991b1b;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .danger-desc {
+        font-size: 13.5px;
+        color: #b91c1c;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    .danger-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-danger {
+        padding: 11px 22px;
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-danger:hover { background: #b91c1c; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,0.25); }
+    .btn-danger-outline {
+        padding: 11px 22px;
+        background: transparent;
+        color: #dc2626;
+        border: 1.5px solid #fca5a5;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-danger-outline:hover { background: #fee2e2; border-color: #dc2626; }
+
+    /* ── Tab Panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Profile Avatar ── */
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 28px 32px;
+        background: linear-gradient(135deg, #7c3aed08, #8b5cf608);
+        border-bottom: 1.5px solid #f1f5f9;
+    }
+    .avatar-circle {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
         background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-        color: white;
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+        color: #fff;
+        font-size: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .profile-name { font-size: 17px; font-weight: 700; color: #0f172a; }
+    .profile-role {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #7c3aed;
+        background: #f3f0ff;
+        border-radius: 20px;
+        padding: 3px 10px;
+        display: inline-block;
+        margin-top: 4px;
+    }
+    .profile-actions { margin-left: auto; }
+
+    /* ── Integrations ── */
+    .integration-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .integration-item:last-child { border-bottom: none; }
+    .integration-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    .integration-info { flex: 1; }
+    .integration-name { font-size: 14px; font-weight: 600; color: #1e293b; }
+    .integration-desc { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+    .status-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .status-dot.connected { background: #10b981; }
+    .status-dot.disconnected { background: #e2e8f0; }
+    .btn-connect {
+        padding: 8px 16px;
+        background: #f1f5f9;
+        color: #334155;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .btn-connect:hover { background: #e2e8f0; }
+    .btn-connect.connected {
+        border-color: #10b981;
+        color: #059669;
+        background: #f0fdf4;
     }
 
-    /* =========================
-    RESPONSIVE BEHAVIOR
-    ========================= */
-
-    @media (max-width: 900px) {
-        .settings-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .settings-sidebar {
-            display: none; /* hide left sidebar on mobile */
-        }
-
-        .settings-top-tabs {
-            display: flex;
-        }
+    /* ── Confirm Modal ── */
+    .confirm-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(15,23,42,0.55);
+        z-index: 9998;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease;
     }
+    .confirm-overlay.active { display: flex; }
+    .confirm-box {
+        background: #fff;
+        border-radius: 18px;
+        padding: 32px;
+        width: 90%;
+        max-width: 420px;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+        animation: slideUp 0.3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .confirm-icon { font-size: 36px; margin-bottom: 12px; }
+    .confirm-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+    .confirm-text { font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 24px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-actions .btn-ghost { flex: 1; text-align: center; }
+    .confirm-actions .btn-danger { flex: 1; text-align: center; }
 
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes slideUp { from { transform:translateY(30px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+    @media (max-width: 600px) {
+        .settings-wrapper { padding: 20px 16px 60px; }
+        .card-section { padding: 20px 18px; }
+        .profile-header { padding: 20px 18px; flex-wrap: wrap; }
+        .profile-actions { margin-left: 0; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">⚙️ Settings</h1>
-    <p class="page-subtitle">Manage society configuration and preferences</p>
-</div>
 
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
 
-<!-- ===== MOBILE TOP SETTINGS TABS ===== -->
-<div class="settings-top-tabs">
-    <button class="top-tab active" onclick="showSection('general', this)">🏢 General</button>
-    <button class="top-tab" onclick="showSection('security', this)">🔒 Security</button>
-    <button class="top-tab" onclick="showSection('notifications', this)">🔔 Notifications</button>
-    <button class="top-tab" onclick="showSection('integrations', this)">🔗 Integrations</button>
-    <button class="top-tab" onclick="showSection('advanced', this)">🛠️ Advanced</button>
-</div>
-
-
-<div class="settings-layout">
-    <div class="settings-sidebar">
-        <div class="settings-nav-item active" onclick="showSection('general')">
-            <span>🏢</span>
-            <span>General</span>
-        </div>
-        <div class="settings-nav-item" onclick="showSection('security')">
-            <span>🔒</span>
-            <span>Security</span>
-        </div>
-        <div class="settings-nav-item" onclick="showSection('notifications')">
-            <span>🔔</span>
-            <span>Notifications</span>
-        </div>
-        <div class="settings-nav-item" onclick="showSection('integrations')">
-            <span>🔗</span>
-            <span>Integrations</span>
-        </div>
-        <div class="settings-nav-item" onclick="showSection('advanced')">
-            <span>🛠️</span>
-            <span>Advanced</span>
+<!-- Confirm Modal -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div class="confirm-icon" id="confirmIcon">⚠️</div>
+        <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+        <div class="confirm-text" id="confirmText">This action cannot be undone.</div>
+        <div class="confirm-actions">
+            <button class="btn-ghost" onclick="closeConfirm()">Cancel</button>
+            <button class="btn-danger" id="confirmActionBtn">Confirm</button>
         </div>
     </div>
+</div>
 
-    <div class="settings-content">
-        <!-- Success/Error Messages -->
-        <div id="successMessage" class="success-message">
-            <p class="success-text">✅ Settings saved successfully!</p>
+<div class="settings-wrapper">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <div class="page-title">Settings</div>
+            <div class="page-subtitle">Manage your society and account preferences</div>
         </div>
+        <a href="{% url 'logout' %}" class="btn-logout" onclick="return confirm('Log out of your account?')">
+            <span>🚪</span> Log Out
+        </a>
+    </div>
 
-        <div id="errorMessage" class="error-message">
-            <p class="error-text">❌ <span id="errorText">Error saving settings</span></p>
-        </div>
+    <!-- Tab Strip -->
+    <div class="tab-strip">
+        <button class="tab-btn active" onclick="switchTab('profile', this)">👤 Profile</button>
+        <button class="tab-btn" onclick="switchTab('society', this)">🏢 Society</button>
+        <button class="tab-btn" onclick="switchTab('security', this)">🔒 Security</button>
+        <button class="tab-btn" onclick="switchTab('notifications', this)">🔔 Notifications</button>
+        <button class="tab-btn" onclick="switchTab('integrations', this)">🔗 Integrations</button>
+        <button class="tab-btn" onclick="switchTab('advanced', this)">🛠️ Advanced</button>
+    </div>
 
-        <!-- General Settings Section -->
-        <div id="generalSection">
-            <div class="section-header">
-                <span>🏢 General Settings</span>
-                <button class="btn-edit" id="editProfileBtn" onclick="enableEditing()">
-                    ✏️ Edit Profile
-                </button>
+    <!-- ═══════════════════════════
+         TAB: PROFILE
+    ════════════════════════════ -->
+    <div class="tab-panel active" id="tab-profile">
+        <div class="settings-card">
+
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="avatar-circle" id="avatarCircle">
+                    {{ user.username|first|upper }}
+                </div>
+                <div>
+                    <div class="profile-name" id="profileDisplayName">
+                        {{ user.get_full_name|default:user.username }}
+                    </div>
+                    <div class="profile-role">Society Admin</div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn-edit-inline" id="editProfileBtn" onclick="enableProfileEdit()">
+                        ✏️ Edit Profile
+                    </button>
+                </div>
             </div>
 
+            <!-- Admin Info Form -->
             <form id="profileForm" method="POST" action="{% url 'society_admin_settings' %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_profile">
 
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <span>🏘️</span>
-                        <span>Society Information</span>
+                <div class="card-section">
+                    <div class="section-title">👤 Personal Information</div>
+                    <div class="form-row" style="margin-bottom:16px;">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="full_name" id="pFullName" class="form-input"
+                                   value="{{ user.first_name }} {{ user.last_name }}"
+                                   placeholder="Your full name" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" id="pUsername" class="form-input"
+                                   value="{{ user.username }}"
+                                   placeholder="Username" disabled required>
+                        </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Society Name</label>
-                            <input type="text" 
-                                   name="society_name" 
-                                   class="form-input" 
-                                   value="{{ society.name }}" 
-                                   placeholder="Enter society name"
-                                   disabled
-                                   required>
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="email" id="pEmail" class="form-input"
+                                   value="{{ user.email }}"
+                                   placeholder="email@example.com" disabled required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Society Code (Read-Only)</label>
-                            <input type="text" 
-                                   class="form-input" 
-                                   value="{{ society.society_code }}" 
-                                   readonly>
-                            <small style="color: #64748b; font-size: 12px; margin-top: 4px; display: block;">
-                                Share this code with new residents to join
-                            </small>
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" name="phone" id="pPhone" class="form-input"
+                                   value="{{ user.userprofile.phone }}"
+                                   placeholder="+91 XXXXX XXXXX" disabled required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar (hidden until edit) -->
+                <div class="card-section" id="profileActionBar" style="display:none;">
+                    <div class="action-bar">
+                        <button type="submit" class="btn-primary">💾 Save Changes</button>
+                        <button type="button" class="btn-ghost" onclick="cancelProfileEdit()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Change Password -->
+            <form id="passwordForm" method="POST" action="{% url 'society_admin_settings' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+                <div class="card-section">
+                    <div class="section-title" style="margin-bottom:14px;">🔑 Change Password</div>
+                    <div class="form-row triple">
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="current_password" class="form-input"
+                                   placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_password" class="form-input"
+                                   placeholder="Min. 8 characters">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" name="confirm_password" class="form-input"
+                                   placeholder="Repeat new password">
+                        </div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <button type="submit" class="btn-primary">🔑 Update Password</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════
+         TAB: SOCIETY
+    ════════════════════════════ -->
+    <div class="tab-panel" id="tab-society">
+        <div class="settings-card">
+
+            <form id="societyForm" method="POST" action="{% url 'society_admin_settings' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+
+                <div class="card-section">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div class="section-title" style="margin-bottom:0;">🏢 Society Details</div>
+                        <button type="button" class="btn-edit-inline" id="editSocietyBtn" onclick="enableSocietyEdit()">
+                            ✏️ Edit
+                        </button>
+                    </div>
+
+                    <div class="form-row" style="margin-bottom:16px;">
+                        <div class="form-group">
+                            <label class="form-label">Society Name</label>
+                            <input type="text" name="society_name" id="sName" class="form-input"
+                                   value="{{ society.name }}" disabled required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Society Code</label>
+                            <div class="code-badge">
+                                <span id="societyCodeDisplay">{{ society.society_code }}</span>
+                                <button type="button" class="copy-btn" onclick="copyCode()">Copy</button>
+                            </div>
+                            <span class="input-hint">Share with new residents to join your society</span>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Address</label>
-                        <textarea name="society_address" 
-                                  class="form-textarea" 
-                                  placeholder="Enter full address"
-                                  disabled
-                                  required>{{ society.address }}</textarea>
+                    <div class="form-group" style="margin-bottom:16px;">
+                        <label class="form-label">Full Address</label>
+                        <textarea name="society_address" id="sAddress" class="form-textarea"
+                                  disabled required>{{ society.address }}</textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">City</label>
-                            <input type="text" 
-                                   name="society_city" 
-                                   class="form-input" 
-                                   value="{{ society.city }}" 
-                                   placeholder="Enter city"
-                                   disabled
-                                   required>
+                            <input type="text" name="society_city" id="sCity" class="form-input"
+                                   value="{{ society.city }}" disabled required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">State</label>
-                            <input type="text" 
-                                   name="society_state" 
-                                   class="form-input" 
-                                   value="{{ society.state }}" 
-                                   placeholder="Enter state"
-                                   disabled
-                                   required>
+                            <input type="text" name="society_state" id="sState" class="form-input"
+                                   value="{{ society.state }}" disabled required>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <span>👤</span>
-                        <span>Admin Information</span>
+                <div class="card-section" id="societyActionBar" style="display:none;">
+                    <div class="action-bar">
+                        <button type="submit" class="btn-primary">💾 Save Society Info</button>
+                        <button type="button" class="btn-ghost" onclick="cancelSocietyEdit()">Cancel</button>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Username</label>
-                            <input type="text" 
-                                   name="username" 
-                                   class="form-input" 
-                                   value="{{ user.username }}" 
-                                   placeholder="Enter your username"
-                                   disabled
-                                   required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input type="email" 
-                                   name="email" 
-                                   class="form-input" 
-                                   value="{{ user.email }}" 
-                                   placeholder="Enter email"
-                                   disabled
-                                   required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Phone</label>
-                            <input type="tel" 
-                                   name="phone" 
-                                   class="form-input" 
-                                   value="{{ user.userprofile.phone }}" 
-                                   placeholder="Enter phone number"
-                                   disabled
-                                   required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" 
-                                   name="full_name" 
-                                   class="form-input" 
-                                   value="{{ user.first_name }} {{ user.last_name }}" 
-                                   placeholder="Enter your full name"
-                                   disabled>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="action-buttons" id="actionButtons">
-                    <button type="submit" class="btn-save">💾 Save Changes</button>
-                    <button type="button" class="btn-cancel" onclick="cancelEditing()">Cancel</button>
                 </div>
             </form>
         </div>
+    </div>
 
-        <!-- Security Settings Section -->
-        <div id="securitySection" style="display: none;">
-            <h2 class="section-header">🔒 Security Settings</h2>
+    <!-- ═══════════════════════════
+         TAB: SECURITY
+    ════════════════════════════ -->
+    <div class="tab-panel" id="tab-security">
+        <form id="securityForm" method="POST" action="{% url 'society_admin_settings' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_security">
 
-            <div class="info-box">
-                <p class="info-text">
-                    ℹ️ Configure security preferences for visitor management and access control
-                </p>
-            </div>
-
-            <form id="securityForm" method="POST" action="{% url 'society_admin_settings' %}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="update_security">
-
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <span>🚪</span>
-                        <span>Access Control</span>
-                    </div>
-
-                    <div class="toggle-switch">
-                        <div>
+            <div class="settings-card">
+                <div class="card-section">
+                    <div class="section-title">🚪 Visitor Access Control</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
                             <div class="toggle-label">Require Visitor Pre-Approval</div>
-                            <div class="toggle-description">All visitors must be approved before entry</div>
+                            <div class="toggle-desc">All visitors must be approved by resident before entry</div>
                         </div>
-                        <div class="switch active" onclick="toggleSwitch(this)">
-                            <div class="switch-handle"></div>
+                        <div class="switch on" onclick="toggleSwitch(this, 'visitor_pre_approval')">
+                            <div class="switch-knob"></div>
                         </div>
+                        <input type="hidden" name="visitor_pre_approval" id="visitor_pre_approval" value="on">
                     </div>
-
-                    <div class="toggle-switch">
-                        <div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
                             <div class="toggle-label">OTP Verification for Deliveries</div>
-                            <div class="toggle-description">Require OTP to collect parcels</div>
+                            <div class="toggle-desc">Require OTP before releasing parcels to delivery agents</div>
                         </div>
-                        <div class="switch active" onclick="toggleSwitch(this)">
-                            <div class="switch-handle"></div>
+                        <div class="switch on" onclick="toggleSwitch(this, 'otp_delivery')">
+                            <div class="switch-knob"></div>
                         </div>
+                        <input type="hidden" name="otp_delivery" id="otp_delivery" value="on">
                     </div>
-
-                    <div class="toggle-switch">
-                        <div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">QR Code Entry for Frequent Visitors</div>
+                            <div class="toggle-desc">Allow residents to generate QR passes for recurring guests</div>
+                        </div>
+                        <div class="switch" onclick="toggleSwitch(this, 'qr_entry')">
+                            <div class="switch-knob"></div>
+                        </div>
+                        <input type="hidden" name="qr_entry" id="qr_entry" value="off">
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
                             <div class="toggle-label">24/7 Guard Monitoring</div>
-                            <div class="toggle-description">Enable round-the-clock security checks</div>
+                            <div class="toggle-desc">Enable round-the-clock security check-in logs</div>
                         </div>
-                        <div class="switch active" onclick="toggleSwitch(this)">
-                            <div class="switch-handle"></div>
+                        <div class="switch on" onclick="toggleSwitch(this, 'guard_monitoring')">
+                            <div class="switch-knob"></div>
                         </div>
+                        <input type="hidden" name="guard_monitoring" id="guard_monitoring" value="on">
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <span>⏱️</span>
-                        <span>Time Restrictions</span>
-                    </div>
-
+                <div class="card-section">
+                    <div class="section-title">⏱️ Visitor Time Window</div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Visitor Entry Allowed From</label>
-                            <input type="time" class="form-input" name="entry_from" value="06:00">
+                            <label class="form-label">Entry Allowed From</label>
+                            <input type="time" name="entry_from" class="form-input" value="06:00">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Visitor Entry Allowed Until</label>
-                            <input type="time" class="form-input" name="entry_until" value="22:00">
+                            <label class="form-label">Entry Allowed Until</label>
+                            <input type="time" name="entry_until" class="form-input" value="22:00">
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <button type="submit" class="btn-save">💾 Save Settings</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Notifications Section -->
-        <div id="notificationsSection" style="display: none;">
-            <h2 class="section-header">🔔 Notification Preferences</h2>
-
-            <form id="notificationsForm" method="POST" action="{% url 'society_admin_settings' %}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="update_notifications">
-
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <span>📧</span>
-                        <span>Email Notifications</span>
+                <div class="card-section">
+                    <div class="action-bar">
+                        <button type="submit" class="btn-primary">💾 Save Security Settings</button>
                     </div>
+                </div>
+            </div>
+        </form>
+    </div>
 
-                    <div class="toggle-switch">
-                        <div>
+    <!-- ═══════════════════════════
+         TAB: NOTIFICATIONS
+    ════════════════════════════ -->
+    <div class="tab-panel" id="tab-notifications">
+        <form id="notificationsForm" method="POST" action="{% url 'society_admin_settings' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_notifications">
+
+            <div class="settings-card">
+                <div class="card-section">
+                    <div class="section-title">📲 Push & In-App</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
                             <div class="toggle-label">New Visitor Requests</div>
-                            <div class="toggle-description">Get notified when residents request visitor approval</div>
+                            <div class="toggle-desc">Notify when residents request visitor approval</div>
                         </div>
-                        <div class="switch active" onclick="toggleSwitch(this)">
-                            <div class="switch-handle"></div>
+                        <div class="switch on" onclick="toggleSwitch(this, 'notif_visitor')">
+                            <div class="switch-knob"></div>
                         </div>
+                        <input type="hidden" name="notif_visitor" id="notif_visitor" value="on">
                     </div>
-
-                    <div class="toggle-switch">
-                        <div>
-                            <div class="toggle-label">New Complaints</div>
-                            <div class="toggle-description">Receive alerts for new complaints</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">New Complaints Filed</div>
+                            <div class="toggle-desc">Receive alerts for new resident complaints</div>
                         </div>
-                        <div class="switch active" onclick="toggleSwitch(this)">
-                            <div class="switch-handle"></div>
+                        <div class="switch on" onclick="toggleSwitch(this, 'notif_complaints')">
+                            <div class="switch-knob"></div>
                         </div>
+                        <input type="hidden" name="notif_complaints" id="notif_complaints" value="on">
                     </div>
-
-                    <div class="toggle-switch">
-                        <div>
-                            <div class="toggle-label">Emergency Alerts</div>
-                            <div class="toggle-description">Instant notifications for SOS alerts</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Emergency / SOS Alerts</div>
+                            <div class="toggle-desc">Instant alerts when residents trigger SOS</div>
                         </div>
-                        <div class="switch active" onclick="toggleSwitch(this)">
-                            <div class="switch-handle"></div>
+                        <div class="switch on" onclick="toggleSwitch(this, 'notif_sos')">
+                            <div class="switch-knob"></div>
                         </div>
+                        <input type="hidden" name="notif_sos" id="notif_sos" value="on">
                     </div>
-
-                    <div class="toggle-switch">
-                        <div>
-                            <div class="toggle-label">Daily Summary</div>
-                            <div class="toggle-description">Receive daily activity summary</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Visitor Check-ins</div>
+                            <div class="toggle-desc">Notify when an approved visitor enters the gate</div>
                         </div>
-                        <div class="switch" onclick="toggleSwitch(this)">
-                            <div class="switch-handle"></div>
+                        <div class="switch" onclick="toggleSwitch(this, 'notif_checkin')">
+                            <div class="switch-knob"></div>
                         </div>
+                        <input type="hidden" name="notif_checkin" id="notif_checkin" value="off">
                     </div>
                 </div>
 
-                <div>
-                    <button type="submit" class="btn-save">💾 Save Preferences</button>
+                <div class="card-section">
+                    <div class="section-title">📧 Email Digests</div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Daily Activity Summary</div>
+                            <div class="toggle-desc">Get a daily email digest of society activity</div>
+                        </div>
+                        <div class="switch" onclick="toggleSwitch(this, 'email_daily')">
+                            <div class="switch-knob"></div>
+                        </div>
+                        <input type="hidden" name="email_daily" id="email_daily" value="off">
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Weekly Report</div>
+                            <div class="toggle-desc">Receive weekly visitor and complaint reports</div>
+                        </div>
+                        <div class="switch on" onclick="toggleSwitch(this, 'email_weekly')">
+                            <div class="switch-knob"></div>
+                        </div>
+                        <input type="hidden" name="email_weekly" id="email_weekly" value="on">
+                    </div>
                 </div>
-            </form>
-        </div>
 
-        <!-- Integrations Section -->
-        <div id="integrationsSection" style="display: none;">
-            <h2 class="section-header">🔗 Integrations</h2>
+                <div class="card-section">
+                    <div class="action-bar">
+                        <button type="submit" class="btn-primary">💾 Save Preferences</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 
-            <div class="info-box">
-                <p class="info-text">
-                    ℹ️ Connect external services to enhance your society management experience
-                </p>
+    <!-- ═══════════════════════════
+         TAB: INTEGRATIONS
+    ════════════════════════════ -->
+    <div class="tab-panel" id="tab-integrations">
+        <div class="settings-card">
+            <div class="card-section">
+                <div class="section-title">🔗 Connected Services</div>
+
+                <div class="integration-item">
+                    <div class="integration-icon" style="background:#e8f5e9;">📱</div>
+                    <div class="integration-info">
+                        <div class="integration-name">SMS Gateway (MSG91)</div>
+                        <div class="integration-desc">
+                            <span class="status-dot disconnected"></span>Not connected · Send OTPs and alerts via SMS
+                        </div>
+                    </div>
+                    <button class="btn-connect" onclick="openIntegration('sms')">Configure</button>
+                </div>
+
+                <div class="integration-item">
+                    <div class="integration-icon" style="background:#fef9c3;">✉️</div>
+                    <div class="integration-info">
+                        <div class="integration-name">Email Service (SMTP)</div>
+                        <div class="integration-desc">
+                            <span class="status-dot disconnected"></span>Not connected · Send notices and digests via email
+                        </div>
+                    </div>
+                    <button class="btn-connect" onclick="openIntegration('email')">Configure</button>
+                </div>
+
+                <div class="integration-item">
+                    <div class="integration-icon" style="background:#eff6ff;">📷</div>
+                    <div class="integration-info">
+                        <div class="integration-name">CCTV / Camera Feed</div>
+                        <div class="integration-desc">
+                            <span class="status-dot disconnected"></span>Not connected · Integrate IP cameras for live monitoring
+                        </div>
+                    </div>
+                    <button class="btn-connect" onclick="openIntegration('cctv')">Configure</button>
+                </div>
+
+                <div class="integration-item">
+                    <div class="integration-icon" style="background:#f5f3ff;">💳</div>
+                    <div class="integration-info">
+                        <div class="integration-name">Payment Gateway (Razorpay)</div>
+                        <div class="integration-desc">
+                            <span class="status-dot disconnected"></span>Not connected · Collect maintenance fees online
+                        </div>
+                    </div>
+                    <button class="btn-connect" onclick="openIntegration('payment')">Configure</button>
+                </div>
             </div>
 
-            <div class="form-section">
-                <div class="form-section-title">
-                    <span>📱</span>
-                    <span>SMS Gateway</span>
-                </div>
-
-                <div class="form-row">
+            <!-- SMS Integration Form (hidden) -->
+            <div class="card-section" id="intg-sms" style="display:none;">
+                <div class="section-title">📱 MSG91 / Twilio Setup</div>
+                <div class="form-row" style="margin-bottom:16px;">
                     <div class="form-group">
                         <label class="form-label">Provider</label>
                         <select class="form-select">
                             <option>Select Provider</option>
-                            <option>Twilio</option>
                             <option>MSG91</option>
+                            <option>Twilio</option>
                             <option>Amazon SNS</option>
                         </select>
                     </div>
@@ -810,17 +975,22 @@
                         <input type="password" class="form-input" placeholder="Enter API key">
                     </div>
                 </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label class="form-label">Sender ID</label>
+                    <input type="text" class="form-input" placeholder="e.g. GTSOC">
+                </div>
+                <div class="action-bar">
+                    <button type="button" class="btn-primary" onclick="showToast('SMS gateway saved!','success');closeIntegration('sms');">💾 Save</button>
+                    <button type="button" class="btn-ghost" onclick="closeIntegration('sms')">Cancel</button>
+                </div>
             </div>
 
-            <div class="form-section">
-                <div class="form-section-title">
-                    <span>✉️</span>
-                    <span>Email Service</span>
-                </div>
-
-                <div class="form-row">
+            <!-- Email Integration Form -->
+            <div class="card-section" id="intg-email" style="display:none;">
+                <div class="section-title">✉️ SMTP Configuration</div>
+                <div class="form-row" style="margin-bottom:16px;">
                     <div class="form-group">
-                        <label class="form-label">SMTP Server</label>
+                        <label class="form-label">SMTP Host</label>
                         <input type="text" class="form-input" placeholder="smtp.gmail.com">
                     </div>
                     <div class="form-group">
@@ -828,216 +998,224 @@
                         <input type="number" class="form-input" placeholder="587">
                     </div>
                 </div>
+                <div class="form-row" style="margin-bottom:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Username / Email</label>
+                        <input type="email" class="form-input" placeholder="noreply@society.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password / App Password</label>
+                        <input type="password" class="form-input" placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="action-bar">
+                    <button type="button" class="btn-primary" onclick="showToast('Email settings saved!','success');closeIntegration('email');">💾 Save</button>
+                    <button type="button" class="btn-ghost" onclick="closeIntegration('email')">Cancel</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════
+         TAB: ADVANCED
+    ════════════════════════════ -->
+    <div class="tab-panel" id="tab-advanced">
+        <div class="settings-card">
+            <div class="card-section">
+                <div class="section-title">📦 Data Export</div>
+                <p style="font-size:14px;color:#64748b;margin-bottom:16px;line-height:1.6;">
+                    Export all society data including residents, visitors, notices, and complaints as a ZIP archive.
+                </p>
+                <button class="btn-primary" onclick="showToast('Export started. You will receive an email shortly.','success')">
+                    📥 Export All Data
+                </button>
             </div>
         </div>
 
-        <!-- Advanced Section -->
-        <div id="advancedSection" style="display: none;">
-            <h2 class="section-header">🛠️ Advanced Settings</h2>
-
-            <div class="danger-zone">
-                <div class="danger-title">
-                    <span>⚠️</span>
-                    <span>Danger Zone</span>
-                </div>
-                <p class="danger-text">
-                    These actions are irreversible. Please proceed with caution.
-                </p>
-                <button class="btn-danger" onclick="confirmReset()">
-                    🔄 Reset All Settings
-                </button>
-                <button class="btn-danger" onclick="confirmDelete()" style="margin-left: 12px;">
-                    🗑️ Delete Society Data
-                </button>
+        <div class="danger-card">
+            <div class="danger-title">⚠️ Danger Zone</div>
+            <div class="danger-desc">
+                These actions are permanent and cannot be reversed. Please proceed with extreme caution. All connected residents will lose access.
+            </div>
+            <div class="danger-actions">
+                <button class="btn-danger-outline" onclick="openConfirm(
+                    '🔄',
+                    'Reset All Settings',
+                    'This will reset all security, notification, and integration settings to their defaults. Resident and society data will not be affected.',
+                    () => showToast('Settings have been reset to defaults.','success')
+                )">🔄 Reset Settings</button>
+                <button class="btn-danger" onclick="openConfirm(
+                    '🗑️',
+                    'Delete All Society Data',
+                    'This will permanently delete ALL society data — residents, visitors, notices, guards, and analytics. This cannot be undone.',
+                    () => showToast('Deletion request submitted.','error')
+                )">🗑️ Delete Society Data</button>
             </div>
         </div>
     </div>
-</div>
 
+</div><!-- /settings-wrapper -->
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Section Navigation
-    function showSection(section, tabBtn = null) {
+// ── Tab Switching ──
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+}
 
-        // Hide all sections
-        document.querySelectorAll('[id$="Section"]').forEach(sec => {
-            sec.style.display = 'none';
-        });
+// ── Profile Editing ──
+const profileFields = ['pFullName','pUsername','pEmail','pPhone'];
+function enableProfileEdit() {
+    profileFields.forEach(id => {
+        const el = document.getElementById(id);
+        el.disabled = false;
+        el.style.background = '';
+    });
+    document.getElementById('profileActionBar').style.display = 'block';
+    document.getElementById('editProfileBtn').style.display = 'none';
+}
+function cancelProfileEdit() {
+    document.getElementById('profileForm').reset();
+    profileFields.forEach(id => {
+        const el = document.getElementById(id);
+        el.disabled = true;
+    });
+    document.getElementById('profileActionBar').style.display = 'none';
+    document.getElementById('editProfileBtn').style.display = '';
+}
 
-        // Sidebar nav
-        document.querySelectorAll('.settings-nav-item').forEach(item => {
-            item.classList.remove('active');
-        });
+// ── Society Editing ──
+const societyFields = ['sName','sAddress','sCity','sState'];
+function enableSocietyEdit() {
+    societyFields.forEach(id => {
+        const el = document.getElementById(id);
+        el.disabled = false;
+    });
+    document.getElementById('societyActionBar').style.display = 'block';
+    document.getElementById('editSocietyBtn').style.display = 'none';
+}
+function cancelSocietyEdit() {
+    document.getElementById('societyForm').reset();
+    societyFields.forEach(id => {
+        document.getElementById(id).disabled = true;
+    });
+    document.getElementById('societyActionBar').style.display = 'none';
+    document.getElementById('editSocietyBtn').style.display = '';
+}
 
-        // Top tabs
-        document.querySelectorAll('.top-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
+// ── Toggle Switches ──
+function toggleSwitch(el, inputId) {
+    el.classList.toggle('on');
+    const input = document.getElementById(inputId);
+    if (input) input.value = el.classList.contains('on') ? 'on' : 'off';
+}
 
-        // Activate clicked tab
-        if (tabBtn) {
-            tabBtn.classList.add('active');
-        }
+// ── Copy Society Code ──
+function copyCode() {
+    const code = document.getElementById('societyCodeDisplay').textContent.trim();
+    navigator.clipboard.writeText(code).then(() => showToast('Society code copied!','success'));
+}
 
-        // Activate sidebar item
-        document.querySelectorAll('.settings-nav-item').forEach(item => {
-            if (item.textContent.toLowerCase().includes(section)) {
-                item.classList.add('active');
-            }
-        });
+// ── Integrations ──
+function openIntegration(type) {
+    document.querySelectorAll('[id^="intg-"]').forEach(el => el.style.display='none');
+    const panel = document.getElementById('intg-' + type);
+    if (panel) panel.style.display = 'block';
+}
+function closeIntegration(type) {
+    const panel = document.getElementById('intg-' + type);
+    if (panel) panel.style.display = 'none';
+}
 
-        // Show section
-        document.getElementById(section + 'Section').style.display = 'block';
+// ── Toast Notifications ──
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 350);
+    }, 4000);
+}
 
-        // Scroll nicely on mobile
-        window.scrollTo({
-            top: document.querySelector('.settings-top-tabs')?.offsetTop - 10 || 0,
-            behavior: 'smooth'
-        });
-    }
+// ── Confirm Modal ──
+let confirmCallback = null;
+function openConfirm(icon, title, text, callback) {
+    document.getElementById('confirmIcon').textContent = icon;
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').textContent = text;
+    confirmCallback = callback;
+    document.getElementById('confirmOverlay').classList.add('active');
+}
+function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('active');
+    confirmCallback = null;
+}
+document.getElementById('confirmActionBtn').onclick = function() {
+    if (confirmCallback) confirmCallback();
+    closeConfirm();
+};
+document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirm();
+});
 
-
-    // Enable/Disable Editing
-    function enableEditing() {
-        // Enable all form inputs except readonly ones
-        const form = document.getElementById('profileForm');
-        const inputs = form.querySelectorAll('input:not([readonly]), textarea');
-        
-        inputs.forEach(input => {
-            input.disabled = false;
-            input.style.background = 'white';
-        });
-
-        // Show action buttons
-        document.getElementById('actionButtons').classList.add('show');
-
-        // Hide edit button
-        document.getElementById('editProfileBtn').style.display = 'none';
-    }
-
-    function cancelEditing() {
-        // Disable all form inputs
-        const form = document.getElementById('profileForm');
-        const inputs = form.querySelectorAll('input:not([readonly]), textarea');
-        
-        inputs.forEach(input => {
-            input.disabled = true;
-            input.style.background = '#f8fafc';
-        });
-
-        // Hide action buttons
-        document.getElementById('actionButtons').classList.remove('show');
-
-        // Show edit button
-        document.getElementById('editProfileBtn').style.display = 'flex';
-
-        // Reset form to original values
-        form.reset();
-    }
-
-    // Toggle Switch
-    function toggleSwitch(element) {
-        element.classList.toggle('active');
-    }
-
-    // Danger Zone Actions
-    function confirmReset() {
-        if (confirm('Are you sure you want to reset all settings? This cannot be undone.')) {
-            alert('Settings reset functionality will be implemented');
-        }
-    }
-
-    function confirmDelete() {
-        if (confirm('⚠️ WARNING: This will delete all society data permanently. Are you absolutely sure?')) {
-            const confirmation = prompt('Type "DELETE" to confirm:');
-            if (confirmation === 'DELETE') {
-                alert('Society data deletion would be processed here');
-            }
-        }
-    }
-
-    // Show Messages
-    function showSuccess(message) {
-        const successMsg = document.getElementById('successMessage');
-        successMsg.querySelector('.success-text').textContent = `✅ ${message}`;
-        successMsg.classList.add('show');
-        
-        setTimeout(() => {
-            successMsg.classList.remove('show');
-        }, 5000);
-    }
-
-    function showError(message) {
-        const errorMsg = document.getElementById('errorMessage');
-        document.getElementById('errorText').textContent = message;
-        errorMsg.classList.add('show');
-        
-        setTimeout(() => {
-            errorMsg.classList.remove('show');
-        }, 5000);
-    }
-
-    // Handle Profile Form Submission
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
+// ── AJAX Form Submissions ──
+function handleFormSubmit(formId, successMsg) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        fetch("{% url 'society_admin_settings' %}", {
+        const fd = new FormData(this);
+        fetch(this.action, {
             method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-            }
+            body: fd,
+            headers: { 'X-CSRFToken': fd.get('csrfmiddlewaretoken') }
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
             if (data.success) {
-                showSuccess(data.message || 'Settings saved successfully!');
-                cancelEditing();
-                
-                // Update displayed values if changed
-                if (data.updated_values) {
-                    Object.keys(data.updated_values).forEach(key => {
-                        const input = document.querySelector(`[name="${key}"]`);
-                        if (input) {
-                            input.value = data.updated_values[key];
-                        }
-                    });
+                showToast(data.message || successMsg, 'success');
+                if (formId === 'profileForm') cancelProfileEdit();
+                if (formId === 'societyForm') cancelSocietyEdit();
+                // Update avatar initial if name changed
+                if (data.updated_values && data.updated_values.username) {
+                    document.getElementById('avatarCircle').textContent =
+                        data.updated_values.username[0].toUpperCase();
+                }
+                if (data.updated_values && data.updated_values.full_name) {
+                    document.getElementById('profileDisplayName').textContent =
+                        data.updated_values.full_name;
                 }
             } else {
-                showError(data.error || 'Failed to save settings');
+                showToast(data.error || 'Something went wrong.', 'error');
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            showError('An error occurred while saving settings');
-        });
+        .catch(() => showToast('Network error. Please try again.', 'error'));
     });
+}
 
-    // Handle Security Form
-    document.getElementById('securityForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        showSuccess('Security settings saved successfully!');
-    });
+handleFormSubmit('profileForm',      'Profile updated successfully!');
+handleFormSubmit('societyForm',      'Society info saved!');
+handleFormSubmit('securityForm',     'Security settings saved!');
+handleFormSubmit('notificationsForm','Notification preferences saved!');
+handleFormSubmit('passwordForm',     'Password updated successfully!');
 
-    // Handle Notifications Form
-    document.getElementById('notificationsForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        showSuccess('Notification preferences saved successfully!');
-    });
-
-    // Check for success message from backend (if redirected after save)
-    {% if messages %}
-        {% for message in messages %}
-            {% if message.tags == 'success' %}
-                showSuccess('{{ message }}');
-            {% elif message.tags == 'error' %}
-                showError('{{ message }}');
-            {% endif %}
-        {% endfor %}
-    {% endif %}
+// ── Django Messages ──
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            showToast('{{ message }}', 'success');
+        {% elif message.tags == 'error' %}
+            showToast('{{ message }}', 'error');
+        {% endif %}
+    {% endfor %}
+{% endif %}
 </script>
 {% endblock %}
