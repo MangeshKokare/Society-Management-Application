@@ -5,350 +5,500 @@
 
 {% block extra_styles %}
 <style>
-    /* Stats Grid - Side by Side in One Line */
-    .stats-grid {
-        display: grid !important;
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 10px;
-        margin-bottom: 20px;
-        width: 100%;
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+    * {
+        box-sizing: border-box;
+        font-family: 'DM Sans', sans-serif;
     }
 
-    .stat-card {
-        background: white;
-        padding: 15px 10px;
-        border-radius: 10px;
+    /* ── Page Shell ── */
+    body, .page-body {
+        background: #F0F2F5;
+    }
+
+    /* ── Stats Strip ── */
+    .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .stat-pill {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 14px 10px 12px;
         text-align: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        min-width: 0;
+        box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        position: relative;
         overflow: hidden;
     }
 
-    .stat-number {
-        font-size: 24px;
+    .stat-pill::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+    }
+
+    .stat-pill.today::before  { background: #635BFF; }
+    .stat-pill.pending::before { background: #F59E0B; }
+    .stat-pill.done::before    { background: #10B981; }
+
+    .stat-num {
+        font-size: 26px;
         font-weight: 700;
-        color: #2c3e50;
-        line-height: 1.2;
+        color: #111827;
+        line-height: 1;
+        margin-bottom: 4px;
     }
 
-    .stat-label {
+    .stat-lbl {
         font-size: 11px;
-        color: #666;
-        margin-top: 3px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-weight: 500;
+        color: #9CA3AF;
+        text-transform: uppercase;
+        letter-spacing: .5px;
     }
 
-    /* Action Buttons - Side by Side */
-    .action-buttons {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px;
+    /* ── Action Buttons ── */
+    .action-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
         margin-bottom: 20px;
-        width: 100%;
     }
 
-    .action-card {
-        background: white;
-        padding: 20px 15px;
-        border-radius: 10px;
-        text-align: center;
-        text-decoration: none;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+    .act-btn {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 8px;
+        padding: 18px 12px;
+        border-radius: 16px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform .15s, box-shadow .15s;
+        box-shadow: 0 2px 8px rgba(0,0,0,.10);
     }
 
-    .action-card:hover {
+    .act-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 6px 18px rgba(0,0,0,.15);
         text-decoration: none;
     }
 
-    .action-card.scan {
-        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-        color: white;
+    .act-btn:active { transform: scale(.97); }
+
+    .act-btn.scan   { background: linear-gradient(135deg, #10B981 0%, #059669 100%); }
+    .act-btn.manual { background: linear-gradient(135deg, #635BFF 0%, #4F46E5 100%); }
+
+    .act-icon  { font-size: 30px; line-height: 1; }
+    .act-label { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: .2px; }
+
+    /* ── Tabs ── */
+    .tab-bar {
+        display: flex;
+        background: #fff;
+        border-radius: 14px;
+        padding: 5px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.06);
     }
 
-    .action-card.manual {
-        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-        color: white;
-    }
-
-    .action-icon {
-        font-size: 36px;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    .action-label {
+    .tab-btn {
+        flex: 1;
+        padding: 9px;
+        border-radius: 10px;
+        text-align: center;
         font-size: 13px;
         font-weight: 600;
-        display: block;
-        color: inherit;
+        cursor: pointer;
+        color: #9CA3AF;
+        transition: background .2s, color .2s;
+        user-select: none;
     }
 
+    .tab-btn.active {
+        background: #635BFF;
+        color: #fff;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Parcel Cards ── */
     .parcel-card {
-        background: white;
-        border-radius: 12px;
-        padding: 15px;
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px;
         margin-bottom: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        border-left: 4px solid #3498db;
+        box-shadow: 0 1px 6px rgba(0,0,0,.07);
+        border-left: 4px solid transparent;
+        transition: box-shadow .2s;
     }
 
-    .parcel-card.pending {
-        border-left-color: #f39c12;
-    }
+    .parcel-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.10); }
+    .parcel-card.pending  { border-left-color: #F59E0B; }
+    .parcel-card.delivered { border-left-color: #10B981; }
 
-    .parcel-card.delivered {
-        border-left-color: #27ae60;
-    }
-
-    .parcel-header {
+    .pc-head {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 10px;
     }
 
-    .parcel-company {
-        font-size: 16px;
+    .pc-company {
+        font-size: 15px;
         font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 5px;
+        color: #111827;
+        margin-bottom: 4px;
     }
 
-    .tracking-id {
-        font-size: 12px;
-        color: #7f8c8d;
-        font-family: 'Courier New', monospace;
-        background: #ecf0f1;
-        padding: 2px 8px;
-        border-radius: 4px;
+    .pc-track {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: #6B7280;
+        background: #F3F4F6;
+        padding: 3px 8px;
+        border-radius: 6px;
         display: inline-block;
     }
 
-    .parcel-details {
-        font-size: 13px;
-        color: #666;
-        line-height: 1.6;
-        margin-top: 10px;
+    .badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
     }
 
-    .parcel-details div {
-        margin-bottom: 5px;
+    .badge-pending   { background: #FEF3C7; color: #D97706; }
+    .badge-delivered { background: #D1FAE5; color: #065F46; }
+
+    .pc-meta {
+        font-size: 12.5px;
+        color: #6B7280;
+        line-height: 1.7;
+        margin-top: 8px;
     }
 
-    .parcel-actions {
+    /* OTP box */
+    .otp-box {
+        background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+        border: 1px solid #FCD34D;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin: 12px 0;
+        text-align: center;
+    }
+
+    .otp-lbl  { font-size: 11px; font-weight: 600; color: #92400E; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .6px; }
+    .otp-code { font-family: 'DM Mono', monospace; font-size: 30px; font-weight: 700; color: #B45309; letter-spacing: 10px; }
+
+    /* Card action buttons */
+    .pc-actions {
         display: flex;
         gap: 8px;
-        margin-top: 12px;
+        margin-top: 14px;
     }
 
-    .action-btn {
+    .pc-btn {
         flex: 1;
         padding: 10px;
-        border-radius: 8px;
+        border-radius: 10px;
         border: none;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: opacity .15s, transform .1s;
     }
 
-    .btn-call {
-        background: #3498db;
-        color: white;
+    .pc-btn:active { transform: scale(.97); }
+    .pc-btn.notify  { background: #EEF2FF; color: #4F46E5; }
+    .pc-btn.deliver { background: #D1FAE5; color: #065F46; }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: #9CA3AF;
     }
 
-    .btn-call:hover {
-        background: #2980b9;
-    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; font-weight: 500; }
 
-    .tabs {
+    /* ───────────────────────────────
+       MODAL
+    ─────────────────────────────── */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(17,24,39,.55);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
         display: flex;
-        background: white;
-        border-radius: 12px;
-        padding: 5px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        align-items: flex-end;          /* bottom-sheet on mobile */
+        justify-content: center;
+        padding: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .25s;
     }
 
-    .tab {
-        flex: 1;
-        padding: 10px;
-        text-align: center;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        color: #7f8c8d;
-        transition: all 0.3s;
+    .modal-overlay.open {
+        opacity: 1;
+        pointer-events: all;
     }
 
-    .tab.active {
-        background: #3498db;
-        color: white;
-    }
-
-    .tab-content {
-        display: none;
-    }
-
-    .tab-content.active {
-        display: block;
-    }
-
-    .otp-display {
-        background: #f39c12;
-        color: white;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        margin: 10px 0;
-    }
-
-    .otp-label {
-        font-size: 12px;
-        opacity: 0.9;
-        margin-bottom: 5px;
-    }
-
-    .otp-code {
-        font-size: 32px;
-        font-weight: 700;
-        letter-spacing: 8px;
-        font-family: 'Courier New', monospace;
-    }
-
-    .photo-preview {
+    .modal-sheet {
+        background: #fff;
+        border-radius: 24px 24px 0 0;
         width: 100%;
-        height: 150px;
-        background: #ecf0f1;
-        border-radius: 8px;
+        max-width: 520px;
+        max-height: calc(100vh - 80px); /* leaves space for bottom nav */
+        overflow-y: auto;
+        padding: 0 0 100px; /* extra bottom space so button is visible */
+        transform: translateY(60px);
+        transition: transform .3s cubic-bezier(.32,1,.45,1);
+    }
+
+    .modal-overlay.open .modal-sheet {
+        transform: translateY(0);
+    }
+
+    .modal-handle {
+        width: 36px;
+        height: 4px;
+        background: #E5E7EB;
+        border-radius: 4px;
+        margin: 14px auto 0;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 12px;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .modal-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #F3F4F6;
+        border: none;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 10px 0;
-        cursor: pointer;
+        font-size: 18px;
+        color: #6B7280;
+        transition: background .15s;
+        line-height: 1;
     }
 
-    /* Manual Entry Modal */
-    #manualEntryModal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        overflow-y: auto;
-        padding: 20px;
-    }
+    .modal-close:hover { background: #E5E7EB; }
 
-    #manualEntryModal .card {
-        max-width: 500px;
-        margin: 20px auto;
-        position: relative;
-    }
+    .modal-body { padding: 20px; }
 
-    .form-group {
-        margin-bottom: 15px;
-    }
+    /* ── Form ── */
+    .fg { margin-bottom: 16px; }
 
-    .form-label {
+    .fl {
         display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 5px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
     }
 
-    .form-control {
+    .fc {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
+        padding: 11px 14px;
+        border: 1.5px solid #E5E7EB;
+        border-radius: 10px;
         font-size: 14px;
+        font-family: 'DM Sans', sans-serif;
+        color: #111827;
+        background: #F9FAFB;
+        transition: border-color .2s, background .2s;
+        appearance: none;
+    }
+
+    .fc:focus {
+        outline: none;
+        border-color: #635BFF;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(99,91,255,.12);
+    }
+
+    /* ── Photo Upload Zone ── */
+    .photo-zone {
+        border: 2px dashed #D1D5DB;
+        border-radius: 14px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color .2s, background .2s;
+        position: relative;
+        background: #F9FAFB;
+        margin-bottom: 16px;
+    }
+
+    .photo-zone:hover {
+        border-color: #635BFF;
+        background: #F5F3FF;
+    }
+
+    .photo-zone.has-image {
+        border-style: solid;
+        border-color: #10B981;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .photo-zone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .photo-zone-icon { font-size: 36px; margin-bottom: 8px; }
+    .photo-zone-text { font-size: 13px; color: #6B7280; font-weight: 500; }
+    .photo-zone-sub  { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
+
+    #photoPreview {
+        width: 100%;
+        max-height: 180px;
+        object-fit: cover;
+        display: none;
+        border-radius: 12px;
+    }
+
+    .photo-remove {
+        position: absolute;
+        top: 8px; right: 8px;
+        width: 28px; height: 28px;
+        background: rgba(0,0,0,.55);
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 14px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
     }
 
     .submit-btn {
         width: 100%;
-        padding: 12px;
-        background: #27ae60;
-        color: white;
+        padding: 14px;
+        background: linear-gradient(135deg, #635BFF 0%, #4F46E5 100%);
+        color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
+        letter-spacing: .2px;
+        transition: opacity .15s, transform .1s;
+        font-family: 'DM Sans', sans-serif;
+        position: sticky;
+        bottom: 0;
+        margin-top: 10px;
     }
 
-    .submit-btn:hover {
-        background: #229954;
-    }
+    .submit-btn:hover   { opacity: .9; }
+    .submit-btn:active  { transform: scale(.98); }
 </style>
 {% endblock %}
 
 {% block content %}
 
+<!-- Stats -->
+<div class="stats-strip">
+    <div class="stat-pill today">
+        <div class="stat-num">{{ today_parcels }}</div>
+        <div class="stat-lbl">Today</div>
+    </div>
+    <div class="stat-pill pending">
+        <div class="stat-num">{{ pending_parcels }}</div>
+        <div class="stat-lbl">Pending</div>
+    </div>
+    <div class="stat-pill done">
+        <div class="stat-num">{{ delivered_parcels }}</div>
+        <div class="stat-lbl">Delivered</div>
+    </div>
+</div>
 
-<div class="action-buttons">
-    <a href="#" class="action-card scan" onclick="scanBarcode(); return false;">
-        <span class="action-icon">📷</span>
-        <span class="action-label">Scan Barcode</span>
+<!-- Action Buttons -->
+<div class="action-row">
+    <a href="#" class="act-btn scan" onclick="scanBarcode(); return false;">
+        <span class="act-icon">📷</span>
+        <span class="act-label">Scan Barcode</span>
     </a>
-    <a href="#" class="action-card manual" onclick="openManualEntry(); return false;">
-        <span class="action-icon">✍️</span>
-        <span class="action-label">Manual Entry</span>
+    <a href="#" class="act-btn manual" onclick="openModal(); return false;">
+        <span class="act-icon">✍️</span>
+        <span class="act-label">Manual Entry</span>
     </a>
 </div>
 
-<div class="tabs">
-    <div class="tab active" onclick="switchTab('pending')">Pending</div>
-    <div class="tab" onclick="switchTab('delivered')">Delivered</div>
+<!-- Tabs -->
+<div class="tab-bar">
+    <div class="tab-btn active" data-tab="pending" onclick="switchTab('pending', this)">
+        Pending ({{ pending_parcels }})
+    </div>
+    <div class="tab-btn" data-tab="delivered" onclick="switchTab('delivered', this)">
+        Delivered ({{ delivered_parcels }})
+    </div>
 </div>
 
-<!-- Pending Tab -->
-<div class="tab-content active" id="pending">
+<!-- Pending -->
+<div class="tab-panel active" id="panel-pending">
     {% if pending_deliveries %}
         {% for delivery in pending_deliveries %}
         <div class="parcel-card pending">
-            <div class="parcel-header">
+            <div class="pc-head">
                 <div>
-                    <div class="parcel-company">{{ delivery.company }}</div>
-                    <span class="tracking-id">{{ delivery.tracking_id }}</span>
+                    <div class="pc-company">{{ delivery.company }}</div>
+                    <span class="pc-track">{{ delivery.tracking_id }}</span>
                 </div>
                 <span class="badge badge-pending">Pending</span>
             </div>
-
-            <div class="parcel-details">
+            <div class="pc-meta">
                 <div>🏠 {{ delivery.apartment.block }}-{{ delivery.apartment.flat_number }}</div>
-                <div>📅 Received: {{ delivery.received_at|date:"d M Y, g:i A" }}</div>
+                <div>🕐 {{ delivery.received_at|date:"d M Y, g:i A" }}</div>
             </div>
-
             {% if delivery.otp %}
-            <div class="otp-display">
-                <div class="otp-label">Pickup OTP</div>
+            <div class="otp-box">
+                <div class="otp-lbl">Pickup OTP</div>
                 <div class="otp-code">{{ delivery.otp }}</div>
             </div>
             {% endif %}
-
-            <div class="parcel-actions">
-                <button
-                class="action-btn btn-call"
-                onclick="notifyResident('{{ delivery.id }}')">
-                📱 Notify
+            <div class="pc-actions">
+                <button class="pc-btn notify" onclick="notifyResident('{{ delivery.id }}')">
+                    📱 Notify Resident
                 </button>
-
-                <button class="action-btn btn-success" onclick="markDelivered('{{ delivery.id }}')">
-                    ✓ Delivered
+                <button class="pc-btn deliver" onclick="markDelivered('{{ delivery.id }}')">
+                    ✓ Mark Delivered
                 </button>
             </div>
         </div>
@@ -361,178 +511,210 @@
     {% endif %}
 </div>
 
-<!-- Delivered Tab -->
-<div class="tab-content" id="delivered">
+<!-- Delivered -->
+<div class="tab-panel" id="panel-delivered">
     {% if delivered_deliveries %}
         {% for delivery in delivered_deliveries %}
         <div class="parcel-card delivered">
-            <div class="parcel-header">
+            <div class="pc-head">
                 <div>
-                    <div class="parcel-company">{{ delivery.company }}</div>
-                    <span class="tracking-id">{{ delivery.tracking_id }}</span>
+                    <div class="pc-company">{{ delivery.company }}</div>
+                    <span class="pc-track">{{ delivery.tracking_id }}</span>
                 </div>
-                <span class="badge badge-approved">✓ Delivered</span>
+                <span class="badge badge-delivered">✓ Delivered</span>
             </div>
-
-            <div class="parcel-details">
+            <div class="pc-meta">
                 <div>🏠 {{ delivery.apartment.block }}-{{ delivery.apartment.flat_number }}</div>
-                <div>📅 Received: {{ delivery.received_at|date:"d M, g:i A" }}</div>
+                <div>🕐 {{ delivery.received_at|date:"d M, g:i A" }}</div>
             </div>
         </div>
         {% endfor %}
     {% else %}
         <div class="empty-state">
-            <div class="empty-state-icon">✓</div>
+            <div class="empty-state-icon">✅</div>
             <p>No delivered parcels today</p>
         </div>
     {% endif %}
 </div>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-number">{{ today_parcels }}</div>
-        <div class="stat-label">Today</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-number">{{ pending_parcels }}</div>
-        <div class="stat-label">Pending</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-number">{{ delivered_parcels }}</div>
-        <div class="stat-label">Delivered</div>
-    </div>
-</div>
-<!-- Manual Entry Modal (Hidden by default) -->
-<div id="manualEntryModal" style="display: none;">
-    <div class="card">
-        <div class="card-header">
-            <span>New Parcel Entry</span>
-            <span onclick="closeManualEntry()" style="cursor: pointer; font-size: 24px;">✕</span>
+
+<!-- ── Manual Entry Modal (bottom sheet) ── -->
+<div class="modal-overlay" id="manualModal" onclick="handleOverlayClick(event)">
+    <div class="modal-sheet" id="modalSheet">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+            <span class="modal-title">📦 Log New Parcel</span>
+            <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
         </div>
 
-        <form method="POST" id="parcelForm" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label class="form-label">Delivery Company *</label>
-                <select name="company" class="form-control" required>
-                    <option value="">Select Company</option>
-                    <option value="Amazon">Amazon</option>
-                    <option value="Flipkart">Flipkart</option>
-                    <option value="Myntra">Myntra</option>
-                    <option value="Swiggy">Swiggy</option>
-                    <option value="Zomato">Zomato</option>
-                    <option value="BlueDart">BlueDart</option>
-                    <option value="DTDC">DTDC</option>
-                    <option value="FedEx">FedEx</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
+        <div class="modal-body">
+            <form method="POST" id="parcelForm" enctype="multipart/form-data">
+                {% csrf_token %}
 
-            <div class="form-group">
-                <label class="form-label">Tracking ID</label>
-                <input type="text" name="tracking_id" class="form-control" placeholder="Enter tracking number">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Apartment *</label>
-                <select name="apartment" class="form-control" required>
-                    <option value="">Select Apartment</option>
-                    {% for apt in apartments %}
-                        <option value="{{ apt.id }}">{{ apt.block }}-{{ apt.flat_number }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="photo-preview" onclick="captureParcelPhoto()">
-                <div style="text-align: center; color: #7f8c8d;">
-                    <div style="font-size: 36px;">📷</div>
-                    <div style="font-size: 13px;">Tap to capture parcel photo</div>
+                <div class="fg">
+                    <label class="fl">Delivery Company *</label>
+                    <select name="company" class="fc" required>
+                        <option value="">Select Company</option>
+                        <option value="Amazon">Amazon</option>
+                        <option value="Flipkart">Flipkart</option>
+                        <option value="Myntra">Myntra</option>
+                        <option value="Swiggy">Swiggy Instamart</option>
+                        <option value="Zomato">Zomato</option>
+                        <option value="Blinkit">Blinkit</option>
+                        <option value="BlueDart">BlueDart</option>
+                        <option value="DTDC">DTDC</option>
+                        <option value="FedEx">FedEx</option>
+                        <option value="Ekart">Ekart</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
-            </div>
 
-            <button type="submit" class="submit-btn">
-                ✓ Log Parcel
-            </button>
-        </form>
+                <div class="fg">
+                    <label class="fl">Tracking ID</label>
+                    <input type="text" name="tracking_id" class="fc" placeholder="e.g. AMZ-1234567890">
+                </div>
+
+                <div class="fg">
+                    <label class="fl">Apartment *</label>
+                    <select name="apartment" class="fc" required>
+                        <option value="">Select Apartment</option>
+                        {% for apt in apartments %}
+                            <option value="{{ apt.id }}">{{ apt.block }}-{{ apt.flat_number }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="fg">
+                    <label class="fl">Parcel Photo</label>
+                    <div class="photo-zone" id="photoZone">
+                        <input
+                            type="file"
+                            name="parcel_photo"
+                            id="photoInput"
+                            accept="image/*"
+                            capture="environment"
+                            onchange="handlePhotoSelect(event)"
+                        >
+                        <img id="photoPreview" src="" alt="Parcel preview">
+                        <button type="button" class="photo-remove" id="photoRemoveBtn" onclick="removePhoto(event)">✕</button>
+                        <div id="photoPlaceholder">
+                            <div class="photo-zone-icon">📸</div>
+                            <div class="photo-zone-text">Tap to capture or upload photo</div>
+                            <div class="photo-zone-sub">Camera opens on mobile · JPG, PNG accepted</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">✓ Log Parcel</button>
+            </form>
+        </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        event.target.classList.add('active');
-
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        document.getElementById(tabName).classList.add('active');
+    /* ── Tab switching ── */
+    function switchTab(name, el) {
+        document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
     }
 
+    /* ── Modal ── */
+    function openModal() {
+        document.getElementById('manualModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('manualModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function handleOverlayClick(e) {
+        if (e.target === document.getElementById('manualModal')) closeModal();
+    }
+
+    /* ── Photo handling ── */
+    function handlePhotoSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const preview = document.getElementById('photoPreview');
+            const placeholder = document.getElementById('photoPlaceholder');
+            const removeBtn = document.getElementById('photoRemoveBtn');
+            const zone = document.getElementById('photoZone');
+
+            preview.src = ev.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+            removeBtn.style.display = 'flex';
+            zone.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removePhoto(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const preview = document.getElementById('photoPreview');
+        const placeholder = document.getElementById('photoPlaceholder');
+        const removeBtn = document.getElementById('photoRemoveBtn');
+        const zone = document.getElementById('photoZone');
+        const input = document.getElementById('photoInput');
+
+        preview.src = '';
+        preview.style.display = 'none';
+        placeholder.style.display = 'block';
+        removeBtn.style.display = 'none';
+        zone.classList.remove('has-image');
+        input.value = '';
+    }
+
+    /* ── Barcode ── */
     function scanBarcode() {
-        alert('📷 Barcode scanner would open here\n\nIn production, this would:\n- Open device camera\n- Scan package barcode\n- Auto-fill tracking details');
+        alert('📷 Barcode scanner would open here.\n\nIn production this opens the device camera to scan the package barcode and auto-fills tracking details.');
     }
 
-    function openManualEntry() {
-        document.getElementById('manualEntryModal').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function closeManualEntry() {
-        document.getElementById('manualEntryModal').style.display = 'none';
-    }
-
-    function captureParcelPhoto() {
-        alert('📷 Camera would open to capture parcel photo');
-    }
-
+    /* ── Notify resident ── */
     function notifyResident(deliveryId) {
         fetch(`/guard/parcel/notify/${deliveryId}/`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-                "X-CSRFToken": document.querySelector(
-                    '[name=csrfmiddlewaretoken]'
-                ).value
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
         .then(res => res.json())
-        .then(data => alert(data.message));
+        .then(data => alert(data.message))
+        .catch(() => alert('Could not notify resident. Please try again.'));
     }
 
-
+    /* ── Mark delivered ── */
     function markDelivered(deliveryId) {
         const otp = prompt('Enter resident OTP to confirm delivery:');
-        if(otp) {
-            // Validate OTP and mark as delivered
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/guard/parcel/deliver/' + deliveryId + '/';
-            
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = csrfToken;
-            
-            const otpInput = document.createElement('input');
-            otpInput.type = 'hidden';
-            otpInput.name = 'otp';
-            otpInput.value = otp;
-            
-            form.appendChild(csrfInput);
-            form.appendChild(otpInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
+        if (!otp) return;
 
-    // Generate random OTP for demo (in production, this comes from backend)
-    function generateOTP() {
-        return Math.floor(100000 + Math.random() * 900000);
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/guard/parcel/deliver/' + deliveryId + '/';
+
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        [['csrfmiddlewaretoken', csrf], ['otp', otp]].forEach(([n, v]) => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden'; inp.name = n; inp.value = v;
+            form.appendChild(inp);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
     }
 </script>
 {% endblock %}

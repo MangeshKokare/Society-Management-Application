@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MyGate – Guard Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mg-blue: #1A3CFF;
+    --mg-blue-dark: #1230D6;
+    --mg-blue-light: #EEF1FF;
+    --mg-green: #00C853;
+    --mg-orange: #FF6D00;
+    --mg-red: #F44336;
+    --mg-yellow: #FFB300;
+    --mg-bg: #F2F4F7;
+    --mg-white: #FFFFFF;
+    --mg-text: #0D0D0D;
+    --mg-text-2: #5C6370;
+    --mg-border: #E4E7ED;
+    --radius-card: 16px;
+    --shadow-card: 0 2px 12px rgba(0,0,0,0.07);
+    --shadow-btn: 0 4px 16px rgba(26,60,255,0.25);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--mg-bg); min-height: 100vh; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--mg-blue);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+  .topbar-society { font-size: 12px; color: rgba(255,255,255,0.75); font-weight: 500; margin-top: 1px; }
+  .topbar-actions { display: flex; gap: 10px; }
+  .topbar-icon-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: none; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; color: white; font-size: 16px;
+    transition: background 0.2s;
+  }
+  .topbar-icon-btn:hover { background: rgba(255,255,255,0.25); }
+  .notif-dot {
+    position: absolute; top: 5px; right: 5px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #FF4D4D; border: 1.5px solid var(--mg-blue);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--mg-blue);
+    padding: 0 20px 28px;
+    position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; bottom: -40px; left: -10%; right: -10%;
+    height: 80px; background: var(--mg-bg);
+    border-radius: 50% 50% 0 0 / 30px;
+  }
+  .hero-inner { position: relative; z-index: 1; }
+  .hero-greeting { color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .hero-name { color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .hero-chips { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .hero-chip {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white; font-size: 12px; font-weight: 600;
+    padding: 6px 12px; border-radius: 20px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .hero-chip.green { background: rgba(0,200,83,0.25); border-color: rgba(0,200,83,0.4); }
+  .pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--mg-green);
+    animation: pulse-anim 1.8s infinite;
+  }
+  @keyframes pulse-anim { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+
+  /* ── SCROLL AREA ── */
+  .scroll-area { padding: 20px 16px 100px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── STATS ROW ── */
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  .stat-card {
+    background: var(--mg-white);
+    border-radius: var(--radius-card);
+    padding: 16px 12px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s;
+  }
+  .stat-card:active { transform: scale(0.97); }
+  .stat-emoji { font-size: 24px; margin-bottom: 6px; display: block; }
+  .stat-num { font-size: 26px; font-weight: 800; color: var(--mg-blue); line-height: 1; margin-bottom: 4px; }
+  .stat-lbl { font-size: 10px; color: var(--mg-text-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* ── CARD BASE ── */
+  .card {
+    background: var(--mg-white);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 18px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--mg-text); }
+  .card-body { padding: 0 18px 18px; }
+
+  /* ── ATTENDANCE CARD ── */
+  .att-card { background: var(--mg-white); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; }
+  .att-header {
+    padding: 16px 18px;
+    background: linear-gradient(135deg, #F0F3FF, #E8EDFF);
+    border-bottom: 1px solid var(--mg-border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .att-title { font-size: 15px; font-weight: 700; color: var(--mg-text); }
+  .status-pill {
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .pill-pending { background: #FFF3E0; color: #E65100; }
+  .pill-active  { background: #E3F2FD; color: #1565C0; }
+  .pill-done    { background: #E8F5E9; color: #2E7D32; }
+
+  .att-body { padding: 16px 18px; }
+  .att-time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .att-time-box { background: #F8FAFC; border-radius: 10px; padding: 12px; }
+  .att-time-lbl { font-size: 10px; color: var(--mg-text-2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .att-time-val { font-size: 18px; font-weight: 800; }
+  .val-green { color: var(--mg-green); }
+  .val-red   { color: var(--mg-red); }
+  .att-shift-info { background: var(--mg-blue-light); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--mg-blue); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  .btn-check-in {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, var(--mg-green), #00A846);
+    color: white; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(0,200,83,0.35);
+    transition: all 0.2s;
+  }
+  .btn-check-in:hover { transform: translateY(-1px); }
+  .btn-check-out {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, #FF6D00, #E65100);
+    color: white; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(255,109,0,0.35);
+    transition: all 0.2s;
+    display: none;
+  }
+  .btn-check-out:hover { transform: translateY(-1px); }
+
+  /* ── ★ QUICK ACTIONS ── */
+  .qa-card { background: var(--mg-white); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; }
+  .qa-header { padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: center; }
+  .qa-title { font-size: 16px; font-weight: 700; color: var(--mg-text); }
+  .qa-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    padding: 0 10px 14px;
+  }
+  .qa-item {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 4px; gap: 6px;
+    cursor: pointer; border-radius: 12px;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .qa-item:active { background: var(--mg-bg); }
+  .qa-icon-wrap {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; position: relative;
+    transition: transform 0.2s;
+  }
+  .qa-item:hover .qa-icon-wrap { transform: scale(1.08); }
+  .qa-label { font-size: 10.5px; font-weight: 600; color: var(--mg-text-2); text-align: center; line-height: 1.3; }
+
+  /* Icon background colors */
+  .ic-blue   { background: #E8EDFF; }
+  .ic-green  { background: #E8F8EF; }
+  .ic-orange { background: #FFF3E0; }
+  .ic-red    { background: #FFEBEE; }
+  .ic-purple { background: #F3E5F5; }
+  .ic-teal   { background: #E0F7FA; }
+  .ic-yellow { background: #FFFDE7; }
+  .ic-pink   { background: #FCE4EC; }
+  .ic-indigo { background: #E8EAF6; }
+  .ic-gray   { background: #F5F5F5; }
+  .ic-cyan   { background: #E0F7FA; }
+
+  /* View More button */
+  .qa-viewmore {
+    display: flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; border-radius: 14px;
+    background: var(--mg-bg); border: 2px dashed var(--mg-border);
+    font-size: 20px; color: var(--mg-blue);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .qa-viewmore:hover { background: var(--mg-blue-light); border-color: var(--mg-blue); }
+
+  /* ── EXPANDED MODAL (Quick Actions) ── */
+  .qa-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 500;
+    align-items: flex-end; justify-content: center;
+  }
+  .qa-modal-overlay.open { display: flex; }
+  .qa-modal-sheet {
+    background: white; width: 100%; max-width: 480px;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px 36px;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 90vh; overflow-y: auto;
+  }
+  @keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+  .qa-modal-handle { width: 40px; height: 4px; background: #E2E8F0; border-radius: 2px; margin: 0 auto 20px; }
+  .qa-modal-title { font-size: 18px; font-weight: 800; color: var(--mg-text); margin-bottom: 20px; }
+  .qa-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--mg-text-2); margin-bottom: 12px; margin-top: 20px; padding: 0 4px; }
+  .qa-section-label:first-of-type { margin-top: 0; }
+  .qa-expand-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  /* ── VOICE BTN ── */
+  .voice-row { padding: 0 2px; }
+  .voice-btn {
+    width: 100%; padding: 16px 20px;
+    background: linear-gradient(135deg, #1A3CFF, #5B7FFF);
+    border: none; border-radius: 14px;
+    color: white; font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; box-shadow: var(--shadow-btn);
+    transition: all 0.2s;
+  }
+  .voice-btn:hover { transform: translateY(-2px); }
+  .voice-btn.listening { background: linear-gradient(135deg, #F44336, #C62828); }
+  .voice-mic-anim { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .voice-text-group { flex: 1; }
+  .voice-btn-title { font-size: 14px; font-weight: 700; }
+  .voice-btn-sub { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+
+  /* ── LEADERBOARD ── */
+  .lb-list { display: flex; flex-direction: column; gap: 8px; padding: 0 18px 18px; }
+  .lb-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: #F8FAFC;
+    border-radius: 12px; border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .lb-item.me { background: #EEF1FF; border-color: var(--mg-blue); }
+  .lb-rank { font-size: 18px; font-weight: 800; color: var(--mg-blue); width: 28px; }
+  .lb-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--mg-blue), #7B5EA7);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 15px;
+  }
+  .lb-info { flex: 1; }
+  .lb-name { font-size: 13px; font-weight: 700; color: var(--mg-text); }
+  .lb-pts  { font-size: 11px; color: var(--mg-text-2); font-weight: 500; }
+  .lb-medal { font-size: 22px; }
+
+  /* ── TASKS ── */
+  .task-list { display: flex; flex-direction: column; gap: 10px; padding: 0 18px 18px; }
+  .task-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px; background: #F8FAFC; border-radius: 12px;
+    border: 2px solid transparent; transition: border-color 0.2s;
+  }
+  .task-item:hover { border-color: var(--mg-blue-light); }
+  .task-icon { font-size: 24px; }
+  .task-info { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 700; color: var(--mg-text); }
+  .task-sub  { font-size: 11px; color: var(--mg-text-2); margin-top: 2px; }
+  .task-badge {
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; cursor: pointer; border: none;
+  }
+  .tb-start { background: var(--mg-blue); color: white; }
+  .tb-done  { background: #E8F5E9; color: #2E7D32; }
+  .tb-pend  { background: #FFF3E0; color: #E65100; }
+
+  /* ── ATT HISTORY ── */
+  .att-hist-card { background: white; border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; }
+  .att-hist-header { padding: 16px 18px; background: linear-gradient(135deg, #F8FAFC, #EEF2FF); border-bottom: 1px solid var(--mg-border); display: flex; justify-content: space-between; align-items: center; }
+  .att-hist-title { font-size: 15px; font-weight: 700; color: var(--mg-text); }
+  .dl-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px; background: linear-gradient(135deg, #10B981, #059669);
+    color: white; border: none; border-radius: 10px;
+    font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none;
+  }
+  .tab-nav { display: flex; border-bottom: 1px solid var(--mg-border); }
+  .tab-btn {
+    flex: 1; padding: 12px; border: none; background: #FAFBFF;
+    font-size: 12px; font-weight: 700; color: var(--mg-text-2);
+    border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s;
+  }
+  .tab-btn.active { color: var(--mg-blue); border-bottom-color: var(--mg-blue); background: white; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .month-sel-row { padding: 14px 18px; border-bottom: 1px solid #F1F5F9; background: #FAFBFF; display: flex; gap: 10px; }
+  .month-sel {
+    flex: 1; padding: 9px 12px; border: 2px solid var(--mg-border);
+    border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--mg-text);
+    background: white; outline: none; cursor: pointer;
+  }
+  .month-sel:focus { border-color: var(--mg-blue); }
+  .summary-strip { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid #F1F5F9; }
+  .sum-item { padding: 14px 8px; text-align: center; border-right: 1px solid #F1F5F9; }
+  .sum-item:last-child { border-right: none; }
+  .sum-num { font-size: 20px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .sum-lbl { font-size: 9px; font-weight: 700; color: var(--mg-text-2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .n-present { color: #10B981; } .n-absent { color: #EF4444; } .n-late { color: #F59E0B; } .n-hours { color: var(--mg-blue); }
+  .att-table-wrap { overflow-x: auto; }
+  .att-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .att-table thead tr { background: #F8FAFC; }
+  .att-table th { padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mg-text-2); border-bottom: 2px solid var(--mg-border); }
+  .att-table td { padding: 11px 12px; border-bottom: 1px solid #F1F5F9; color: var(--mg-text); font-weight: 500; }
+  .att-chip { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .chip-present { background: #D1FAE5; color: #065F46; }
+  .chip-absent  { background: #FEE2E2; color: #991B1B; }
+  .chip-late    { background: #FEF3C7; color: #92400E; }
+
+  /* Leaves */
+  .leave-sum-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; padding: 16px 18px 12px; }
+  .leave-sum-box { border-radius: 12px; padding: 14px; text-align: center; }
+  .lsb-pending   { background: #FEF3C7; border: 2px solid #F59E0B; }
+  .lsb-approved  { background: #D1FAE5; border: 2px solid #10B981; }
+  .lsb-rejected  { background: #FEE2E2; border: 2px solid #EF4444; }
+  .lsb-num { font-size: 22px; font-weight: 800; }
+  .lsb-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  .apply-leave-btn {
+    margin: 0 18px 16px; width: calc(100% - 36px);
+    padding: 13px; background: var(--mg-blue); color: white;
+    border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s;
+  }
+  .apply-leave-btn:hover { background: var(--mg-blue-dark); }
+  .leave-list { padding: 0 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .leave-item { border: 1px solid var(--mg-border); border-radius: 12px; padding: 14px; }
+  .leave-item-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .leave-type-tag { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .leave-status-tag { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .lst-pending  { background: #FEF3C7; color: #92400E; }
+  .lst-approved { background: #D1FAE5; color: #065F46; }
+  .lst-rejected { background: #FEE2E2; color: #991B1B; }
+  .leave-dates { font-size: 12px; color: var(--mg-text-2); font-weight: 600; margin-bottom: 4px; }
+  .leave-reason { font-size: 11px; color: #94A3B8; }
+
+  /* ── LEAVE MODAL ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 600; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: white; width: 100%; max-width: 480px;
+    border-radius: 20px 20px 0 0; padding: 20px 20px 36px;
+    animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto;
+  }
+  .modal-handle { width: 40px; height: 4px; background: #E2E8F0; border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 17px; font-weight: 800; color: var(--mg-text); }
+  .modal-close { background: #F1F5F9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 700; color: var(--mg-text-2); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 12px 14px; border: 2px solid var(--mg-border);
+    border-radius: 10px; font-size: 14px; outline: none; font-family: inherit;
+    transition: border-color 0.2s; background: white;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--mg-blue); }
+  .modal-footer { display: flex; gap: 10px; margin-top: 4px; }
+  .btn-cancel { flex: 1; padding: 14px; background: #F1F5F9; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--mg-text-2); cursor: pointer; }
+  .btn-submit { flex: 2; padding: 14px; background: var(--mg-blue); border: none; border-radius: 12px; font-size: 14px; font-weight: 700; color: white; cursor: pointer; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; top: 72px; left: 50%; transform: translateX(-50%);
+    padding: 12px 20px; border-radius: 12px; color: white; font-weight: 700;
+    font-size: 13px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    animation: slideDown 0.3s ease; white-space: nowrap;
+    max-width: calc(100vw - 40px);
+  }
+  @keyframes slideDown { from{transform:translate(-50%,-100%);opacity:0} to{transform:translate(-50%,0);opacity:1} }
+  .toast-success { background: #10B981; }
+  .toast-error   { background: #EF4444; }
+  .toast-warning { background: #F59E0B; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: white; border-top: 1px solid var(--mg-border);
+    display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px 8px; cursor: pointer; gap: 3px; transition: color 0.15s; color: var(--mg-text-2); text-decoration: none; }
+  .nav-item.active { color: var(--mg-blue); }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 10px; font-weight: 600; }
+
+  @media (max-width: 380px) {
+    .qa-grid { grid-template-columns: repeat(4,1fr); }
+    .qa-icon-wrap { width: 46px; height: 46px; font-size: 20px; }
+    .qa-label { font-size: 9.5px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div>
+      <div class="topbar-logo">mygate</div>
+      <div class="topbar-society">Prestige Lakeside Society</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="topbar-icon-btn" onclick="showToast('Search coming soon','info')">🔍</button>
+    <button class="topbar-icon-btn" onclick="showToast('Notifications','info')" style="position:relative;">
+      🔔<span class="notif-dot"></span>
+    </button>
+    <button class="topbar-icon-btn" onclick="showToast('Profile opened','info')">👤</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-greeting">Good evening 🌙</div>
+    <div class="hero-name">Rajesh Kumar 👋</div>
+    <div class="hero-chips">
+      <div class="hero-chip green"><span class="pulse-dot"></span>On Duty</div>
+      <div class="hero-chip">⏰ 06:00 PM – 02:00 AM</div>
+      <div class="hero-chip">🏢 Gate B</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN SCROLL -->
+<div class="scroll-area">
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-emoji">🚶</span>
+      <div class="stat-num" id="statEntries">24</div>
+      <div class="stat-lbl">Today's Entries</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-emoji">⏳</span>
+      <div class="stat-num" id="statPending">3</div>
+      <div class="stat-lbl">Pending</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-emoji">📦</span>
+      <div class="stat-num" id="statParcels">7</div>
+      <div class="stat-lbl">Parcels</div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE -->
+  <div class="att-card">
+    <div class="att-header">
+      <div class="att-title">⏰ Attendance</div>
+      <div class="status-pill pill-active" id="attBadge">On Duty</div>
+    </div>
+    <div class="att-body">
+      <div class="att-shift-info">🌙 Evening Shift &nbsp;·&nbsp; 06:00 PM – 02:00 AM</div>
+      <div class="att-time-grid" id="attTimeGrid" style="display:none;">
+        <div class="att-time-box">
+          <div class="att-time-lbl">Check-in</div>
+          <div class="att-time-val val-green" id="ciTime">—</div>
+        </div>
+        <div class="att-time-box">
+          <div class="att-time-lbl">Check-out</div>
+          <div class="att-time-val val-red" id="coTime">—</div>
+        </div>
+      </div>
+      <div id="durationBar" style="display:none;background:#EEF2FF;border-radius:8px;padding:10px 12px;font-size:12px;color:var(--mg-blue);font-weight:600;margin-bottom:14px;">
+        Duration: 0h 0m on duty
+      </div>
+      <button class="btn-check-in" id="checkInBtn" onclick="doCheckIn()">
+        <span style="font-size:20px;">✓</span> Check In to Shift
+      </button>
+      <button class="btn-check-out" id="checkOutBtn" onclick="doCheckOut()">
+        <span style="font-size:20px;">→</span> Check Out
+      </button>
+    </div>
+  </div>
+
+  <!-- VOICE COMMAND -->
+  <div class="voice-row">
+    <button class="voice-btn" id="voiceBtn" onclick="triggerVoice()">
+      <div class="voice-mic-anim" id="voiceMic">🎤</div>
+      <div class="voice-text-group">
+        <div class="voice-btn-title">Voice Entry Command</div>
+        <div class="voice-btn-sub" id="voiceSub">Tap to speak a visitor name or flat number</div>
+      </div>
+      <span id="voiceArrow">›</span>
+    </button>
+  </div>
+
+  <!-- ★ QUICK ACTIONS CARD -->
+  <div class="qa-card">
+    <div class="qa-header">
+      <div class="qa-title">Quick Actions</div>
+    </div>
+    <div class="qa-grid">
+      <!-- 1. Pre-Approve -->
+      <div class="qa-item" onclick="showToast('Pre-Approve opened','success')">
+        <div class="qa-icon-wrap ic-green">✅</div>
+        <div class="qa-label">Pre-Approve</div>
+      </div>
+      <!-- 2. Security -->
+      <div class="qa-item" onclick="showToast('Security panel opened','info')">
+        <div class="qa-icon-wrap ic-blue">🛡️</div>
+        <div class="qa-label">Security</div>
+      </div>
+      <!-- 3. Ask Society -->
+      <div class="qa-item" onclick="showToast('Ask Society opened','info')">
+        <div class="qa-icon-wrap ic-orange">💬</div>
+        <div class="qa-label">Ask Society</div>
+      </div>
+      <!-- 4. Posts -->
+      <div class="qa-item" onclick="showToast('Posts opened','info')">
+        <div class="qa-icon-wrap ic-purple">📢</div>
+        <div class="qa-label">Posts</div>
+      </div>
+      <!-- 5. Find Daily Help -->
+      <div class="qa-item" onclick="showToast('Find Daily Help','info')">
+        <div class="qa-icon-wrap ic-teal">🏃</div>
+        <div class="qa-label">Find Daily Help</div>
+      </div>
+      <!-- 6. Raise Alert -->
+      <div class="qa-item" onclick="showToast('🚨 Alert raised!','error')">
+        <div class="qa-icon-wrap ic-red">🚨</div>
+        <div class="qa-label">Raise Alert</div>
+      </div>
+      <!-- 7. Invite Guest -->
+      <div class="qa-item" onclick="showToast('Invite Guest opened','success')">
+        <div class="qa-icon-wrap ic-yellow">🎉</div>
+        <div class="qa-label">Invite Guest</div>
+      </div>
+      <!-- 8. View More (+ icon) -->
+      <div class="qa-item" onclick="openQAModal()">
+        <div class="qa-viewmore">＋</div>
+        <div class="qa-label" style="color:var(--mg-blue);font-weight:700;">View More</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🏆 Guard Leaderboard</div>
+      <span style="background:#E3F2FD;color:#1565C0;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;">This Week</span>
+    </div>
+    <div class="lb-list">
+      <div class="lb-item me">
+        <div class="lb-rank">1</div>
+        <div class="lb-avatar">R</div>
+        <div class="lb-info">
+          <div class="lb-name">You (Rajesh Kumar)</div>
+          <div class="lb-pts">340 points · 24 entries</div>
+        </div>
+        <div class="lb-medal">🥇</div>
+      </div>
+      <div class="lb-item">
+        <div class="lb-rank">2</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg,#10B981,#059669);">S</div>
+        <div class="lb-info">
+          <div class="lb-name">Suresh Patil</div>
+          <div class="lb-pts">290 points · 18 entries</div>
+        </div>
+        <div class="lb-medal">🥈</div>
+      </div>
+      <div class="lb-item">
+        <div class="lb-rank">3</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg,#FF6D00,#E65100);">M</div>
+        <div class="lb-info">
+          <div class="lb-name">Manoj Singh</div>
+          <div class="lb-pts">215 points · 14 entries</div>
+        </div>
+        <div class="lb-medal">🥉</div>
+      </div>
+      <div class="lb-item">
+        <div class="lb-rank">4</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg,#9C27B0,#6A1B9A);">A</div>
+        <div class="lb-info">
+          <div class="lb-name">Amit Yadav</div>
+          <div class="lb-pts">180 points · 11 entries</div>
+        </div>
+        <div class="lb-medal"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TODAY'S TASKS -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Today's Tasks</div>
+    </div>
+    <div class="task-list">
+      <div class="task-item">
+        <div class="task-icon">🚶</div>
+        <div class="task-info">
+          <div class="task-name">Morning Patrol</div>
+          <div class="task-sub">Check all common areas and parking · 10:00 AM</div>
+        </div>
+        <button class="task-badge tb-done">Done</button>
+      </div>
+      <div class="task-item">
+        <div class="task-icon">🔄</div>
+        <div class="task-info">
+          <div class="task-name">Shift Handover</div>
+          <div class="task-sub">Transfer duties to next guard · 2:00 PM</div>
+        </div>
+        <button class="task-badge tb-start" onclick="showToast('Handover started','success')">Complete</button>
+      </div>
+      <div class="task-item">
+        <div class="task-icon">📋</div>
+        <div class="task-info">
+          <div class="task-name">Visitor Log Update</div>
+          <div class="task-sub">Update evening visitor log by 9 PM</div>
+        </div>
+        <button class="task-badge tb-pend">Pending</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE HISTORY -->
+  <div class="att-hist-card">
+    <div class="att-hist-header">
+      <div class="att-hist-title">📊 My Attendance & Leaves</div>
+      <a href="#" class="dl-btn">📥 Export XLS</a>
+    </div>
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('attendance',this)">📋 Attendance</button>
+      <button class="tab-btn" onclick="switchTab('leaves',this)">📅 My Leaves</button>
+    </div>
+
+    <!-- ATTENDANCE TAB -->
+    <div id="tab-attendance" class="tab-content active">
+      <div class="month-sel-row">
+        <select class="month-sel" id="monthSel" onchange="loadAtt()">
+          <option value="2025-02">February 2025</option>
+          <option value="2025-01">January 2025</option>
+          <option value="2024-12">December 2024</option>
+        </select>
+      </div>
+      <div class="summary-strip">
+        <div class="sum-item"><div class="sum-num n-present" id="sPresent">22</div><div class="sum-lbl">Present</div></div>
+        <div class="sum-item"><div class="sum-num n-absent"  id="sAbsent">2</div><div class="sum-lbl">Absent</div></div>
+        <div class="sum-item"><div class="sum-num n-late"    id="sLate">3</div><div class="sum-lbl">Late</div></div>
+        <div class="sum-item"><div class="sum-num n-hours"   id="sHours">7.8h</div><div class="sum-lbl">Avg Hrs</div></div>
+      </div>
+      <div class="att-table-wrap">
+        <table class="att-table">
+          <thead><tr><th>Date</th><th>Status</th><th>Check-in</th><th>Check-out</th></tr></thead>
+          <tbody>
+            <tr><td>27 Feb</td><td><span class="att-chip chip-present">Present</span></td><td>06:02 PM</td><td>—</td></tr>
+            <tr><td>26 Feb</td><td><span class="att-chip chip-present">Present</span></td><td>06:00 PM</td><td>02:00 AM</td></tr>
+            <tr><td>25 Feb</td><td><span class="att-chip chip-late">Late</span></td><td>06:38 PM</td><td>02:05 AM</td></tr>
+            <tr><td>24 Feb</td><td><span class="att-chip chip-absent">Absent</span></td><td>—</td><td>—</td></tr>
+            <tr><td>23 Feb</td><td><span class="att-chip chip-present">Present</span></td><td>06:01 PM</td><td>02:00 AM</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEAVES TAB -->
+    <div id="tab-leaves" class="tab-content">
+      <div class="leave-sum-grid">
+        <div class="leave-sum-box lsb-pending">
+          <div class="lsb-num" style="color:#D97706;">1</div>
+          <div class="lsb-lbl" style="color:#92400E;">Pending</div>
+        </div>
+        <div class="leave-sum-box lsb-approved">
+          <div class="lsb-num" style="color:#059669;">3</div>
+          <div class="lsb-lbl" style="color:#065F46;">Approved</div>
+        </div>
+        <div class="leave-sum-box lsb-rejected">
+          <div class="lsb-num" style="color:#DC2626;">1</div>
+          <div class="lsb-lbl" style="color:#991B1B;">Rejected</div>
+        </div>
+      </div>
+      <button class="apply-leave-btn" onclick="openLeaveModal()">➕ Apply for Leave</button>
+      <div class="leave-list">
+        <div class="leave-item">
+          <div class="leave-item-top">
+            <span class="leave-type-tag" style="background:#DBEAFE;color:#1E40AF;">Sick Leave</span>
+            <span class="leave-status-tag lst-approved">✅ Approved</span>
+          </div>
+          <div class="leave-dates">📅 15 Feb 2025 → 16 Feb 2025 (2 days)</div>
+          <div class="leave-reason">Fever and cold, doctor advised rest</div>
+        </div>
+        <div class="leave-item">
+          <div class="leave-item-top">
+            <span class="leave-type-tag" style="background:#FEF3C7;color:#92400E;">Casual Leave</span>
+            <span class="leave-status-tag lst-pending">⏳ Pending</span>
+          </div>
+          <div class="leave-dates">📅 05 Mar 2025 → 05 Mar 2025 (1 day)</div>
+          <div class="leave-reason">Family function at home</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end scroll-area -->
+
+<!-- ── QUICK ACTIONS EXPANDED MODAL ── -->
+<div class="qa-modal-overlay" id="qaModal" onclick="closeQAModal(event)">
+  <div class="qa-modal-sheet">
+    <div class="qa-modal-handle"></div>
+    <div class="qa-modal-title">All Quick Actions</div>
+
+    <div class="qa-section-label">Visitor & Security</div>
+    <div class="qa-expand-grid">
+      <div class="qa-item" onclick="closeQAModal();showToast('Invite Guest opened','success')">
+        <div class="qa-icon-wrap ic-yellow">🎉</div>
+        <div class="qa-label">Invite Guest</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Cab/Auto logged','success')">
+        <div class="qa-icon-wrap ic-teal">🚕</div>
+        <div class="qa-label">Cab / Auto</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Delivery allowed','success')">
+        <div class="qa-icon-wrap ic-orange">📦</div>
+        <div class="qa-label">Allow Delivery</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Visiting help logged','success')">
+        <div class="qa-icon-wrap ic-green">🧹</div>
+        <div class="qa-label">Visiting Help</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Security called!','info')">
+        <div class="qa-icon-wrap ic-blue">🛡️</div>
+        <div class="qa-label">Call Security</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Message sent to guard','info')">
+        <div class="qa-icon-wrap ic-indigo">💬</div>
+        <div class="qa-label">Message Guard</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('My Passes opened','info')">
+        <div class="qa-icon-wrap ic-purple">🎫</div>
+        <div class="qa-label">My Passes</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Kid exit allowed','success')">
+        <div class="qa-icon-wrap ic-pink">🧒</div>
+        <div class="qa-label">Allow Kid Exit</div>
+      </div>
+    </div>
+
+    <div class="qa-section-label">Society & More</div>
+    <div class="qa-expand-grid">
+      <div class="qa-item" onclick="closeQAModal();showToast('Pre-Approve opened','success')">
+        <div class="qa-icon-wrap ic-green">✅</div>
+        <div class="qa-label">Pre-Approve</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Ask Society opened','info')">
+        <div class="qa-icon-wrap ic-orange">💬</div>
+        <div class="qa-label">Ask Society</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Posts opened','info')">
+        <div class="qa-icon-wrap ic-purple">📢</div>
+        <div class="qa-label">Posts</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Find Daily Help','info')">
+        <div class="qa-icon-wrap ic-teal">🏃</div>
+        <div class="qa-label">Find Daily Help</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('🚨 Alert raised!','error')">
+        <div class="qa-icon-wrap ic-red">🚨</div>
+        <div class="qa-label">Raise Alert</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Vehicle entry','info')">
+        <div class="qa-icon-wrap ic-blue">🚗</div>
+        <div class="qa-label">Vehicle Entry</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Parcel received','success')">
+        <div class="qa-icon-wrap ic-yellow">📮</div>
+        <div class="qa-label">Parcel</div>
+      </div>
+      <div class="qa-item" onclick="closeQAModal();showToast('Patrol started','info')">
+        <div class="qa-icon-wrap ic-cyan">🗺️</div>
+        <div class="qa-label">Start Patrol</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEAVE MODAL -->
+<div class="modal-overlay" id="leaveModal" onclick="closeLeaveModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title-row">
+      <div class="modal-title">📅 Apply for Leave</div>
+      <button class="modal-close" onclick="closeLeaveModal()">×</button>
+    </div>
+    <form id="leaveForm" onsubmit="return false;">
+      <div class="form-group">
+        <label class="form-label">Leave Type</label>
+        <select class="form-select" name="leave_type" required>
+          <option value="">Select type…</option>
+          <option value="sick">Sick Leave</option>
+          <option value="casual">Casual Leave</option>
+          <option value="emergency">Emergency Leave</option>
+          <option value="vacation">Vacation</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input type="date" class="form-input" name="start_date" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Date</label>
+          <input type="date" class="form-input" name="end_date" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reason</label>
+        <textarea class="form-textarea" name="reason" rows="3" placeholder="Explain your reason…" required></textarea>
+      </div>
+    </form>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeLeaveModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitLeave()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="nav-item active" href="#">
+    <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+  </a>
+  <a class="nav-item" href="#" onclick="showToast('Entries log','info');return false;">
+    <span class="nav-icon">📋</span><span class="nav-label">Entries</span>
+  </a>
+  <a class="nav-item" href="#" onclick="showToast('Parcels','info');return false;">
+    <span class="nav-icon">📦</span><span class="nav-label">Parcels</span>
+  </a>
+  <a class="nav-item" href="#" onclick="showToast('Notifications','info');return false;" style="position:relative;">
+    <span class="nav-icon">🔔</span><span class="nav-label">Alerts</span>
+    <span style="position:absolute;top:8px;right:16px;width:8px;height:8px;border-radius:50%;background:#F44336;border:1.5px solid white;"></span>
+  </a>
+  <a class="nav-item" href="#" onclick="showToast('Profile','info');return false;">
+    <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
+  </a>
+</div>
+
+<script>
+// ── TOAST ──
+function showToast(msg, type='success') {
+  const colors = { success:'#10B981', error:'#EF4444', warning:'#F59E0B', info:'#1A3CFF' };
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.background = colors[type] || colors.info;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.transition='opacity 0.3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+// ── VOICE COMMAND ──
+let voiceActive = false;
+const voiceCommands = ['Visitor for flat B-504', 'Delivery for A-203', 'Vehicle MH12AB1234', 'Daily help check-in C-101'];
+function triggerVoice() {
+  if (voiceActive) return;
+  voiceActive = true;
+  const btn = document.getElementById('voiceBtn');
+  const mic = document.getElementById('voiceMic');
+  const sub = document.getElementById('voiceSub');
+  btn.classList.add('listening');
+  mic.textContent = '🔴'; sub.textContent = 'Listening… speak now';
+  setTimeout(() => {
+    mic.textContent = '⏳'; sub.textContent = 'Processing…';
+    setTimeout(() => {
+      const cmd = voiceCommands[Math.floor(Math.random()*voiceCommands.length)];
+      showToast(`✅ "${cmd}"`, 'success');
+      btn.classList.remove('listening');
+      mic.textContent = '🎤'; sub.textContent = 'Tap to speak a visitor name or flat number';
+      voiceActive = false;
+    }, 1500);
+  }, 2000);
+}
+
+// ── ATTENDANCE ──
+let checkedIn = false, checkedOut = false;
+let checkInTime = null;
+function doCheckIn() {
+  checkedIn = true;
+  checkInTime = new Date();
+  document.getElementById('checkInBtn').style.display = 'none';
+  document.getElementById('checkOutBtn').style.display = 'flex';
+  document.getElementById('attTimeGrid').style.display = 'grid';
+  document.getElementById('durationBar').style.display = 'block';
+  document.getElementById('ciTime').textContent = formatTime(checkInTime);
+  document.getElementById('attBadge').textContent = 'On Duty';
+  document.getElementById('attBadge').className = 'status-pill pill-active';
+  updateDuration();
+  durationTimer = setInterval(updateDuration, 60000);
+  showToast('✅ Checked in successfully!', 'success');
+}
+function doCheckOut() {
+  checkedOut = true;
+  clearInterval(durationTimer);
+  const coTime = new Date();
+  document.getElementById('checkOutBtn').style.display = 'none';
+  document.getElementById('coTime').textContent = formatTime(coTime);
+  document.getElementById('attBadge').textContent = 'Shift Done';
+  document.getElementById('attBadge').className = 'status-pill pill-done';
+  showToast('👋 Checked out. Good work!', 'success');
+}
+function formatTime(d) {
+  let h = d.getHours(), m = d.getMinutes(), p = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2,'0')} ${p}`;
+}
+let durationTimer;
+function updateDuration() {
+  if (!checkInTime) return;
+  const diff = Math.floor((new Date() - checkInTime) / 60000);
+  document.getElementById('durationBar').innerHTML = `⏱ <strong>Duration on duty:</strong> ${Math.floor(diff/60)}h ${diff%60}m`;
+}
+
+// ── QUICK ACTIONS MODAL ──
+function openQAModal()  { document.getElementById('qaModal').classList.add('open'); }
+function closeQAModal(e) {
+  if (!e || e.target === document.getElementById('qaModal')) {
+    document.getElementById('qaModal').classList.remove('open');
+  }
+}
+
+// ── LEAVE MODAL ──
+function openLeaveModal() {
+  document.getElementById('leaveModal').classList.add('open');
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const min = tomorrow.toISOString().split('T')[0];
+  document.querySelectorAll('#leaveForm input[type=date]').forEach(i=>i.min=min);
+}
+function closeLeaveModal(e) {
+  if (!e || e.target === document.getElementById('leaveModal')) {
+    document.getElementById('leaveModal').classList.remove('open');
+    document.getElementById('leaveForm').reset();
+  }
+}
+function submitLeave() {
+  const f = document.getElementById('leaveForm');
+  if (!f.checkValidity()) { showToast('Please fill all fields', 'error'); return; }
+  showToast('Leave request submitted! ✅', 'success');
+  closeLeaveModal();
+}
+
+// ── TAB SWITCH ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function loadAtt() {
+  showToast('Loading attendance…', 'info');
+}
+</script>
+</body>
+</html>

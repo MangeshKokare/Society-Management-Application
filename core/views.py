@@ -7,6 +7,7 @@ from django.db.models import Count
 from .models import ServiceReview
 from django.http import HttpResponse
 import csv
+import calendar
 from datetime import date
 from django.views.decorators.http import require_POST
 import json
@@ -331,60 +332,105 @@ def pending_approval(request):
 @login_required
 @role_required("resident")
 def resident_dashboard(request):
-
     user = request.user
     profile = user.userprofile
-    apartment = request.user.userprofile.apartment
+    apartment = profile.apartment
+    society = apartment.society
     today = now().date()
 
-    pending_visitors = Visitor.objects.filter(
-        apartment=apartment,
-        status="pending"
-    ).order_by("-created_at")
+    # ─────────────────────────────────────
+    # VISITORS
+    # ─────────────────────────────────────
 
-    today_visitors = Visitor.objects.filter(
-        apartment=apartment,
-        created_at__date=today
+    pending_visitors = (
+        Visitor.objects
+        .filter(apartment=apartment, status="pending")
+        .select_related("apartment")
+        .order_by("-created_at")
     )
 
-    attendance_today = DailyHelpAttendance.objects.filter(
-        daily_help__user=user,
-        date=today,
-        check_in__isnull=False
+    today_visitors = (
+        Visitor.objects
+        .filter(apartment=apartment, created_at__date=today)
     )
 
-
-    deliveries = Delivery.objects.filter(
-        apartment=apartment,
-        status__iexact="received"
+    overstays = (
+        Visitor.objects
+        .filter(
+            apartment=apartment,
+            status="checked_in",
+            check_in_time__lt=now() - timedelta(hours=3)
+        )
+        .order_by("check_in_time")
     )
 
-    overstays = Visitor.objects.filter(
-        apartment=apartment,
-        status="checked_in",
-        created_at__lt=now() - timedelta(hours=3)
+    # ─────────────────────────────────────
+    # DAILY HELP
+    # ─────────────────────────────────────
+
+    attendance_today = (
+        DailyHelpAttendance.objects
+        .filter(
+            daily_help__user__userprofile__apartment=apartment,
+            check_in__isnull=False,
+            check_out__isnull=True
+        )
+        .select_related("daily_help", "daily_help__user")
     )
 
+    # ─────────────────────────────────────
+    # DELIVERIES
+    # ─────────────────────────────────────
 
-    announcements = Announcement.objects.order_by("-created_at")[:5]
+    deliveries = (
+        Delivery.objects
+        .filter(
+            apartment=apartment,
+            status__iexact="received"
+        )
+        .order_by("-received_at")
+    )
 
-    recent_activity = Visitor.objects.filter(
-        apartment=apartment
-    ).order_by("-created_at")[:5]
+    # ─────────────────────────────────────
+    # ANNOUNCEMENTS (Society Based)
+    # ─────────────────────────────────────
+
+    announcements = (
+        Announcement.objects
+        .filter(society=society)
+        .order_by("-created_at")[:5]
+    )
+
+    # ─────────────────────────────────────
+    # RECENT ACTIVITY
+    # ─────────────────────────────────────
+
+    recent_activity = (
+        Visitor.objects
+        .filter(apartment=apartment)
+        .select_related("apartment")
+        .order_by("-created_at")[:5]
+    )
+
+    # ─────────────────────────────────────
+    # CONTEXT
+    # ─────────────────────────────────────
 
     context = {
         "user": user,
+        "profile": profile,
         "apartment": apartment,
+        "society": society,
 
+        # Stats
         "pending_visitors": pending_visitors,
         "pending_count": pending_visitors.count(),
-
         "today_visitors_count": today_visitors.count(),
         "active_staff_count": attendance_today.count(),
+        "deliveries_count": deliveries.count(),
         "overstays": overstays,
 
-        "deliveries_count": deliveries.count(),
-
+        # Lists
         "announcements": announcements,
         "recent_activity": recent_activity,
     }
@@ -1756,172 +1802,264 @@ def _get_attendance_data(guard_profile, year, month):
 # ──────────────────────────────────────────────────────────────
 #  VIEW 1: JSON for the table (AJAX)
 # ──────────────────────────────────────────────────────────────
-@login_required(login_url="login")
+@login_required
 def guard_attendance_json(request):
+    """
+    GET /guard/attendance/json/?month=YYYY-MM
+    Returns attendance records for the logged-in guard.
+    """
     profile = request.user.userprofile
-    year, month = _parse_month(request)
-    records, summary = _get_attendance_data(profile, year, month)
-    return JsonResponse({"records": records, "summary": summary})
+    society = profile.society
 
+    if profile.role not in ("guard", "guard_admin"):
+        return JsonResponse({"success": False, "error": "Access denied"}, status=403)
+
+    india_tz = pytz.timezone("Asia/Kolkata")
+    now_ist  = timezone.now().astimezone(india_tz)
+
+    month_str = request.GET.get("month", now_ist.strftime("%Y-%m"))
+    try:
+        year, month = [int(x) for x in month_str.split("-")]
+    except (ValueError, AttributeError):
+        return JsonResponse({"success": False, "error": "Use YYYY-MM format."}, status=400)
+
+    first_day = date(year, month, 1)
+    last_day  = date(year, month, calendar.monthrange(year, month)[1])
+    today     = now_ist.date()
+
+    shifts = GuardShift.objects.filter(
+        guard=profile,
+        society=society,
+        date__gte=first_day,
+        date__lte=last_day,
+    ).order_by("date")
+
+    shift_by_date = {s.date: s for s in shifts}
+
+    records    = []
+    total_mins = count_mins = sum_present = sum_absent = sum_late = 0
+
+    cur = first_day
+    while cur <= min(last_day, today):
+        shift = shift_by_date.get(cur)
+        if shift is None:
+            cur += timedelta(days=1)
+            continue
+
+        # ── safe field access ──
+        override   = getattr(shift, "attendance_override", "auto") or "auto"
+        shift_name = getattr(shift, "shift_name", None) or ""
+
+        # ── shift display name ──
+        try:
+            shift_type_display = shift.get_shift_type_display()
+        except Exception:
+            shift_type_display = getattr(shift, "shift_type", "Shift")
+        display_name = shift_name if shift_name else shift_type_display
+
+        # ── is_late check ──
+        is_late = False
+        if shift.check_in and shift.start_time:
+            try:
+                start_ist = india_tz.localize(datetime.combine(cur, shift.start_time))
+                ci_ist    = shift.check_in.astimezone(india_tz)
+                is_late   = (ci_ist - start_ist).total_seconds() / 60 > 15
+            except Exception:
+                pass
+
+        # ── status ──
+        if override == "present":
+            status = "present"
+        elif override == "absent":
+            status = "absent"
+        elif override == "late":
+            status  = "late"
+            is_late = True
+        elif override == "leave":
+            status = "leave"
+        else:
+            if shift.check_out:
+                status = "late" if is_late else "completed"
+            elif shift.check_in:
+                status = "on_duty"
+            else:
+                status = "absent"
+
+        # ── summary counters ──
+        if status in ("present", "completed", "on_duty"):
+            sum_present += 1
+        elif status == "absent":
+            sum_absent += 1
+        elif status == "late":
+            sum_late    += 1
+            sum_present += 1
+
+        # ── duration ──
+        duration_minutes = duration_display = None
+        if shift.check_in and shift.check_out:
+            m = int((shift.check_out - shift.check_in).total_seconds() / 60)
+            duration_minutes = m
+            duration_display = f"{m // 60}h {m % 60}m"
+            total_mins += m
+            count_mins += 1
+        elif shift.check_in:
+            m = int((timezone.now().astimezone(india_tz) -
+                     shift.check_in.astimezone(india_tz)).total_seconds() / 60)
+            duration_minutes = m
+            duration_display = f"{m // 60}h {m % 60}m (live)"
+
+        # ── time formatting (cross-platform safe) ──
+        def fmt_dt(dt):
+            if not dt:
+                return None
+            return dt.astimezone(india_tz).strftime("%I:%M %p").lstrip("0")
+
+        def fmt_t(t):
+            if not t:
+                return None
+            return datetime(2000, 1, 1, t.hour, t.minute).strftime("%I:%M %p").lstrip("0")
+
+        shift_time = (
+            f"{fmt_t(shift.start_time)} – {fmt_t(shift.end_time)}"
+            if shift.start_time and shift.end_time else "—"
+        )
+
+        records.append({
+            "date":             cur.isoformat(),
+            "date_display":     cur.strftime("%d %b %Y"),
+            "day":              cur.strftime("%A"),
+            "shift_name":       display_name,
+            "shift_time":       shift_time,
+            "status":           status,
+            "check_in":         fmt_dt(shift.check_in),
+            "check_out":        fmt_dt(shift.check_out),
+            "duration_minutes": duration_minutes,
+            "duration_display": duration_display,
+            "is_late":          is_late,
+        })
+        cur += timedelta(days=1)
+
+    avg_hours = None
+    if count_mins:
+        m = total_mins // count_mins
+        avg_hours = f"{m // 60}h {m % 60}m"
+
+    return JsonResponse({
+        "success": True,
+        "month":   month_str,
+        "summary": {
+            "present":   sum_present,
+            "absent":    sum_absent,
+            "late":      sum_late,
+            "avg_hours": avg_hours,
+        },
+        "records": records,
+    })
 
 # ──────────────────────────────────────────────────────────────
 #  VIEW 2: XLS download
 # ──────────────────────────────────────────────────────────────
-@login_required(login_url="login")
+@login_required
 def guard_attendance_download(request):
-    profile = request.user.userprofile
-    year, month = _parse_month(request)
-    records_desc, summary = _get_attendance_data(profile, year, month)
-    records = list(reversed(records_desc))   # chronological for XLS
+    """
+    GET /guard/attendance/download/?month=YYYY-MM
+    Downloads attendance as CSV.
+    """
+    import csv
 
-    # ── Build workbook ──
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Attendance"
+    profile  = request.user.userprofile
+    society  = profile.society
+    india_tz = pytz.timezone("Asia/Kolkata")
+    now_ist  = timezone.now().astimezone(india_tz)
 
-    # ── Color palette ──
-    C_HEADER_BG  = "1A237E"   # dark navy
-    C_HEADER_FG  = "FFFFFF"
-    C_SUBHEADER  = "E8EAF6"   # light indigo tint
-    C_PRESENT    = "D1FAE5"
-    C_ABSENT     = "FEE2E2"
-    C_LATE       = "FEF3C7"
-    C_ALT_ROW    = "F8FAFC"
-    C_SUMMARY_BG = "EEF2FF"
+    if profile.role not in ("guard", "guard_admin"):
+        return HttpResponse("Access denied", status=403)
 
-    thin = Side(style="thin", color="DEE2E6")
-    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    month_str = request.GET.get("month", now_ist.strftime("%Y-%m"))
+    try:
+        year, month = [int(x) for x in month_str.split("-")]
+    except (ValueError, AttributeError):
+        return HttpResponse("Invalid month", status=400)
 
-    # ── Column widths ──
-    col_widths = [5, 18, 16, 14, 14, 16]
-    for i, w in enumerate(col_widths, 1):
-        ws.column_dimensions[get_column_letter(i)].width = w
-
-    # ── Title block ──
-    ws.merge_cells("A1:F1")
-    title_cell = ws["A1"]
-    title_cell.value = "MyGate — Guard Attendance Report"
-    title_cell.font = Font(name="Arial", bold=True, size=14, color=C_HEADER_FG)
-    title_cell.fill = PatternFill("solid", fgColor=C_HEADER_BG)
-    title_cell.alignment = Alignment(horizontal="center", vertical="center")
-    ws.row_dimensions[1].height = 32
-
-    ws.merge_cells("A2:F2")
-    month_label = date(year, month, 1).strftime("%B %Y")
+    first_day   = date(year, month, 1)
+    last_day    = date(year, month, calendar.monthrange(year, month)[1])
+    today       = now_ist.date()
     guard_name  = request.user.get_full_name() or request.user.username
-    sub_cell = ws["A2"]
-    sub_cell.value = f"{guard_name}  ·  {month_label}  ·  Society: {profile.society.name if profile.society else '—'}"
-    sub_cell.font = Font(name="Arial", size=10, color="475569")
-    sub_cell.fill = PatternFill("solid", fgColor=C_SUBHEADER)
-    sub_cell.alignment = Alignment(horizontal="center", vertical="center")
-    ws.row_dimensions[2].height = 20
+    month_label = first_day.strftime("%B_%Y")
 
-    # blank spacer
-    ws.row_dimensions[3].height = 6
+    shifts = GuardShift.objects.filter(
+        guard=profile, society=society,
+        date__gte=first_day, date__lte=last_day,
+    ).order_by("date")
 
-    # ── Summary row ──
-    ws["A4"] = "Present"
-    ws["B4"] = summary["present"]
-    ws["C4"] = "Absent"
-    ws["D4"] = summary["absent"]
-    ws["E4"] = "Late Days"
-    ws["F4"] = summary["late"]
-
-    ws["A5"] = "Avg Hours/Day"
-    ws["B5"] = summary["avg_hours"]
-
-    for row in [4, 5]:
-        for col in range(1, 7):
-            cell = ws.cell(row=row, column=col)
-            cell.fill = PatternFill("solid", fgColor=C_SUMMARY_BG)
-            cell.font = Font(name="Arial", size=10, bold=(col % 2 == 1))
-            cell.alignment = Alignment(horizontal="center", vertical="center")
-            cell.border = border
-        ws.row_dimensions[row].height = 18
-
-    ws.row_dimensions[6].height = 8   # spacer
-
-    # ── Table header ──
-    headers = ["#", "Date", "Status", "Check-In", "Check-Out", "Duration"]
-    for col, h in enumerate(headers, 1):
-        cell = ws.cell(row=7, column=col)
-        cell.value = h
-        cell.font = Font(name="Arial", bold=True, size=10, color=C_HEADER_FG)
-        cell.fill = PatternFill("solid", fgColor=C_HEADER_BG)
-        cell.alignment = Alignment(horizontal="center", vertical="center")
-        cell.border = border
-    ws.row_dimensions[7].height = 22
-
-    # ── Data rows ──
-    status_bg = {
-        "present": C_PRESENT,
-        "late":    C_LATE,
-        "absent":  C_ABSENT,
-        "holiday": "EDE9FE",
-        "leave":   "E0F2FE",
-    }
-    status_label = {
-        "present": "✓ Present",
-        "late":    "⏰ Late",
-        "absent":  "✗ Absent",
-        "holiday": "🎉 Holiday",
-        "leave":   "🏖 Leave",
-    }
-
-    for i, r in enumerate(records, 1):
-        row_num  = 7 + i
-        row_bg   = C_ALT_ROW if i % 2 == 0 else "FFFFFF"
-        status   = r["status"]
-        stat_bg  = status_bg.get(status, "FFFFFF")
-
-        data = [
-            i,
-            r["date_display"],
-            status_label.get(status, status.title()),
-            r["check_in"]  or "—",
-            r["check_out"] or "—",
-            r["duration_display"],
-        ]
-
-        for col, val in enumerate(data, 1):
-            cell = ws.cell(row=row_num, column=col)
-            cell.value = val
-            cell.font  = Font(name="Arial", size=10)
-            cell.alignment = Alignment(horizontal="center", vertical="center")
-            cell.border = border
-            # status column gets coloured background
-            if col == 3:
-                cell.fill = PatternFill("solid", fgColor=stat_bg)
-                cell.font = Font(name="Arial", size=10, bold=True)
-            else:
-                cell.fill = PatternFill("solid", fgColor=row_bg)
-
-        ws.row_dimensions[row_num].height = 18
-
-    # ── Footer ──
-    footer_row = 7 + len(records) + 2
-    ws.merge_cells(f"A{footer_row}:F{footer_row}")
-    fc = ws[f"A{footer_row}"]
-    from django.utils import timezone as dj_tz
-    fc.value = f"Generated on {dj_tz.now().strftime('%d %b %Y %I:%M %p')} IST · MyGate Society Management"
-    fc.font = Font(name="Arial", size=9, italic=True, color="94A3B8")
-    fc.alignment = Alignment(horizontal="center")
-
-    # ── Freeze panes ──
-    ws.freeze_panes = "A8"
-
-    # ── Stream response ──
-    buffer = io.BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-
-    filename = f"attendance_{guard_name.replace(' ','_')}_{year}_{month:02d}.xlsx"
-    response = HttpResponse(
-        buffer,
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = (
+        f'attachment; filename="Attendance_{guard_name}_{month_label}.csv"'
     )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Date", "Day", "Shift", "Shift Time",
+        "Check-In", "Check-Out", "Duration", "Status", "Late",
+    ])
+
+    def fmt_t(t):
+        if not t: return "—"
+        return datetime(2000, 1, 1, t.hour, t.minute).strftime("%I:%M %p").lstrip("0")
+
+    def fmt_dt(dt):
+        if not dt: return "—"
+        return dt.astimezone(india_tz).strftime("%I:%M %p").lstrip("0")
+
+    for shift in shifts:
+        if shift.date > today:
+            continue
+
+        override   = getattr(shift, "attendance_override", "auto") or "auto"
+        shift_name = getattr(shift, "shift_name", None) or ""
+
+        is_late = False
+        if shift.check_in and shift.start_time:
+            try:
+                start_ist = india_tz.localize(datetime.combine(shift.date, shift.start_time))
+                is_late   = (shift.check_in.astimezone(india_tz) - start_ist).total_seconds() / 60 > 15
+            except Exception:
+                pass
+
+        if override == "present":   status = "Present"
+        elif override == "absent":  status = "Absent"
+        elif override == "late":    status = "Late"; is_late = True
+        elif override == "leave":   status = "Leave"
+        elif shift.check_out:       status = "Late" if is_late else "Present"
+        elif shift.check_in:        status = "On Duty"
+        else:                       status = "Absent"
+
+        duration = "—"
+        if shift.check_in and shift.check_out:
+            m = int((shift.check_out - shift.check_in).total_seconds() / 60)
+            duration = f"{m // 60}h {m % 60}m"
+
+        try:
+            type_display = shift.get_shift_type_display()
+        except Exception:
+            type_display = getattr(shift, "shift_type", "")
+
+        writer.writerow([
+            shift.date.strftime("%d %b %Y"),
+            shift.date.strftime("%A"),
+            shift_name if shift_name else type_display,
+            f"{fmt_t(shift.start_time)} – {fmt_t(shift.end_time)}" if shift.start_time else "—",
+            fmt_dt(shift.check_in),
+            fmt_dt(shift.check_out),
+            duration,
+            status,
+            "Yes" if is_late else "No",
+        ])
+
     return response
+
+
+
 
 @login_required
 @role_required("guard", "guard_admin")
@@ -2670,25 +2808,26 @@ def guard_admin_management(request):
 
 
 
-
 @login_required
 @role_required("guard_admin")
 def create_shift(request):
     """
-    Create new shift assignments (for guards only, not guard_admin)
+    Create new shift assignments.
+    Supports both preset shift types AND custom name/time shifts.
+    Guards only (not guard_admin).
     """
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
 
-    date_str = request.POST.get("date")
-    shift_type = request.POST.get("shift_type")
-    guards = request.POST.getlist("guards")
+    date_str    = request.POST.get("date")
+    shift_type  = request.POST.get("shift_type", "morning")
+    shift_name  = request.POST.get("shift_name", "").strip()
+    start_time_str = request.POST.get("start_time", "")
+    end_time_str   = request.POST.get("end_time", "")
+    guards_ids  = request.POST.getlist("guards")
 
-    if not date_str or not shift_type or not guards:
-        messages.error(
-            request,
-            "⚠️ Please select date, shift type, and at least one guard."
-        )
+    if not date_str or not guards_ids:
+        messages.error(request, "⚠️ Please select date and at least one guard.")
         return redirect("guard_admin_management")
 
     try:
@@ -2698,31 +2837,41 @@ def create_shift(request):
         return redirect("guard_admin_management")
 
     society = request.user.userprofile.society
-    
-    # Define shift times based on shift type
-    shift_times = {
-        "morning": ("06:00:00", "14:00:00"),
-        "afternoon": ("14:00:00", "22:00:00"),
-        "night": ("22:00:00", "06:00:00"),
+
+    # ── Determine shift times ──
+    PRESET_TIMES = {
+        "morning":   ("06:00", "14:00"),
+        "afternoon": ("14:00", "22:00"),
+        "night":     ("22:00", "06:00"),
     }
-    
-    start_time_str, end_time_str = shift_times.get(shift_type, ("06:00:00", "14:00:00"))
-    start_time = datetime.strptime(start_time_str, "%H:%M:%S").time()
-    end_time = datetime.strptime(end_time_str, "%H:%M:%S").time()
+
+    if shift_type.startswith("custom_") or (start_time_str and end_time_str):
+        # Custom time provided via form
+        try:
+            start_time = datetime.strptime(start_time_str, "%H:%M").time()
+            end_time   = datetime.strptime(end_time_str,   "%H:%M").time()
+        except ValueError:
+            messages.error(request, "⚠️ Invalid time format for custom shift")
+            return redirect("guard_admin_management")
+        # Normalise shift_type for DB
+        if shift_type.startswith("custom_"):
+            shift_type = "morning"  # fallback enum value; name is stored in shift_name
+    else:
+        preset = PRESET_TIMES.get(shift_type, ("06:00", "14:00"))
+        start_time = datetime.strptime(preset[0], "%H:%M").time()
+        end_time   = datetime.strptime(preset[1], "%H:%M").time()
 
     created_count = 0
-    for guard_id in guards:
-        # Verify this is a regular guard, not guard_admin
+    for guard_id in guards_ids:
         guard_profile = UserProfile.objects.filter(
             id=guard_id,
             society=society,
             role="guard",
             status="approved"
         ).first()
-        
         if not guard_profile:
             continue
-            
+
         shift, created = GuardShift.objects.get_or_create(
             society=society,
             guard=guard_profile,
@@ -2730,24 +2879,28 @@ def create_shift(request):
             shift_type=shift_type,
             defaults={
                 "start_time": start_time,
-                "end_time": end_time,
+                "end_time":   end_time,
+                "shift_name": shift_name,
             }
         )
+        # If it already existed but we have a custom name, update it
+        if not created and shift_name:
+            shift.shift_name  = shift_name
+            shift.start_time  = start_time
+            shift.end_time    = end_time
+            shift.save(update_fields=["shift_name", "start_time", "end_time"])
+
         if created:
             created_count += 1
 
     if created_count > 0:
-        messages.success(
-            request, 
-            f"✓ Successfully created {created_count} shift(s) for {shift_date.strftime('%d %B %Y')}"
-        )
+        label = shift_name or shift_type.title()
+        messages.success(request, f"✓ Created {created_count} '{label}' shift(s) for {shift_date.strftime('%d %B %Y')}")
     else:
-        messages.warning(
-            request,
-            "⚠️ All selected guards already have shifts for this date and type"
-        )
-    
+        messages.warning(request, "⚠️ All selected guards already have shifts for this date and type")
+
     return redirect("guard_admin_management")
+
 
 
 
@@ -3672,6 +3825,66 @@ def guard_notifications(request):
         "pending_count":   pending_count,
         "is_guard_admin":  profile.role == "guard_admin",
     })
+
+
+@login_required
+def guard_leave_history_json(request):
+    """
+    GET /guard/leaves/json/
+    Returns leave history for the logged-in guard.
+    """
+    profile = request.user.userprofile
+    society = profile.society
+
+    if profile.role != "guard":
+        return JsonResponse({"success": False, "error": "Access denied"}, status=403)
+
+    leaves_qs = LeaveRequest.objects.filter(
+        guard=profile, society=society
+    ).order_by("-applied_at")[:50]
+
+    # Evaluate queryset once
+    leaves = list(leaves_qs)
+
+    type_labels = {
+        "sick":      "Sick Leave",
+        "casual":    "Casual Leave",
+        "emergency": "Emergency Leave",
+        "vacation":  "Vacation",
+    }
+
+    records = []
+    for lv in leaves:
+        try:
+            status_display = lv.get_status_display()
+        except Exception:
+            status_display = lv.status.title()
+
+        records.append({
+            "id":                lv.id,
+            "leave_type":        lv.leave_type,
+            "leave_type_display": type_labels.get(lv.leave_type, lv.leave_type.title()),
+            "start_date":        lv.start_date.strftime("%d %b %Y"),
+            "end_date":          lv.end_date.strftime("%d %b %Y"),
+            "total_days":        getattr(lv, "total_days", (lv.end_date - lv.start_date).days + 1),
+            "reason":            lv.reason,
+            "status":            lv.status,
+            "status_display":    status_display,
+            "applied_at":        lv.applied_at.strftime("%d %b %Y"),
+            "admin_remarks":     getattr(lv, "admin_remarks", "") or "",
+        })
+
+    return JsonResponse({
+        "success": True,
+        "summary": {
+            "pending":  sum(1 for lv in leaves if lv.status == "pending"),
+            "approved": sum(1 for lv in leaves if lv.status == "approved"),
+            "rejected": sum(1 for lv in leaves if lv.status == "rejected"),
+        },
+        "leaves": records,
+    })
+
+
 
 @login_required
 @role_required("guard", "guard_admin")
@@ -4728,20 +4941,48 @@ def scan_checkpoint(request):
         "checkpoint": checkpoint.name,
         "time": scan.scanned_at.strftime("%I:%M %p")
     })
+
 @login_required
 @role_required("guard", "guard_admin")
-
+@require_POST
 def report_incident(request):
-    IncidentReport.objects.create(
-        society=request.user.userprofile.society,
+
+    profile = request.user.userprofile
+    society = profile.society
+
+    # 1️⃣ Create incident
+    incident = IncidentReport.objects.create(
+        society=society,
         reported_by=request.user,
-        incident_type=request.POST["type"],
-        title=request.POST["title"],
-        description=request.POST["description"],
-        location=request.POST["location"]
+        incident_type=request.POST.get("type"),
+        title=request.POST.get("title"),
+        description=request.POST.get("description"),
+        location=request.POST.get("location")
     )
 
-    return JsonResponse({"success": True})
+    # 2️⃣ Get all guards + guard_admins of same society
+    profiles = UserProfile.objects.filter(
+        society=society,
+        role__in=["guard", "guard_admin"],
+        status="approved"   # IMPORTANT: only approved users
+    ).select_related("user").exclude(user=request.user)
+
+    # 3️⃣ Create notification for each
+    for p in profiles:
+        Notification.objects.create(
+            user=p.user,
+            sender=request.user,
+            title="🚨 New Incident Reported",
+            message=(
+                f"{request.user.get_full_name() or request.user.username} "
+                f"reported: {incident.title} at {incident.location}"
+            )
+        )
+
+    return JsonResponse({
+        "success": True,
+        "message": f"✓ Incident Reported!\nIncident ID: #{incident.id}"
+    })
 
 @login_required
 @role_required("guard", "guard_admin")

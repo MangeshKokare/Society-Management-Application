@@ -6,1246 +6,288 @@
 
 {% block extra_styles %}
 <style>
-    /* Previous styles remain the same... */
-    
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
     /* ================= ATTENDANCE OVERRIDE MODAL ================= */
     .attendance-override-btn {
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: 1px solid #E2E8F0;
-        background: white;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
+        padding: 6px 12px; border-radius: 8px; border: 1px solid #E2E8F0;
+        background: white; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
     }
-    
-    .attendance-override-btn:hover {
-        background: #F1F5F9;
-        border-color: #6366f1;
+    .attendance-override-btn:hover { background: #F1F5F9; border-color: #6366f1; }
+
+    .override-modal, .shift-template-modal {
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        z-index: 10000; align-items: center; justify-content: center; padding: 20px;
     }
-    
-    .override-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        z-index: 10000;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    
-    .override-modal.active {
-        display: flex;
-    }
-    
-    .override-modal-content {
-        background: white;
-        border-radius: 16px;
-        max-width: 400px;
-        width: 100%;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-    }
-    
-    .override-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 20px;
-    }
-    
-    .override-option {
-        padding: 14px 18px;
-        border: 2px solid #E2E8F0;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: white;
-    }
-    
-    .override-option:hover {
-        border-color: #6366f1;
-        background: #F8FAFC;
-    }
-    
-    .override-option.selected {
-        border-color: #6366f1;
-        background: #EEF2FF;
-    }
-    
-    .override-icon {
-        font-size: 24px;
-    }
-    
-    .override-label {
-        flex: 1;
-    }
-    
-    .override-label-title {
-        font-weight: 700;
-        font-size: 14px;
-        margin-bottom: 2px;
-    }
-    
-    .override-label-desc {
-        font-size: 12px;
-        color: #64748B;
+    .override-modal.active, .shift-template-modal.active { display: flex; }
+
+    .override-modal-content, .shift-template-modal-content {
+        background: white; border-radius: 16px; max-width: 460px; width: 100%;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;
     }
 
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    
-    * {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    .override-options { display: flex; flex-direction: column; gap: 10px; padding: 20px; }
+    .override-option {
+        padding: 14px 18px; border: 2px solid #E2E8F0; border-radius: 10px; cursor: pointer;
+        transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; background: white;
     }
+    .override-option:hover { border-color: #6366f1; background: #F8FAFC; }
+    .override-option.selected { border-color: #6366f1; background: #EEF2FF; }
+    .override-icon { font-size: 24px; }
+    .override-label { flex: 1; }
+    .override-label-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+    .override-label-desc { font-size: 12px; color: #64748B; }
 
     /* ================= ADMIN HERO HEADER ================= */
     .admin-hero {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #4338ca 100%);
-        color: white;
-        padding: 32px 24px;
-        border-radius: 16px;
-        margin-bottom: 24px;
-        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
-        position: relative;
-        overflow: hidden;
+        color: white; padding: 32px 24px; border-radius: 16px; margin-bottom: 24px;
+        box-shadow: 0 8px 24px rgba(99,102,241,0.3); position: relative; overflow: hidden;
     }
-    
     .admin-hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 300px;
-        height: 300px;
+        content: ''; position: absolute; top: -50%; right: -10%;
+        width: 300px; height: 300px;
         background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
         border-radius: 50%;
     }
-    
-    .admin-header-content {
-        position: relative;
-        z-index: 1;
-    }
-    
-    .admin-title {
-        font-size: 24px;
-        font-weight: 800;
-        margin-bottom: 8px;
-        letter-spacing: -0.5px;
-    }
-    
-    .admin-subtitle {
-        font-size: 14px;
-        opacity: 0.9;
-        font-weight: 500;
-    }
-    
-    .admin-stats-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-top: 24px;
-        position: relative;
-        z-index: 1;
-    }
-    
+    .admin-header-content { position: relative; z-index: 1; }
+    .admin-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .admin-subtitle { font-size: 14px; opacity: 0.9; font-weight: 500; }
+    .admin-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; position: relative; z-index: 1; }
     .admin-stat-box {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        text-align: center;
+        background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+        padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); text-align: center;
     }
-    
-    .admin-stat-number {
-        font-size: 28px;
-        font-weight: 800;
-        margin-bottom: 4px;
-    }
-    
-    .admin-stat-label {
-        font-size: 12px;
-        opacity: 0.9;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+    .admin-stat-number { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+    .admin-stat-label { font-size: 12px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
 
     /* ================= TAB NAVIGATION ================= */
     .tab-nav {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 24px;
-        background: white;
-        padding: 8px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        position: relative; display: flex; gap: 8px; margin-bottom: 24px;
+        background: white; padding: 8px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    
     .tab-btn {
-        flex: 1;
-        padding: 12px 16px;
-        border: none;
-        background: transparent;
-        color: #64748B;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        flex: 1; padding: 12px 16px; border: none; background: transparent; color: #64748B;
+        font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 8px;
+        transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    
-    .tab-btn.active {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
-        color: white;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    .tab-btn.active { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+    .tab-btn:hover:not(.active) { background: #F1F5F9; }
+    .tab-underline {
+        position: absolute; bottom: 8px; height: 4px;
+        background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 4px;
+        transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), width 0.35s ease;
+        will-change: transform, width; box-shadow: 0 4px 12px rgba(99,102,241,0.4);
     }
-    
-    .tab-btn:hover:not(.active) {
-        background: #F1F5F9;
-    }
-    
-    .tab-content {
-        display: none;
-    }
-    
-    .tab-content.active {
-        display: block;
-        animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ================= CARD STYLES ================= */
-    .card {
-        background: white;
-        border-radius: 14px;
-        padding: 0;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        border: 1px solid rgba(0, 0, 0, 0.04);
-        overflow: hidden;
-    }
-    
-    .card-header {
-        padding: 20px 24px;
-        border-bottom: 1px solid #E2E8F0;
-        background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .card-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1E293B;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .card-body {
-        padding: 24px;
-    }
+    .card { background: white; border-radius: 14px; padding: 0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04); overflow: hidden; }
+    .card-header { padding: 20px 24px; border-bottom: 1px solid #E2E8F0; background: linear-gradient(135deg, #F8FAFC, #F1F5F9); display: flex; justify-content: space-between; align-items: center; }
+    .card-title { font-size: 18px; font-weight: 700; color: #1E293B; display: flex; align-items: center; gap: 10px; }
+    .card-body { padding: 24px; }
 
     /* ================= SHIFT SCHEDULE GRID ================= */
-    .schedule-grid {
-        display: grid;
-        gap: 16px;
+    .schedule-grid { display: grid; gap: 16px; }
+    .shift-card { background: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 12px; padding: 20px; transition: all 0.3s ease; position: relative; }
+    .shift-card:hover { border-color: #6366f1; box-shadow: 0 4px 12px rgba(99,102,241,0.15); }
+    .shift-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .shift-info h3 { font-size: 16px; font-weight: 700; color: #1E293B; margin-bottom: 6px; }
+    .shift-time { font-size: 14px; color: #64748B; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .shift-badge { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-active { background: #D1FAE5; color: #065F46; }
+    .badge-upcoming { background: #DBEAFE; color: #1E40AF; }
+    .badge-completed { background: #F1F5F9; color: #64748B; }
+    .shift-guards { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .guard-chip { background: white; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #1E293B; border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px; }
+    .guard-avatar { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .shift-actions { display: flex; gap: 8px; }
+
+    /* ================= SHIFT TEMPLATES SECTION ================= */
+    .shift-templates-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    .shift-template-card {
+        background: white; border: 2px solid #E2E8F0; border-radius: 12px; padding: 16px;
+        cursor: pointer; transition: all 0.2s ease; position: relative;
     }
-    
-    .shift-card {
-        background: #F8FAFC;
-        border: 2px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 20px;
-        transition: all 0.3s ease;
-        position: relative;
+    .shift-template-card:hover { border-color: #6366f1; background: #FAFBFF; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.1); }
+    .shift-template-card.selected { border-color: #6366f1; background: #EEF2FF; }
+    .shift-template-name { font-size: 14px; font-weight: 700; color: #1E293B; margin-bottom: 4px; }
+    .shift-template-time { font-size: 12px; color: #6366f1; font-weight: 700; margin-bottom: 4px; }
+    .shift-template-duration { font-size: 11px; color: #64748B; }
+    .shift-template-delete {
+        position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
+        background: #FEE2E2; color: #DC2626; border: none; border-radius: 50%;
+        font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
     }
-    
-    .shift-card:hover {
-        border-color: #6366f1;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    .shift-template-delete:hover { background: #DC2626; color: white; }
+    .add-template-btn {
+        background: #EEF2FF; border: 2px dashed #6366f1; border-radius: 12px; padding: 16px;
+        cursor: pointer; transition: all 0.2s ease; text-align: center; color: #6366f1;
+        font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    
-    .shift-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
-    }
-    
-    .shift-info h3 {
-        font-size: 16px;
-        font-weight: 700;
-        color: #1E293B;
-        margin-bottom: 6px;
-    }
-    
-    .shift-time {
-        font-size: 14px;
-        color: #64748B;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .shift-badge {
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .badge-active {
-        background: #D1FAE5;
-        color: #065F46;
-    }
-    
-    .badge-upcoming {
-        background: #DBEAFE;
-        color: #1E40AF;
-    }
-    
-    .badge-completed {
-        background: #F1F5F9;
-        color: #64748B;
-    }
-    
-    .shift-guards {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 16px;
-    }
-    
-    .guard-chip {
-        background: white;
-        padding: 8px 14px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #1E293B;
-        border: 1px solid #E2E8F0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .guard-avatar {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
-    }
-    
-    .shift-actions {
-        display: flex;
-        gap: 8px;
-    }
-    
+    .add-template-btn:hover { background: #6366f1; color: white; }
+
+    /* ================= BUTTONS ================= */
     .btn {
-        padding: 10px 18px;
-        border-radius: 10px;
-        border: none;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        padding: 10px 18px; border-radius: 10px; border: none; font-size: 13px; font-weight: 600;
+        cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;
     }
-    
-    .btn-primary {
-        background: #6366f1;
-        color: white;
-    }
-    
-    .btn-primary:hover {
-        background: #4f46e5;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-    
-    .btn-secondary {
-        background: #F1F5F9;
-        color: #64748B;
-    }
-    
-    .btn-secondary:hover {
-        background: #E2E8F0;
-    }
-    
-    .btn-small {
-        padding: 8px 14px;
-        font-size: 12px;
-    }
+    .btn-primary { background: #6366f1; color: white; }
+    .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+    .btn-success { background: linear-gradient(135deg, #10B981, #059669); color: white; }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+    .btn-secondary { background: #F1F5F9; color: #64748B; }
+    .btn-secondary:hover { background: #E2E8F0; }
+    .btn-small { padding: 8px 14px; font-size: 12px; }
+    .btn-cancel { background: #F1F5F9; color: #64748B; }
+    .btn-cancel:hover { background: #E2E8F0; }
 
     /* ================= ATTENDANCE TABLE ================= */
-    .attendance-controls {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-    
-    .date-selector {
-        flex: 1;
-        padding: 12px 16px;
-        border: 2px solid #E2E8F0;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #1E293B;
-        cursor: pointer;
-    }
-    
-    .date-selector:focus {
-        outline: none;
-        border-color: #6366f1;
-    }
-    
-    .filter-btn {
-        padding: 12px 20px;
-        background: #6366f1;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .filter-btn:hover {
-        background: #4f46e5;
-        transform: translateY(-1px);
-    }
-    
-    .attendance-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 8px;
-    }
-    
-    .attendance-table thead th {
-        text-align: left;
-        padding: 12px 16px;
-        font-size: 12px;
-        font-weight: 700;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        background: #F8FAFC;
-    }
-    
-    .attendance-table tbody tr {
-        background: white;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-        transition: all 0.2s ease;
-    }
-    
-    .attendance-table tbody tr:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-1px);
-    }
-    
-    .attendance-table tbody td {
-        padding: 16px;
-        border-top: 1px solid #F1F5F9;
-        border-bottom: 1px solid #F1F5F9;
-    }
-    
-    .attendance-table tbody td:first-child {
-        border-left: 1px solid #F1F5F9;
-        border-radius: 10px 0 0 10px;
-    }
-    
-    .attendance-table tbody td:last-child {
-        border-right: 1px solid #F1F5F9;
-        border-radius: 0 10px 10px 0;
-    }
-    
-    .guard-name-cell {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .guard-avatar-large {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        font-weight: 700;
-    }
-    
-    .guard-details h4 {
-        font-size: 15px;
-        font-weight: 700;
-        color: #1E293B;
-        margin-bottom: 2px;
-    }
-    
-    .guard-details p {
-        font-size: 12px;
-        color: #64748B;
-    }
-    
-    .status-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .status-present {
-        background: #D1FAE5;
-        color: #065F46;
-    }
-    
-    .status-absent {
-        background: #FEE2E2;
-        color: #991B1B;
-    }
-    
-    .status-late {
-        background: #FEF3C7;
-        color: #92400E;
-    }
-    
-    .status-leave {
-        background: #E0E7FF;
-        color: #3730A3;
-    }
+    .attendance-controls { display: flex; gap: 12px; margin-bottom: 20px; }
+    .date-selector { flex: 1; padding: 12px 16px; border: 2px solid #E2E8F0; border-radius: 10px; font-size: 14px; font-weight: 600; color: #1E293B; cursor: pointer; }
+    .date-selector:focus { outline: none; border-color: #6366f1; }
+    .filter-btn { padding: 12px 20px; background: #6366f1; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .filter-btn:hover { background: #4f46e5; transform: translateY(-1px); }
 
-    /* ================= PATROL MONITORING ================= */
-    .patrol-grid {
-        display: grid;
-        gap: 16px;
-    }
-    
-    .patrol-card {
-        background: white;
-        border: 2px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 20px;
-        transition: all 0.3s ease;
-    }
-    
-    .patrol-card.active {
-        border-color: #10B981;
-        background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
-    }
-    
-    .patrol-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-    
-    .patrol-guard-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .patrol-guard-info h4 {
-        font-size: 16px;
-        font-weight: 700;
-        color: #1E293B;
-    }
-    
-    .patrol-status {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .patrol-status.active {
-        background: #10B981;
-        color: white;
-    }
-    
-    .patrol-status.inactive {
-        background: #F1F5F9;
-        color: #64748B;
-    }
-    
-    .patrol-progress {
-        margin-bottom: 16px;
-    }
-    
-    .progress-label {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #64748B;
-    }
-    
-    .progress-bar-container {
-        height: 8px;
-        background: #E2E8F0;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    
-    .progress-bar {
-        height: 100%;
-        background: linear-gradient(90deg, #10B981, #059669);
-        border-radius: 10px;
-        transition: width 0.3s ease;
-    }
-    
-    .checkpoint-summary {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-    
-    .checkpoint-chip {
-        padding: 8px 14px;
-        background: #F8FAFC;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #64748B;
-        border: 1px solid #E2E8F0;
-    }
-    
-    .checkpoint-chip.completed {
-        background: #D1FAE5;
-        color: #065F46;
-        border-color: #10B981;
-    }
+    .attendance-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .attendance-table thead th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; background: #F8FAFC; }
+    .attendance-table tbody tr { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s ease; }
+    .attendance-table tbody tr:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
+    .attendance-table tbody td { padding: 16px; border-top: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9; }
+    .attendance-table tbody td:first-child { border-left: 1px solid #F1F5F9; border-radius: 10px 0 0 10px; }
+    .attendance-table tbody td:last-child { border-right: 1px solid #F1F5F9; border-radius: 0 10px 10px 0; }
+
+    .guard-name-cell { display: flex; align-items: center; gap: 12px; }
+    .guard-avatar-large { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; }
+    .guard-details h4 { font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 2px; }
+    .guard-details p { font-size: 12px; color: #64748B; }
+
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px; }
+    .status-present { background: #D1FAE5; color: #065F46; }
+    .status-absent { background: #FEE2E2; color: #991B1B; }
+    .status-late { background: #FEF3C7; color: #92400E; }
+    .status-leave { background: #E0E7FF; color: #3730A3; }
+
+    /* ================= PATROL STYLES ================= */
+    .patrol-grid { display: grid; gap: 16px; }
+    .patrol-card { background: white; border: 2px solid #E2E8F0; border-radius: 12px; padding: 20px; transition: all 0.3s ease; }
+    .patrol-card.active { border-color: #10B981; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); }
+    .patrol-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .patrol-guard-info { display: flex; align-items: center; gap: 12px; }
+    .patrol-guard-info h4 { font-size: 16px; font-weight: 700; color: #1E293B; }
+    .patrol-status { padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .patrol-status.active { background: #10B981; color: white; }
+    .patrol-status.inactive { background: #F1F5F9; color: #64748B; }
+    .patrol-progress { margin-bottom: 16px; }
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #64748B; }
+    .progress-bar-container { height: 8px; background: #E2E8F0; border-radius: 10px; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #10B981, #059669); border-radius: 10px; transition: width 0.3s ease; }
+    .checkpoint-summary { display: flex; gap: 12px; flex-wrap: wrap; }
+    .checkpoint-chip { padding: 8px 14px; background: #F8FAFC; border-radius: 8px; font-size: 12px; font-weight: 600; color: #64748B; border: 1px solid #E2E8F0; }
+    .checkpoint-chip.completed { background: #D1FAE5; color: #065F46; border-color: #10B981; }
 
     /* ================= ADD SHIFT MODAL ================= */
     .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        z-index: 10000;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10000;
+        align-items: center; justify-content: center; padding: 20px;
     }
-    
-    .modal.active {
-        display: flex;
-        animation: fadeIn 0.3s ease;
+    .modal.active { display: flex; animation: fadeIn 0.3s ease; }
+    .modal-content { background: white; border-radius: 16px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-header { padding: 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 20px; font-weight: 700; color: #1E293B; }
+    .modal-close { font-size: 28px; color: #64748B; cursor: pointer; background: none; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s ease; }
+    .modal-close:hover { background: #F1F5F9; }
+    .modal-body { padding: 24px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 14px; font-weight: 600; color: #1E293B; margin-bottom: 8px; }
+    .form-label span { color: #6366f1; font-size: 12px; font-weight: 500; margin-left: 6px; }
+    .form-input, .form-select {
+        width: 100%; padding: 12px 16px; border: 2px solid #E2E8F0; border-radius: 10px;
+        font-size: 14px; font-weight: 500; color: #1E293B; transition: all 0.2s ease; box-sizing: border-box;
     }
-    
-    .modal-content {
-        background: white;
-        border-radius: 16px;
-        max-width: 500px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-        animation: slideUp 0.3s ease;
+    .form-input:focus, .form-select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .guard-select-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding: 8px; background: #F8FAFC; border-radius: 10px; }
+    .guard-select-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; }
+    .guard-select-item:hover { background: #EEF2FF; }
+    .guard-select-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: #6366f1; }
+    .modal-footer { padding: 20px 24px; border-top: 1px solid #E2E8F0; display: flex; gap: 12px; justify-content: flex-end; }
+
+    /* Shift type mode switcher */
+    .shift-mode-tabs { display: flex; background: #F1F5F9; border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+    .shift-mode-tab {
+        flex: 1; padding: 10px; border: none; background: transparent; font-size: 13px; font-weight: 600;
+        color: #64748B; cursor: pointer; border-radius: 8px; transition: all 0.2s ease; text-align: center;
     }
-    
-    @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-    
-    .modal-header {
-        padding: 24px;
-        border-bottom: 1px solid #E2E8F0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .modal-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: #1E293B;
-    }
-    
-    .modal-close {
-        font-size: 28px;
-        color: #64748B;
-        cursor: pointer;
-        background: none;
-        border: none;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-    
-    .modal-close:hover {
-        background: #F1F5F9;
-    }
-    
-    .modal-body {
-        padding: 24px;
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-label {
-        display: block;
-        font-size: 14px;
-        font-weight: 600;
-        color: #1E293B;
-        margin-bottom: 8px;
-    }
-    
-    .form-input,
-    .form-select {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid #E2E8F0;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 500;
-        color: #1E293B;
-        transition: all 0.2s ease;
-    }
-    
-    .form-input:focus,
-    .form-select:focus {
-        outline: none;
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-    
-    .guard-select-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        max-height: 200px;
-        overflow-y: auto;
-        padding: 8px;
-        background: #F8FAFC;
-        border-radius: 10px;
-    }
-    
-    .guard-select-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .guard-select-item:hover {
-        background: #EEF2FF;
-    }
-    
-    .guard-select-item input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-    }
-    
-    .modal-footer {
-        padding: 20px 24px;
-        border-top: 1px solid #E2E8F0;
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-    }
-    
-    .btn-cancel {
-        background: #F1F5F9;
-        color: #64748B;
-    }
-    
-    .btn-cancel:hover {
-        background: #E2E8F0;
-    }
+    .shift-mode-tab.active { background: white; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
     /* ================= QUICK ACTIONS ================= */
-    .quick-actions {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 24px;
-    }
-    
-    .action-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid #E2E8F0;
-    }
-    
-    .action-card:hover {
-        border-color: #6366f1;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-    }
-    
-    .action-icon {
-        font-size: 36px;
-        margin-bottom: 10px;
-    }
-    
-    .action-label {
-        font-size: 14px;
-        font-weight: 700;
-        color: #1E293B;
-    }
+    .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+    .action-card { background: white; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease; border: 2px solid #E2E8F0; }
+    .action-card:hover { border-color: #6366f1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
+    .action-icon { font-size: 36px; margin-bottom: 10px; }
+    .action-label { font-size: 14px; font-weight: 700; color: #1E293B; }
+
+    /* ================= MONTHLY GRID ================= */
+    .monthly-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .summary-box { background: white; padding: 20px; border-radius: 14px; border: 2px solid #E2E8F0; transition: all 0.3s ease; }
+    .summary-box:hover { transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .summary-title { font-size: 13px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px; }
+    .summary-value { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+    .summary-desc { font-size: 12px; color: #64748B; font-weight: 500; }
+    .attendance-box { background: #ECFDF5; border-color: #10B981; }
+    .attendance-progress { background: linear-gradient(90deg, #10B981, #059669); height: 6px; border-radius: 10px; }
+    .late-box { background: #FEF3C7; border-color: #D97706; }
+    .absence-box { background: #FEE2E2; border-color: #DC2626; }
+    .leave-box { background: #E0E7FF; border-color: #4338CA; }
+
+    .patrol-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    .checkpoint-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .checkpoint-coverage-item { background: white; border: 2px solid #E2E8F0; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease; }
+    .checkpoint-coverage-item.scanned { border-color: #10B981; background: #ECFDF5; }
+
+    .patrol-history-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; }
+    .patrol-history-item:hover { background: white; border-color: #6366f1; }
+
+    .status-pulse { width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 2s infinite; display: inline-block; margin-right: 4px; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+
+    .patrol-duration { font-weight: 700; color: #6366f1; }
 
     /* ================= RESPONSIVE ================= */
-    @media (max-width: 640px) {
-        .admin-stats-row {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        
-        .admin-stat-box {
-            padding: 12px 8px;
-        }
-        
-        .admin-stat-number {
-            font-size: 24px;
-        }
-        
-        .tab-btn {
-            font-size: 12px;
-            padding: 10px 12px;
-        }
-        
-        .tab-btn span:first-child {
-            display: none;
-        }
-        
-        .quick-actions {
-            grid-template-columns: 1fr;
-        }
-        
-        .attendance-controls {
-            flex-direction: column;
-        }
-        
-        .attendance-table {
-            font-size: 12px;
-        }
-        
-        .shift-actions {
-            flex-direction: column;
-        }
-    }
-
-    .status-pulse {
-        width: 8px;
-        height: 8px;
-        background: white;
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-        display: inline-block;
-        margin-right: 4px;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(1.2); }
-    }
-
-    .patrol-duration {
-        font-weight: 700;
-        color: #6366f1;
-    }
-
-    .checkpoint-type-badge {
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        display: inline-block;
-        margin-bottom: 4px;
-    }
-
-    .checkpoint-type-gate { background: #DBEAFE; color: #1E40AF; }
-    .checkpoint-type-parking { background: #FEF3C7; color: #D97706; }
-    .checkpoint-type-amenity { background: #E0E7FF; color: #4338CA; }
-    .checkpoint-type-perimeter { background: #FEE2E2; color: #DC2626; }
-    .checkpoint-type-building { background: #D1FAE5; color: #059669; }
-
-    .checkpoint-coverage-item {
-        background: white;
-        border: 2px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 12px;
-        text-align: center;
-        transition: all 0.2s ease;
-    }
-
-    .checkpoint-coverage-item.scanned {
-        border-color: #10B981;
-        background: #ECFDF5;
-    }
-
-    .checkpoint-coverage-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .patrol-history-item {
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all 0.2s ease;
-    }
-
-    .patrol-history-item:hover {
-        background: white;
-        border-color: #6366f1;
-    }
-
-    .patrol-info {
-        flex: 1;
-    }
-
-    .patrol-info h5 {
-        font-size: 14px;
-        font-weight: 700;
-        color: #1E293B;
-        margin-bottom: 4px;
-    }
-
-    .patrol-info p {
-        font-size: 12px;
-        color: #64748B;
-        margin: 0;
-    }
-
-    .patrol-stats {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-    }
-
-    .patrol-stat {
-        text-align: center;
-    }
-
-    .patrol-stat-value {
-        font-size: 18px;
-        font-weight: 800;
-        color: #1E293B;
-    }
-
-    .patrol-stat-label {
-        font-size: 10px;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .tab-nav {
-        position: relative;
-        display: flex;
-        gap: 8px;
-        margin-bottom: 24px;
-        background: white;
-        padding: 8px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-
-    .tab-underline {
-        position: absolute;
-        bottom: 8px;
-        height: 4px;
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
-        border-radius: 4px;
-        transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
-                    width 0.35s ease;
-        will-change: transform, width;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-    }
-
-
-    .monthly-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-    }
-
-    .summary-box {
-        background: white;
-        padding: 20px;
-        border-radius: 14px;
-        border: 2px solid #E2E8F0;
-        transition: all 0.3s ease;
-    }
-
-    .summary-box:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    }
-
-    .summary-title {
-        font-size: 13px;
-        font-weight: 700;
-        color: #64748B;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-    }
-
-    .summary-value {
-        font-size: 32px;
-        font-weight: 800;
-        margin-bottom: 10px;
-    }
-
-    .summary-desc {
-        font-size: 12px;
-        color: #64748B;
-        font-weight: 500;
-    }
-
-    .attendance-box {
-        background: #ECFDF5;
-        border-color: #10B981;
-    }
-
-    .attendance-progress {
-        background: linear-gradient(90deg, #10B981, #059669);
-        height: 6px;
-        border-radius: 10px;
-    }
-
-    .late-box {
-        background: #FEF3C7;
-        border-color: #D97706;
-    }
-
-    .absence-box {
-        background: #FEE2E2;
-        border-color: #DC2626;
-    }
-
-    .leave-box {
-        background: #E0E7FF;
-        border-color: #4338CA;
-    }
-
-    .patrol-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-    }
-
-    .checkpoint-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-}
-
     @media (max-width: 1024px) {
-        .checkpoint-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
+        .monthly-grid { grid-template-columns: repeat(2, 1fr); }
+        .admin-stats-row { grid-template-columns: repeat(2, 1fr); }
+        .patrol-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .checkpoint-grid { grid-template-columns: repeat(3, 1fr); }
     }
-
     @media (max-width: 768px) {
-        .checkpoint-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 480px) {
-        .checkpoint-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 1024px) {
-        .patrol-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 600px) {
-        .patrol-stats-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    @media (max-width: 600px) {
-
-        .shift-card {
-            padding: 16px;
-        }
-
-        .shift-info h3 {
-            font-size: 14px;
-        }
-
-        .guard-chip {
-            font-size: 12px;
-        }
-
+        .admin-hero { padding: 20px 16px; }
+        .admin-title { font-size: 20px; }
+        .admin-stats-row { grid-template-columns: 1fr; gap: 12px; }
+        .monthly-grid { grid-template-columns: 1fr; }
+        .quick-actions { grid-template-columns: 1fr; }
+        .checkpoint-grid { grid-template-columns: repeat(2, 1fr); }
+        .attendance-controls { flex-direction: column; }
+        .shift-templates-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
-
-        .modal-content,
-        .override-modal-content {
-            width: 95%;
-            border-radius: 12px;
-        }
-
+        .tab-btn { font-size: 12px; padding: 8px; }
+        .shift-header { flex-direction: column; gap: 10px; }
+        .shift-actions { flex-direction: column; }
+        .guard-name-cell { flex-direction: column; align-items: flex-start; }
+        .checkpoint-grid { grid-template-columns: 1fr; }
+        .time-row { grid-template-columns: 1fr; }
+        .modal-content, .override-modal-content, .shift-template-modal-content { width: 95%; border-radius: 12px; }
     }
-
-
-    /* ================= MOBILE RESPONSIVE FIXES ================= */
-
-    @media (max-width: 1024px) {
-
-        .monthly-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .admin-stats-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        #patrol-tab .card-body > div[style*="grid-template-columns: repeat(4"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-
-        #checkpointCoverage {
-            grid-template-columns: repeat(3, 1fr) !important;
-        }
-    }
-
-    @media (max-width: 768px) {
-
-        .admin-hero {
-            padding: 20px 16px;
-        }
-
-        .admin-title {
-            font-size: 20px;
-        }
-
-        .admin-stats-row {
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        .monthly-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .quick-actions {
-            grid-template-columns: 1fr;
-        }
-
-        #patrol-tab .card-body > div[style*="grid-template-columns: repeat(4"] {
-            grid-template-columns: 1fr 1fr !important;
-        }
-
-        #checkpointCoverage {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-
-        .attendance-controls {
-            flex-direction: column;
-        }
-
-        .tab-btn span:first-child {
-            display: inline; /* show icons */
-        }
-    }
-
-    @media (max-width: 480px) {
-
-        .tab-btn {
-            font-size: 12px;
-            padding: 8px;
-        }
-
-        .shift-header {
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .shift-actions {
-            flex-direction: column;
-        }
-
-        .guard-name-cell {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        #checkpointCoverage {
-            grid-template-columns: 1fr !important;
-        }
-
-    }
-
 </style>
 {% endblock %}
 
@@ -1256,7 +298,6 @@
     <div class="admin-header-content">
         <h1 class="admin-title">🛡️ Guard Management Dashboard</h1>
         <p class="admin-subtitle">{{ society_name }} • {{ current_date }}</p>
-        
         <div class="admin-stats-row">
             <div class="admin-stat-box">
                 <div class="admin-stat-number">{{ total_guards }}</div>
@@ -1277,33 +318,37 @@
 <!-- Tab Navigation -->
 <div class="tab-nav" id="tabNav">
     <div class="tab-underline" id="tabUnderline"></div>
-
-    <button class="tab-btn active" data-tab="shifts" onclick="switchTab(event, 'shifts')">
-        <span>📅</span> Shifts
-    </button>
-
-    <button class="tab-btn" data-tab="attendance" onclick="switchTab(event, 'attendance')">
-        <span>✓</span> Attendance
-    </button>
-
-    <button class="tab-btn" data-tab="patrol" onclick="switchTab(event, 'patrol')">
-        <span>🚶</span> Patrol
-    </button>
+    <button class="tab-btn active" data-tab="shifts" onclick="switchTab(event, 'shifts')"><span>📅</span> Shifts</button>
+    <button class="tab-btn" data-tab="attendance" onclick="switchTab(event, 'attendance')"><span>✓</span> Attendance</button>
+    <button class="tab-btn" data-tab="patrol" onclick="switchTab(event, 'patrol')"><span>🚶</span> Patrol</button>
 </div>
 
 
-<!-- SHIFTS TAB -->
+<!-- ==================== SHIFTS TAB ==================== -->
 <div id="shifts-tab" class="tab-content active">
     
     <!-- Quick Actions -->
     <div class="quick-actions">
         <div class="action-card" onclick="openAddShiftModal()">
             <div class="action-icon">➕</div>
-            <div class="action-label">Add New Shift</div>
+            <div class="action-label">Assign Shift</div>
         </div>
-        <div class="action-card" onclick="viewShiftHistory()">
-            <div class="action-icon">📊</div>
-            <div class="action-label">Shift Reports</div>
+        <div class="action-card" onclick="openShiftTemplateModal()">
+            <div class="action-icon">⚙️</div>
+            <div class="action-label">Manage Shift Types</div>
+        </div>
+    </div>
+
+    <!-- Shift Types (Custom) -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">⚙️ Shift Types</div>
+            <button class="btn btn-primary btn-small" onclick="openShiftTemplateModal()">➕ New Shift Type</button>
+        </div>
+        <div class="card-body" style="padding: 16px 24px;">
+            <div class="shift-templates-grid" id="shiftTemplatesGrid">
+                <div style="color:#94A3B8;font-size:13px;grid-column:1/-1;text-align:center;padding:20px;">Loading shift types…</div>
+            </div>
         </div>
     </div>
     
@@ -1322,116 +367,58 @@
                     <div class="shift-info">
                         <h3>
                             {% if shift %}
-                                {{ shift.get_shift_type_display }} Shift
-                            {% else %}
-                                No Shift Assigned
-                            {% endif %}
+                                {% if shift.shift_name %}{{ shift.shift_name }}{% else %}{{ shift.get_shift_type_display }}{% endif %} Shift
+                            {% else %}No Shift Assigned{% endif %}
                         </h3>
-
                         <div class="shift-time">
                             ⏰
-                            {% if shift %}
-                                {{ shift.start_time|time:"h:i A" }} – {{ shift.end_time|time:"h:i A" }}
-                            {% else %}
-                                —
-                            {% endif %}
+                            {% if shift %}{{ shift.start_time|time:"h:i A" }} – {{ shift.end_time|time:"h:i A" }}{% else %}—{% endif %}
                         </div>
                     </div>
-
                     {% if shift %}
-                        {% if shift.check_in and not shift.check_out %}
-                            <span class="shift-badge badge-active">Active</span>
-                        {% elif shift.check_out %}
-                            <span class="shift-badge badge-completed">Completed</span>
-                        {% else %}
-                            <span class="shift-badge badge-upcoming">Scheduled</span>
-                        {% endif %}
-                    {% else %}
-                        <span class="shift-badge badge-upcoming">No Shift</span>
-                    {% endif %}
+                        {% if shift.check_in and not shift.check_out %}<span class="shift-badge badge-active">Active</span>
+                        {% elif shift.check_out %}<span class="shift-badge badge-completed">Completed</span>
+                        {% else %}<span class="shift-badge badge-upcoming">Scheduled</span>{% endif %}
+                    {% else %}<span class="shift-badge badge-upcoming">No Shift</span>{% endif %}
                 </div>
-
                 <div class="shift-guards">
                     <div class="guard-chip">
-                        <div class="guard-avatar">
-                            {{ guard.user.username|slice:":2"|upper }}
-                        </div>
+                        <div class="guard-avatar">{{ guard.user.username|slice:":2"|upper }}</div>
                         {{ guard.user.get_full_name|default:guard.user.username }}
                     </div>
                 </div>
-
                 <div class="shift-actions">
                     {% if shift %}
-                        <a href="{% url 'shift_detail' shift.id %}" class="btn btn-secondary btn-small">
-                            📋 View Details
-                        </a>
-                        <button class="attendance-override-btn" onclick="openAttendanceOverride({{ shift.id }}, '{{ guard.user.get_full_name|default:guard.user.username }}', '{{ shift.attendance_override }}')">
-                            ✏️ Mark
-                        </button>
-                    {% else %}
-                        <span style="color:#94A3B8;font-size:13px;">No shift assigned</span>
-                    {% endif %}
+                        <a href="{% url 'shift_detail' shift.id %}" class="btn btn-secondary btn-small">📋 View Details</a>
+                        <button class="attendance-override-btn" onclick="openAttendanceOverride({{ shift.id }}, '{{ guard.user.get_full_name|default:guard.user.username }}', '{{ shift.attendance_override }}')">✏️ Mark</button>
+                    {% else %}<span style="color:#94A3B8;font-size:13px;">No shift assigned</span>{% endif %}
                 </div>
             </div>
             {% endwith %}
             {% endfor %}
-
             </div>
-
         </div>
     </div>
-    
-    <!-- Weekly Schedule Preview -->
-    <!-- <div class="card">
-        <div class="card-header">
-            <div class="card-title">📆 This Week's Schedule</div>
-            <button class="btn btn-primary btn-small" onclick="generateWeeklySchedule()">
-                🔄 Generate Schedule
-            </button>
-
-        </div>
-        <div class="card-body">
-            <p style="text-align: center; color: #64748B; padding: 20px;">
-                Click "Generate Schedule" to auto-create shifts for the next 7 days
-            </p>
-        </div>
-    </div> -->
-    
 </div>
-<!-- ATTENDANCE TAB -->
+
+
+<!-- ==================== ATTENDANCE TAB ==================== -->
 <div id="attendance-tab" class="tab-content">
-    
     <div class="card">
-        <div class="card-header">
-            <div class="card-title">✓ Attendance Management</div>
-        </div>
+        <div class="card-header"><div class="card-title">✓ Attendance Management</div></div>
         <div class="card-body">
-            
-            <!-- Date Filter -->
             <div class="attendance-controls">
                 <input type="date" class="date-selector" id="attendanceDate" value="{{ today_date }}">
-                <button class="filter-btn" onclick="filterAttendance()">
-                    🔍 Filter
-                </button>
-                <button class="filter-btn" onclick="exportAttendance()">
-                    📥 Export
-                </button>
+                <button class="filter-btn" onclick="filterAttendance()">🔍 Filter</button>
+                <button class="filter-btn" onclick="exportAttendance()">📥 Export</button>
             </div>
-            
-            <!-- Attendance Table -->
             <div style="overflow-x:auto;">
                 <table class="attendance-table">
-
                 <thead>
                     <tr>
-                        <th>Guard Name</th>
-                        <th>Shift</th>
-                        <th>Check-In</th>
-                        <th>Check-Out</th>
-                        <th>Duration</th>
-                        <th>Late Entry</th> 
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Guard Name</th><th>Shift</th><th>Check-In</th>
+                        <th>Check-Out</th><th>Duration</th><th>Late Entry</th>
+                        <th>Status</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="attendanceTableBody">
@@ -1440,447 +427,273 @@
                 <tr>
                     <td>
                         <div class="guard-name-cell">
-                            <div class="guard-avatar-large">
-                                {{ guard.user.username|slice:":2"|upper }}
-                            </div>
+                            <div class="guard-avatar-large">{{ guard.user.username|slice:":2"|upper }}</div>
                             <div class="guard-details">
                                 <h4>{{ guard.user.get_full_name|default:guard.user.username }}</h4>
-                                <p>
-                                    {% if shift %}
-                                        {{ shift.get_shift_type_display }}
-                                    {% else %}
-                                        No Shift
-                                    {% endif %}
-                                </p>
+                                <p>{% if shift %}{% if shift.shift_name %}{{ shift.shift_name }}{% else %}{{ shift.get_shift_type_display }}{% endif %}{% else %}No Shift{% endif %}</p>
                             </div>
                         </div>
                     </td>
-
+                    <td>{% if shift %}{{ shift.start_time|time:"h:i A" }} – {{ shift.end_time|time:"h:i A" }}{% else %}—{% endif %}</td>
                     <td>
-                        {% if shift %}
-                            {{ shift.start_time|time:"h:i A" }} – {{ shift.end_time|time:"h:i A" }}
-                        {% else %}
-                            —
-                        {% endif %}
+                        {% if shift and shift.check_in %}{{ shift.check_in|time:"h:i A" }}
+                            {% if shift.is_late %}<span style="color:#D97706;font-size:11px;font-weight:700;"> ⏰</span>{% endif %}
+                        {% else %}—{% endif %}
                     </td>
-
-                    <td>
-                        {% if shift and shift.check_in %}
-                            {{ shift.check_in|time:"h:i A" }}
-                            {% if shift.check_in and shift.start_time %}
-                                {% load tz %}
-                                {% timezone "Asia/Kolkata" %}
-                                    {% with shift_start=shift.start_time check_in_time=shift.check_in.time %}
-                                        {# Calculate if late (more than 15 minutes after start) #}
-                                        {% if check_in_time > shift_start %}
-                                            <span style="color: #D97706; font-size: 11px; font-weight: 700;">⏰</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                {% endtimezone %}
-                            {% endif %}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if shift and shift.check_out %}
-                            {{ shift.check_out|time:"h:i A" }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-
+                    <td>{% if shift and shift.check_out %}{{ shift.check_out|time:"h:i A" }}{% else %}—{% endif %}</td>
                     <td>
                         {% if shift and shift.check_in %}
                             {% if shift.check_out %}
-                                {# Calculate completed shift duration #}
-                                {% load tz %}
-                                {% timezone "Asia/Kolkata" %}
-                                    <div style="font-weight: 600; color: #059669;">
-                                        {{ shift.get_duration }}
-                                    </div>
+                                {% load tz %}{% timezone "Asia/Kolkata" %}
+                                <div style="font-weight:600;color:#059669;">{{ shift.get_duration }}</div>
                                 {% endtimezone %}
                             {% else %}
-                                {# Currently on duty - show live duration #}
-                                <div class="live-duration" data-checkin="{{ shift.check_in.isoformat }}" style="font-weight: 600; color: #2196F3;">
-                                    <span class="status-pulse" style="width: 6px; height: 6px; margin-right: 4px;"></span>
-                                    Calculating...
+                                <div class="live-duration" data-checkin="{{ shift.check_in.isoformat }}" style="font-weight:600;color:#2196F3;">
+                                    <span class="status-pulse" style="width:6px;height:6px;margin-right:4px;"></span>Calculating...
                                 </div>
                             {% endif %}
-                        {% else %}
-                            <span style="color: #94A3B8;">—</span>
-                        {% endif %}
+                        {% else %}<span style="color:#94A3B8;">—</span>{% endif %}
                     </td>
-                    <!-- ✅ LATE ENTRY COLUMN -->
                     <td>
-                        {% if not shift %}
-                            <span style="color:#94A3B8;">No Shift</span>
-
-                        {% elif not shift.check_in %}
-                            <span style="color:#EF4444;font-weight:600;">No Check-in</span>
-
-                        {% elif shift.attendance_override == "late" %}
-                            <span style="color:#D97706;font-weight:700;">⏰ Late Check-in</span>
-
-                        {% elif shift.is_late %}
-                            <span style="color:#D97706;font-weight:700;">⏰ Late Check-in</span>
-
-                        {% else %}
-                            <span style="color:#059669;font-weight:700;">✓ Timely Check-in</span>
-                        {% endif %}
+                        {% if not shift %}<span style="color:#94A3B8;">No Shift</span>
+                        {% elif not shift.check_in %}<span style="color:#EF4444;font-weight:600;">No Check-in</span>
+                        {% elif shift.attendance_override == "late" or shift.is_late %}<span style="color:#D97706;font-weight:700;">⏰ Late Check-in</span>
+                        {% else %}<span style="color:#059669;font-weight:700;">✓ Timely</span>{% endif %}
                     </td>
-
-
-
                     <td>
-                        {% if not shift %}
-                            <span class="status-badge status-absent">No Shift</span>
+                        {% if not shift %}<span class="status-badge status-absent">No Shift</span>
                         {% elif shift.attendance_override != 'auto' %}
-                            {% if shift.attendance_override == 'present' %}
-                                <span class="status-badge status-present">✓ Present</span>
-                            {% elif shift.attendance_override == 'absent' %}
-                                <span class="status-badge status-absent">✗ Absent</span>
-                            {% elif shift.attendance_override == 'late' %}
-                                <span class="status-badge status-late">⏰ Late</span>
-                            {% elif shift.attendance_override == 'leave' %}
-                                <span class="status-badge status-leave">📅 Leave</span>
-                            {% endif %}
+                            {% if shift.attendance_override == 'present' %}<span class="status-badge status-present">✓ Present</span>
+                            {% elif shift.attendance_override == 'absent' %}<span class="status-badge status-absent">✗ Absent</span>
+                            {% elif shift.attendance_override == 'late' %}<span class="status-badge status-late">⏰ Late</span>
+                            {% elif shift.attendance_override == 'leave' %}<span class="status-badge status-leave">📅 Leave</span>{% endif %}
                         {% elif shift.check_in and not shift.check_out %}
-                            {% if shift.attendance_override == "late" %}
-                                <span class="status-badge status-late">⏰ On Duty (Late)</span>
-                            {% else %}
-                                <span class="status-badge status-present">On Duty</span>
-                            {% endif %}
-
+                            <span class="status-badge {% if shift.is_late %}status-late{% else %}status-present{% endif %}">
+                                {% if shift.is_late %}⏰ On Duty (Late){% else %}On Duty{% endif %}
+                            </span>
                         {% elif shift.check_out %}
-                            {% if shift.attendance_override == "late" %}
-                                <span class="status-badge status-late">⏰ Completed (Late)</span>
-                            {% else %}
-                                <span class="status-badge status-present">✓ Completed</span>
-                            {% endif %}
-
-                        {% else %}
-                            <span class="status-badge status-absent">✗ Absent</span>
-                        {% endif %}
+                            <span class="status-badge {% if shift.is_late %}status-late{% else %}status-present{% endif %}">
+                                {% if shift.is_late %}⏰ Completed (Late){% else %}✓ Completed{% endif %}
+                            </span>
+                        {% else %}<span class="status-badge status-absent">✗ Absent</span>{% endif %}
                     </td>
-
                     <td>
                         {% if shift %}
-                            <a href="{% url 'shift_detail' shift.id %}" class="btn btn-secondary btn-small">
-                                View Log
-                            </a>
-                            <button class="attendance-override-btn" onclick="openAttendanceOverride({{ shift.id }}, '{{ guard.user.get_full_name|default:guard.user.username }}', '{{ shift.attendance_override }}')">
-                                ✏️ Mark
-                            </button>
-                        {% else %}
-                            —
-                        {% endif %}
+                            <a href="{% url 'shift_detail' shift.id %}" class="btn btn-secondary btn-small">View Log</a>
+                            <button class="attendance-override-btn" onclick="openAttendanceOverride({{ shift.id }}, '{{ guard.user.get_full_name|default:guard.user.username }}', '{{ shift.attendance_override }}')">✏️ Mark</button>
+                        {% else %}—{% endif %}
                     </td>
                 </tr>
                 {% endwith %}
                 {% endfor %}
-
                 </tbody>
             </table>
             </div>
-
-            
         </div>
     </div>
-    
+
+    <!-- Monthly Summary -->
     <div class="card">
         <div class="card-header">
             <div class="card-title">📊 Monthly Performance Summary</div>
-            <span style="font-size: 12px; color: #64748B; font-weight: 600;">
-                {{ current_month_name }}
-            </span>
+            <span style="font-size:12px;color:#64748B;font-weight:600;">{{ current_month_name }}</span>
         </div>
         <div class="card-body">
-
             <div class="monthly-grid">
-
-                <!-- Attendance Health -->
                 <div class="summary-box attendance-box">
                     <div class="summary-title">Overall Attendance</div>
                     <div class="summary-value">{{ attendance_rate|default:"—" }}%</div>
-
-                    <div class="progress-bar-container">
-                        <div class="progress-bar attendance-progress"
-                            style="width: {{ attendance_rate|default:0 }}%;"></div>
-                    </div>
-
-                    <div class="summary-desc">
-                        {% if attendance_rate >= 90 %}
-                            Excellent attendance performance
-                        {% elif attendance_rate >= 75 %}
-                            Good attendance level
-                        {% else %}
-                            Needs improvement
-                        {% endif %}
-                    </div>
+                    <div class="progress-bar-container"><div class="progress-bar attendance-progress" style="width:{{ attendance_rate|default:0 }}%;"></div></div>
+                    <div class="summary-desc">{% if attendance_rate >= 90 %}Excellent{% elif attendance_rate >= 75 %}Good{% else %}Needs improvement{% endif %}</div>
                 </div>
-
-                <!-- Punctuality -->
                 <div class="summary-box late-box">
                     <div class="summary-title">Late Check-ins</div>
                     <div class="summary-value">{{ late_checkins|default:"0" }}</div>
-
-                    <div class="summary-desc">
-                        {% if late_checkins <= 3 %}
-                            Guards are punctual
-                        {% elif late_checkins <= 8 %}
-                            Moderate delay issues
-                        {% else %}
-                            High late frequency ⚠️
-                        {% endif %}
-                    </div>
+                    <div class="summary-desc">{% if late_checkins <= 3 %}Guards are punctual{% elif late_checkins <= 8 %}Moderate delay issues{% else %}High late frequency ⚠️{% endif %}</div>
                 </div>
-
-                <!-- Absence -->
                 <div class="summary-box absence-box">
                     <div class="summary-title">Unapproved Absences</div>
                     <div class="summary-value">{{ absences|default:"0" }}</div>
-
-                    <div class="summary-desc">
-                        {% if absences == 0 %}
-                            No absences recorded
-                        {% elif absences <= 3 %}
-                            Within acceptable limit
-                        {% else %}
-                            Review required
-                        {% endif %}
-                    </div>
+                    <div class="summary-desc">{% if absences == 0 %}No absences{% elif absences <= 3 %}Within limit{% else %}Review required{% endif %}</div>
                 </div>
-
-                <!-- Leave -->
                 <div class="summary-box leave-box">
                     <div class="summary-title">Approved Leaves</div>
                     <div class="summary-value">{{ leave_days|default:"0" }}</div>
-
-                    <div class="summary-desc">
-                        Approved leave days this month
-                    </div>
+                    <div class="summary-desc">Approved leave days this month</div>
                 </div>
-
             </div>
-
         </div>
     </div>
-
-    
 </div>
 
-<!-- Enhanced Patrol Tab with MyGate-like Features -->
 
-<!-- PATROL TAB -->
+<!-- ==================== PATROL TAB ==================== -->
 <div id="patrol-tab" class="tab-content">
-    
-    <!-- Active Patrols Card -->
     <div class="card">
         <div class="card-header">
             <div class="card-title">🚶 Active Patrols</div>
-            <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="display:flex;gap:12px;align-items:center;">
                 <span class="shift-badge badge-active">{{ active_patrol_count }} Active</span>
-                <button class="btn btn-primary btn-small" onclick="refreshPatrolStatus()" style="margin: 0;">
-                    🔄 Refresh
-                </button>
+                <button class="btn btn-primary btn-small" onclick="refreshPatrolStatus()" style="margin:0;">🔄 Refresh</button>
             </div>
         </div>
         <div class="card-body">
-            
             <div class="patrol-grid" id="patrolGrid">
             {% for patrol in active_patrols %}
             <div class="patrol-card active">
                 <div class="patrol-header">
                     <div class="patrol-guard-info">
-                        <div class="guard-avatar-large">
-                            {{ patrol.guard.user.username|slice:":2"|upper }}
-                        </div>
+                        <div class="guard-avatar-large">{{ patrol.guard.user.username|slice:":2"|upper }}</div>
                         <div>
                             <h4>{{ patrol.guard.user.get_full_name|default:patrol.guard.user.username }}</h4>
-                            <p style="font-size:12px;color:#64748B;">
-                                Started {{ patrol.start_time|time:"h:i A" }}
-                                {% if patrol.start_time %}
-                                    <span style="margin-left: 8px;">
-                                        • Duration: 
-                                        <span class="patrol-duration" data-start="{{ patrol.start_time.isoformat }}">
-                                            Calculating...
-                                        </span>
-                                    </span>
-                                {% endif %}
+                            <p style="font-size:12px;color:#64748B;">Started {{ patrol.start_time|time:"h:i A" }}
+                                {% if patrol.start_time %}<span style="margin-left:8px;">• <span class="patrol-duration" data-start="{{ patrol.start_time.isoformat }}">Calculating...</span></span>{% endif %}
                             </p>
                         </div>
                     </div>
-
-                    <div class="patrol-status active">
-                        <span class="status-pulse"></span>
-                        On Patrol
-                    </div>
+                    <div class="patrol-status active"><span class="status-pulse"></span>On Patrol</div>
                 </div>
-
-                <!-- Progress Bar -->
                 <div class="patrol-progress">
-                    <div class="progress-label">
-                        <span>Checkpoints Progress</span>
-                        <span>{{ patrol.checkpoints_completed }}/{{ patrol.total_checkpoints }}</span>
-                    </div>
+                    <div class="progress-label"><span>Checkpoints</span><span>{{ patrol.checkpoints_completed }}/{{ patrol.total_checkpoints }}</span></div>
                     <div class="progress-bar-container">
                         {% widthratio patrol.checkpoints_completed patrol.total_checkpoints 100 as progress_percent %}
-                        <div class="progress-bar" style="width: {{ progress_percent }}%;"></div>
+                        <div class="progress-bar" style="width:{{ progress_percent }}%;"></div>
                     </div>
                 </div>
-
-                <!-- Recent Checkpoints -->
-                {% with scans=patrol.scans.all|slice:":3" %}
-                {% if scans %}
-                <div style="margin-top: 16px;">
-                    <div style="font-size: 12px; font-weight: 700; color: #64748B; margin-bottom: 8px; text-transform: uppercase;">
-                        Recent Checkpoints
-                    </div>
+                {% with scans=patrol.scans.all|slice:":3" %}{% if scans %}
+                <div style="margin-top:16px;">
+                    <div style="font-size:12px;font-weight:700;color:#64748B;margin-bottom:8px;text-transform:uppercase;">Recent Checkpoints</div>
                     <div class="checkpoint-summary">
-                        {% for scan in scans %}
-                        <div class="checkpoint-chip completed">
-                            ✓ {{ scan.checkpoint.name }} • {{ scan.scanned_at|time:"h:i A" }}
-                        </div>
-                        {% endfor %}
+                        {% for scan in scans %}<div class="checkpoint-chip completed">✓ {{ scan.checkpoint.name }} • {{ scan.scanned_at|time:"h:i A" }}</div>{% endfor %}
                     </div>
-                </div>
-                {% endif %}
-                {% endwith %}
-
-                <!-- Patrol Actions -->
-                <div style="margin-top: 16px; display: flex; gap: 8px;">
-                    <a href="{% url 'patrol_detail' patrol.id %}" class="btn btn-secondary btn-small" style="flex: 1;">
-                        📋 View Details
-                    </a>
-                    <button class="btn btn-primary btn-small" onclick="trackPatrolLocation({{ patrol.id }})" style="flex: 1;">
-                        📍 Track
-                    </button>
+                </div>{% endif %}{% endwith %}
+                <div style="margin-top:16px;display:flex;gap:8px;">
+                    <a href="{% url 'patrol_detail' patrol.id %}" class="btn btn-secondary btn-small" style="flex:1;">📋 View Details</a>
+                    <button class="btn btn-primary btn-small" onclick="trackPatrolLocation({{ patrol.id }})" style="flex:1;">📍 Track</button>
                 </div>
             </div>
             {% empty %}
-            <div style="text-align: center; padding: 60px 20px; color: #94A3B8;">
-                <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.5;">🚶</div>
-                <p style="font-size: 16px; font-weight: 600; color: #64748B;">No active patrols at the moment</p>
-                <p style="font-size: 14px; color: #94A3B8;">Guards will appear here when they start their patrol rounds</p>
+            <div style="text-align:center;padding:60px 20px;color:#94A3B8;">
+                <div style="font-size:64px;margin-bottom:16px;opacity:0.5;">🚶</div>
+                <p style="font-size:16px;font-weight:600;color:#64748B;">No active patrols</p>
             </div>
             {% endfor %}
             </div>
-            
         </div>
     </div>
-    
-    <!-- Patrol Statistics -->
+
     <div class="card">
         <div class="card-header">
             <div class="card-title">📊 Patrol Statistics</div>
-            <div style="display: flex; gap: 8px;">
-                <select class="date-selector" id="patrolStatsFilter" onchange="filterPatrolStats(this.value)" style="width: auto; padding: 8px 16px;">
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                </select>
-            </div>
+            <select class="date-selector" id="patrolStatsFilter" onchange="filterPatrolStats(this.value)" style="width:auto;padding:8px 16px;">
+                <option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option>
+            </select>
         </div>
         <div class="card-body">
             <div class="patrol-stats-grid">
-
-                <!-- Patrols Completed -->
-                <div style="text-align: center; padding: 20px; background: #DBEAFE; border-radius: 12px; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: 10px; right: 10px; font-size: 40px; opacity: 0.1;">🚶</div>
-                    <div style="font-size: 32px; font-weight: 800; color: #1E40AF; position: relative;">
-                        {{ completed_patrols_today }}
-                    </div>
-                    <div style="font-size: 12px; color: #1E3A8A; font-weight: 600; position: relative;">Patrols Completed</div>
+                <div style="text-align:center;padding:20px;background:#DBEAFE;border-radius:12px;">
+                    <div style="font-size:32px;font-weight:800;color:#1E40AF;">{{ completed_patrols_today }}</div>
+                    <div style="font-size:12px;color:#1E3A8A;font-weight:600;">Patrols Completed</div>
                 </div>
-
-                <!-- Checkpoints Scanned -->
-                <div style="text-align: center; padding: 20px; background: #D1FAE5; border-radius: 12px; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: 10px; right: 10px; font-size: 40px; opacity: 0.1;">📍</div>
-                    <div style="font-size: 32px; font-weight: 800; color: #059669; position: relative;">
-                        {{ total_checkpoints_today|default:"0" }}
-                    </div>
-                    <div style="font-size: 12px; color: #064E3B; font-weight: 600; position: relative;">Checkpoints Scanned</div>
+                <div style="text-align:center;padding:20px;background:#D1FAE5;border-radius:12px;">
+                    <div style="font-size:32px;font-weight:800;color:#059669;">{{ total_checkpoints_today|default:"0" }}</div>
+                    <div style="font-size:12px;color:#064E3B;font-weight:600;">Checkpoints Scanned</div>
                 </div>
-
-                <!-- Incidents Reported -->
-                <div style="text-align: center; padding: 20px; background: #FEF3C7; border-radius: 12px; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: 10px; right: 10px; font-size: 40px; opacity: 0.1;">⚠️</div>
-                    <div style="font-size: 32px; font-weight: 800; color: #D97706; position: relative;">
-                        {{ incidents_today|default:"0" }}
-                    </div>
-                    <div style="font-size: 12px; color: #78350F; font-weight: 600; position: relative;">Incidents Reported</div>
+                <div style="text-align:center;padding:20px;background:#FEF3C7;border-radius:12px;">
+                    <div style="font-size:32px;font-weight:800;color:#D97706;">{{ incidents_today|default:"0" }}</div>
+                    <div style="font-size:12px;color:#78350F;font-weight:600;">Incidents Reported</div>
                 </div>
-
-                <!-- Average Duration -->
-                <div style="text-align: center; padding: 20px; background: #E0E7FF; border-radius: 12px; position: relative; overflow: hidden;">
-                    <div style="position: absolute; top: 10px; right: 10px; font-size: 40px; opacity: 0.1;">⏱️</div>
-                    <div style="font-size: 32px; font-weight: 800; color: #4338CA; position: relative;" id="avgDuration">
-                        —
-                    </div>
-                    <div style="font-size: 12px; color: #312E81; font-weight: 600; position: relative;">Avg Duration</div>
+                <div style="text-align:center;padding:20px;background:#E0E7FF;border-radius:12px;">
+                    <div style="font-size:32px;font-weight:800;color:#4338CA;" id="avgDuration">—</div>
+                    <div style="font-size:12px;color:#312E81;font-weight:600;">Avg Duration</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Checkpoint Coverage Map -->
     <div class="card">
-        <div class="card-header">
-            <div class="card-title">📍 Checkpoint Coverage</div>
-        </div>
+        <div class="card-header"><div class="card-title">📍 Checkpoint Coverage</div></div>
         <div class="card-body">
             <div id="checkpointCoverage" class="checkpoint-grid">
-                <!-- This will be populated dynamically -->
-                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94A3B8;">
-                    Loading checkpoint data...
-                </div>
+                <div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8;">Loading checkpoint data...</div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Patrol History -->
     <div class="card">
         <div class="card-header">
             <div class="card-title">📜 Recent Patrol History</div>
-            <a href="{% url 'patrol_history' %}" class="btn btn-secondary btn-small">
-                View All
-            </a>
+            <a href="{% url 'patrol_history' %}" class="btn btn-secondary btn-small">View All</a>
         </div>
         <div class="card-body">
-            <div style="display: flex; flex-direction: column; gap: 12px;" id="recentPatrolHistory">
-                <!-- This will be populated dynamically -->
-                <div style="text-align: center; padding: 40px; color: #94A3B8;">
-                    Loading patrol history...
-                </div>
+            <div style="display:flex;flex-direction:column;gap:12px;" id="recentPatrolHistory">
+                <div style="text-align:center;padding:40px;color:#94A3B8;">Loading patrol history...</div>
             </div>
         </div>
     </div>
-    
 </div>
 
 
-<!-- Add Shift Modal -->
+<!-- ==================== ASSIGN SHIFT MODAL ==================== -->
 <div class="modal" id="addShiftModal">
     <div class="modal-content">
         <div class="modal-header">
-            <div class="modal-title">➕ Add New Shift</div>
+            <div class="modal-title">➕ Assign Shift</div>
             <button class="modal-close" onclick="closeAddShiftModal()">×</button>
         </div>
         <div class="modal-body">
             <form method="POST" action="{% url 'create_shift' %}" id="addShiftForm">
                 {% csrf_token %}
 
-                <!-- Shift Type -->
-                <div class="form-group">
-                    <label class="form-label">Shift Type</label>
-                    <select name="shift_type" class="form-select" required>
-                        <option value="">Select shift</option>
-                        <option value="morning">Morning (6 AM – 2 PM)</option>
-                        <option value="afternoon">Afternoon (2 PM – 10 PM)</option>
-                        <option value="night">Night (10 PM – 6 AM)</option>
-                    </select>
+                <!-- Mode: Preset or Custom -->
+                <div class="shift-mode-tabs">
+                    <button type="button" class="shift-mode-tab active" onclick="switchShiftMode('preset', this)">📋 Use Preset</button>
+                    <button type="button" class="shift-mode-tab" onclick="switchShiftMode('custom', this)">⚙️ Custom Time</button>
+                </div>
+
+                <!-- Preset Mode -->
+                <div id="shiftModePreset">
+                    <div class="form-group">
+                        <label class="form-label">Shift Type <span>— Select a preset shift</span></label>
+                        <select name="shift_type" id="shiftTypeSelect" class="form-select" onchange="onPresetChange(this)" required>
+                            <option value="">Select shift type…</option>
+                            <option value="morning">Morning (6 AM – 2 PM)</option>
+                            <option value="afternoon">Afternoon (2 PM – 10 PM)</option>
+                            <option value="night">Night (10 PM – 6 AM)</option>
+                            <!-- Custom templates will be injected here by JS -->
+                        </select>
+                    </div>
+                    <div id="presetTimePreview" style="display:none;padding:12px 16px;background:#EEF2FF;border-radius:10px;font-size:13px;font-weight:600;color:#3730A3;margin-bottom:20px;">
+                        ⏰ <span id="presetTimeText"></span>
+                    </div>
+                </div>
+
+                <!-- Custom Mode -->
+                <div id="shiftModeCustom" style="display:none;">
+                    <div class="form-group">
+                        <label class="form-label">Shift Name <span>— e.g. "Day Shift", "7-7 Shift"</span></label>
+                        <input type="text" name="shift_name" id="customShiftName" class="form-input" placeholder="Enter shift name">
+                        <input type="hidden" name="shift_type" id="customShiftTypeHidden" value="custom">
+                    </div>
+                    <div class="time-row">
+                        <div class="form-group">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" name="start_time" id="customStartTime" class="form-input" value="07:00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Time</label>
+                            <input type="time" name="end_time" id="customEndTime" class="form-input" value="19:00">
+                        </div>
+                    </div>
+                    <div id="customDurationPreview" style="padding:12px 16px;background:#EEF2FF;border-radius:10px;font-size:13px;font-weight:600;color:#3730A3;margin-bottom:20px;">
+                        ⏳ Duration: <span id="customDurationText">12h 0m</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" id="saveAsTemplate" name="save_as_template" style="width:16px;height:16px;accent-color:#6366f1;">
+                            Save as shift template for future use
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Date -->
@@ -1889,45 +702,83 @@
                     <input type="date" name="date" class="form-input" required>
                 </div>
 
-                <!-- Guards (only regular guards, not guard_admin) -->
+                <!-- Guards -->
                 <div class="form-group">
                     <label class="form-label">Assign Guards</label>
                     <div class="guard-select-list">
                         {% for guard in guards %}
                         <label class="guard-select-item">
                             <input type="checkbox" name="guards" value="{{ guard.id }}">
-                            <div class="guard-avatar-large">
-                                {{ guard.user.username|slice:":2"|upper }}
-                            </div>
+                            <div class="guard-avatar-large">{{ guard.user.username|slice:":2"|upper }}</div>
                             <div style="flex:1;">
-                                <div style="font-weight:600;">
-                                    {{ guard.user.get_full_name|default:guard.user.username }}
-                                </div>
-                                <div style="font-size:12px;color:#64748B;">
-                                    {{ guard.user.username }}
-                                </div>
+                                <div style="font-weight:600;">{{ guard.user.get_full_name|default:guard.user.username }}</div>
+                                <div style="font-size:12px;color:#64748B;">{{ guard.user.username }}</div>
                             </div>
                         </label>
                         {% endfor %}
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-cancel" onclick="closeAddShiftModal()">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        ➕ Create Shift
-                    </button>
+                <div class="modal-footer" style="padding:0;border:none;margin-top:0;">
+                    <button type="button" class="btn btn-cancel" onclick="closeAddShiftModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">➕ Assign Shift</button>
                 </div>
-
             </form>
         </div>
-
     </div>
 </div>
 
-<!-- Attendance Override Modal -->
+
+<!-- ==================== SHIFT TEMPLATE MODAL ==================== -->
+<div class="shift-template-modal" id="shiftTemplateModal">
+    <div class="shift-template-modal-content">
+        <div class="modal-header">
+            <div class="modal-title">⚙️ Manage Shift Types</div>
+            <button class="modal-close" onclick="closeShiftTemplateModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:13px;color:#64748B;margin-bottom:20px;">
+                Create custom shift types with specific names and timings. These will appear in the "Assign Shift" dropdown.
+            </p>
+
+            <!-- Existing Templates -->
+            <div id="templateListInModal" style="margin-bottom:24px;">
+                <div style="font-size:13px;color:#94A3B8;text-align:center;padding:20px;">Loading…</div>
+            </div>
+
+            <!-- Create New Template -->
+            <div style="background:#F8FAFC;border-radius:12px;padding:20px;border:2px solid #E2E8F0;">
+                <h4 style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:16px;">➕ Create New Shift Type</h4>
+                <div class="form-group">
+                    <label class="form-label">Shift Name <span style="color:#6366f1;font-size:12px;">e.g. Day Shift, 7-7 Shift, Morning A</span></label>
+                    <input type="text" id="newTemplateName" class="form-input" placeholder="Enter shift name">
+                </div>
+                <div class="time-row">
+                    <div class="form-group">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" id="newTemplateStart" class="form-input" value="07:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Time</label>
+                        <input type="time" id="newTemplateEnd" class="form-input" value="19:00">
+                    </div>
+                </div>
+                <div id="newTemplateDuration" style="font-size:13px;font-weight:600;color:#6366f1;margin-bottom:16px;padding:10px;background:#EEF2FF;border-radius:8px;">
+                    ⏳ Duration: 12h 0m
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveNewTemplate()">
+                    ✓ Save Shift Type
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-cancel" onclick="closeShiftTemplateModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==================== ATTENDANCE OVERRIDE MODAL ==================== -->
 <div class="override-modal" id="attendanceOverrideModal">
     <div class="override-modal-content">
         <div class="modal-header">
@@ -1937,40 +788,24 @@
         <div class="override-options">
             <div class="override-option" data-status="present">
                 <span class="override-icon">✅</span>
-                <div class="override-label">
-                    <div class="override-label-title">Present</div>
-                    <div class="override-label-desc">Mark guard as present</div>
-                </div>
+                <div class="override-label"><div class="override-label-title">Present</div><div class="override-label-desc">Mark guard as present</div></div>
             </div>
             <div class="override-option" data-status="absent">
                 <span class="override-icon">❌</span>
-                <div class="override-label">
-                    <div class="override-label-title">Absent</div>
-                    <div class="override-label-desc">Mark guard as absent</div>
-                </div>
+                <div class="override-label"><div class="override-label-title">Absent</div><div class="override-label-desc">Mark guard as absent</div></div>
             </div>
             <div class="override-option" data-status="late">
                 <span class="override-icon">⏰</span>
-                <div class="override-label">
-                    <div class="override-label-title">Late</div>
-                    <div class="override-label-desc">Mark guard as late</div>
-                </div>
+                <div class="override-label"><div class="override-label-title">Late</div><div class="override-label-desc">Mark guard as late</div></div>
             </div>
             <div class="override-option" data-status="leave">
                 <span class="override-icon">📅</span>
-                <div class="override-label">
-                    <div class="override-label-title">On Leave</div>
-                    <div class="override-label-desc">Mark as approved leave</div>
-                </div>
+                <div class="override-label"><div class="override-label-title">On Leave</div><div class="override-label-desc">Mark as approved leave</div></div>
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-cancel" onclick="closeAttendanceOverride()">
-                Cancel
-            </button>
-            <button type="button" class="btn btn-primary" onclick="submitAttendanceOverride()">
-                ✓ Save
-            </button>
+            <button type="button" class="btn btn-cancel" onclick="closeAttendanceOverride()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="submitAttendanceOverride()">✓ Save</button>
         </div>
     </div>
 </div>
@@ -1979,661 +814,475 @@
 
 {% block scripts %}
 <script>
-    let currentShiftId = null;
-    let selectedStatus = null;
-    
-    // ================= ATTENDANCE OVERRIDE =================
-    function openAttendanceOverride(shiftId, guardName, currentStatus) {
-        currentShiftId = shiftId;
-        selectedStatus = currentStatus === 'auto' ? null : currentStatus;
-        
-        const modal = document.getElementById('attendanceOverrideModal');
-        modal.classList.add('active');
-        
-        // Update modal title
-        const titleEl = modal.querySelector('.modal-title');
-        titleEl.textContent = `✏️ Mark Attendance - ${guardName}`;
-        
-        // Highlight current selection
-        document.querySelectorAll('.override-option').forEach(opt => {
-            opt.classList.remove('selected');
-            if (opt.dataset.status === currentStatus) {
-                opt.classList.add('selected');
-            }
-        });
-    }
-    
-    function closeAttendanceOverride() {
-        document.getElementById('attendanceOverrideModal').classList.remove('active');
-        currentShiftId = null;
-        selectedStatus = null;
-    }
-    
-    // Select attendance status
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.override-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.override-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                this.classList.add('selected');
-                selectedStatus = this.dataset.status;
-            });
-        });
-    });
-    
-    function submitAttendanceOverride() {
-        if (!currentShiftId || !selectedStatus) {
-            showNotification('error', '⚠️ Please select an attendance status');
-            return;
-        }
-        
-        const formData = new FormData();
-        formData.append('shift_id', currentShiftId);
-        formData.append('status', selectedStatus);
-        
-        fetch('{% url "override_attendance" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('success', '✓ Attendance marked successfully');
-                closeAttendanceOverride();
-                // Refresh the page to show updated status
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showNotification('error', '⚠️ ' + (data.error || 'Failed to mark attendance'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('error', '⚠️ Error marking attendance');
-        });
-    }
-    
-    // Close modal when clicking outside
-    document.getElementById('attendanceOverrideModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeAttendanceOverride();
-        }
-    });
-    
-    // ================= REST OF THE EXISTING JAVASCRIPT =================
-    // (Keep all your existing functions like switchTab, filterAttendance, etc.)
-    
-    document.addEventListener("DOMContentLoaded", function () {
-        const savedTab = localStorage.getItem('guardAdminActiveTab');
-        const defaultBtn = document.querySelector('.tab-btn.active');
+let currentShiftId = null;
+let selectedStatus  = null;
+let shiftTemplates  = [];  // Loaded from localStorage + server
 
-        if (savedTab) {
-            const savedBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
-            if (savedBtn) {
-                savedBtn.click();
-                return;
-            }
-        }
+// ================= SHIFT TEMPLATES (local storage backed) =================
+function getShiftTemplates() {
+    try {
+        return JSON.parse(localStorage.getItem('shiftTemplates_{{ request.user.userprofile.society_id }}') || '[]');
+    } catch(e) { return []; }
+}
 
-        if (defaultBtn) {
-            moveUnderline(defaultBtn);
-        }
-    });
+function saveShiftTemplates(templates) {
+    localStorage.setItem('shiftTemplates_{{ request.user.userprofile.society_id }}', JSON.stringify(templates));
+}
 
-    window.addEventListener('resize', function () {
-        const activeBtn = document.querySelector('.tab-btn.active');
-        if (activeBtn) {
-            moveUnderline(activeBtn);
-        }
-    });
+function formatTimeTo12(time24) {
+    if (!time24) return '';
+    const [h, m] = time24.split(':');
+    const hr = parseInt(h);
+    const suffix = hr >= 12 ? 'PM' : 'AM';
+    const hr12 = hr % 12 || 12;
+    return hr12 + ':' + m + ' ' + suffix;
+}
 
-    // ================= TAB SWITCHING =================
-    function switchTab(event, tabName) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function calcDuration(start, end) {
+    if (!start || !end) return '—';
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    let startMin = sh * 60 + sm;
+    let endMin   = eh * 60 + em;
+    if (endMin <= startMin) endMin += 24 * 60; // crosses midnight
+    const diff = endMin - startMin;
+    const hrs  = Math.floor(diff / 60);
+    const mins = diff % 60;
+    return hrs + 'h ' + mins + 'm';
+}
 
-        const activeBtn = event.currentTarget;
-        document.getElementById(tabName + '-tab').classList.add('active');
-        activeBtn.classList.add('active');
+function renderShiftTemplatesGrid() {
+    const templates = getShiftTemplates();
+    const grid = document.getElementById('shiftTemplatesGrid');
+    if (!grid) return;
 
-        // Move underline
-        moveUnderline(activeBtn);
-
-        // Save tab
-        localStorage.setItem('guardAdminActiveTab', tabName);
-
-        if (tabName === 'patrol') {
-            refreshPatrolStatus();
-        }
+    if (templates.length === 0) {
+        grid.innerHTML = '<div style="color:#94A3B8;font-size:13px;grid-column:1/-1;text-align:center;padding:20px;">No custom shift types yet. Click "New Shift Type" to create one.</div>';
+    } else {
+        grid.innerHTML = templates.map((t, i) => `
+            <div class="shift-template-card">
+                <button class="shift-template-delete" onclick="deleteTemplate(${i})" title="Delete">×</button>
+                <div class="shift-template-name">${t.name}</div>
+                <div class="shift-template-time">${formatTimeTo12(t.start)} – ${formatTimeTo12(t.end)}</div>
+                <div class="shift-template-duration">⏳ ${calcDuration(t.start, t.end)}</div>
+            </div>
+        `).join('') +
+        `<div class="add-template-btn" onclick="openShiftTemplateModal()">
+            ➕ New Shift Type
+        </div>`;
     }
 
+    // Refresh dropdown
+    injectTemplatesIntoDropdown();
+}
 
-    
-    // ================= MODAL FUNCTIONS =================
-    function openAddShiftModal() {
-        document.getElementById('addShiftModal').classList.add('active');
+function renderTemplatesInModal() {
+    const templates = getShiftTemplates();
+    const wrap = document.getElementById('templateListInModal');
+    if (templates.length === 0) {
+        wrap.innerHTML = '<div style="color:#94A3B8;font-size:13px;text-align:center;padding:20px;">No custom shift types yet.</div>';
+        return;
     }
-    
-    function closeAddShiftModal() {
-        document.getElementById('addShiftModal').classList.remove('active');
-    }
-    
-    document.getElementById('addShiftModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeAddShiftModal();
-        }
-    });
-    
-    // ================= SHIFT FUNCTIONS =================
-    function viewShiftHistory() {
-        showNotification('success', '📊 Opening shift history report...');
-        
-        setTimeout(() => {
-            window.location.href = '{% url "view_shift_history" %}';
-        }, 500);
-    }
-    
-    // ================= ATTENDANCE FILTER =================
-    function filterAttendance() {
-        const dateInput = document.getElementById('attendanceDate');
-        const selectedDate = dateInput.value;
-        
-        if (!selectedDate) {
-            showNotification('error', '⚠️ Please select a date');
-            return;
-        }
-        
-        showNotification('success', '🔍 Filtering attendance...');
-        
-        fetch(`{% url 'filter_attendance' %}?date=${selectedDate}`, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateAttendanceTable(data.attendance);
-                showNotification('success', `✓ Showing attendance for ${data.date}`);
-            } else {
-                showNotification('error', '⚠️ Failed to load attendance');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('error', '⚠️ Error loading attendance');
-        });
-    }
-    
-
-    // ================= LIVE DURATION UPDATES =================
-    function updateLiveDurations() {
-        document.querySelectorAll('.live-duration').forEach(elem => {
-            const checkInISO = elem.dataset.checkin;
-            if (!checkInISO) return;
-            
-            const checkIn = new Date(checkInISO);
-            const now = new Date();
-            const diff = now - checkIn;
-            
-            const totalMinutes = Math.floor(diff / 1000 / 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            
-            const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-            
-            elem.innerHTML = `<span class="status-pulse" style="width: 6px; height: 6px; margin-right: 4px;"></span>${durationText}`;
-        });
-    }
-
-    // Update live durations every minute
-    setInterval(updateLiveDurations, 60000);
-
-    // Initial update
-    document.addEventListener('DOMContentLoaded', function() {
-        updateLiveDurations();
-    });
-    
-    function updateAttendanceTable(attendanceData) {
-        const tbody = document.getElementById('attendanceTableBody');
-        
-        if (attendanceData.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" style="text-align:center;color:#64748B;padding:40px;">
-                        No attendance records for selected date
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-        
-        tbody.innerHTML = attendanceData.map(shift => {
-            // ✅ STATUS BADGE
-            let statusBadge;
-            
-            if (!shift.shift_id) {
-                statusBadge = '<span class="status-badge status-absent">No Shift</span>';
-            } else if (shift.attendance_override !== 'auto') {
-
-                const statusClass = {
-                    'present': 'status-present',
-                    'absent': 'status-absent',
-                    'late': 'status-late',
-                    'leave': 'status-leave'
-                };
-                statusBadge = `<span class="status-badge ${statusClass[shift.attendance_override]}">${overrideLabels[shift.attendance_override]}</span>`;
-            } else if (shift.status === 'on_duty') {
-                statusBadge = shift.is_late 
-                    ? '<span class="status-badge status-late">⏰ On Duty (Late)</span>'
-                    : '<span class="status-badge status-present">On Duty</span>';
-            } else if (shift.status === 'completed') {
-                statusBadge = shift.is_late
-                    ? '<span class="status-badge status-late">⏰ Completed (Late)</span>'
-                    : '<span class="status-badge status-present">✓ Completed</span>';
-            } else {
-                statusBadge = '<span class="status-badge status-absent">✗ Absent</span>';
-            }
-            
-            // ✅ DURATION DISPLAY
-            let durationDisplay = '<span style="color: #94A3B8;">—</span>';
-            if (shift.duration) {
-                const colorClass = shift.check_out ? '#059669' : '#2196F3';
-                const pulse = shift.check_out ? '' : '<span class="status-pulse" style="width: 6px; height: 6px; margin-right: 4px;"></span>';
-                durationDisplay = `<div style="font-weight: 600; color: ${colorClass};">${pulse}${shift.duration}</div>`;
-            }
-            
-            // ✅ LATE ENTRY COLUMN (MATCHES TEMPLATE LOGIC)
-            let lateEntryDisplay;
-            if (!shift.shift_id) {
-                lateEntryDisplay = '<span style="color:#94A3B8;">No Shift</span>';
-            } else if (shift.check_in === '—') {
-                lateEntryDisplay = '<span style="color:#EF4444;font-weight:600;">No Check-in</span>';
-            } else if (shift.attendance_override === 'late') {
-                // Manually marked as late
-                lateEntryDisplay = '<span style="color:#D97706;font-weight:700;">⏰ Late Check-in</span>';
-            } else if (shift.is_late) {
-                // Auto-detected late (but might be manually marked present)
-                lateEntryDisplay = '<span style="color:#D97706;font-weight:700;">⏰ Late Check-in</span>';
-            } else {
-                lateEntryDisplay = '<span style="color:#059669;font-weight:700;">✓ Timely Check-in</span>';
-            }
-            
-            return `
-                <tr>
-                    <td>
-                        <div class="guard-name-cell">
-                            <div class="guard-avatar-large">
-                                ${shift.guard_name.substring(0, 2).toUpperCase()}
-                            </div>
-                            <div class="guard-details">
-                                <h4>${shift.guard_name}</h4>
-                                <p>${shift.shift || 'No Shift'}</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td>${shift.shift_time}</td>
-                    <td>${shift.check_in}</td>
-                    <td>${shift.check_out}</td>
-                    <td>${durationDisplay}</td>
-                    <td>${lateEntryDisplay}</td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        ${shift.shift_id ? `
-                            <a href="/guard/admin/shift/${shift.shift_id}/" class="btn btn-secondary btn-small">
-                                View Log
-                            </a>
-                            <button class="attendance-override-btn" onclick="openAttendanceOverride(${shift.shift_id}, '${shift.guard_name}', '${shift.attendance_override}')">
-                                ✏️ Mark
-                            </button>
-                        ` : '—'}
-                    </td>
-                </tr>
-            `;
-        }).join('');
-        
-        updateLiveDurations();
-    }
-    
-    // ================= EXPORT ATTENDANCE =================
-    function exportAttendance() {
-        const dateInput = document.getElementById('attendanceDate');
-        const selectedDate = dateInput.value;
-        
-        if (!selectedDate) {
-            showNotification('error', '⚠️ Please select a date');
-            return;
-        }
-        
-        showNotification('success', '📥 Exporting attendance...');
-        
-        window.location.href = `{% url 'export_attendance' %}?date=${selectedDate}`;
-    }
-    
-    // ================= WEEKLY SCHEDULE GENERATION =================
-    function generateWeeklySchedule() {
-        if (!confirm('Generate shifts for the next 7 days? This will create shifts based on guard rotation.')) {
-            return;
-        }
-        
-        showNotification('success', '🔄 Generating weekly schedule...');
-        
-        fetch('{% url "generate_weekly_schedule" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('success', `✓ ${data.message}`);
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
-            } else {
-                showNotification('error', `⚠️ ${data.error}`);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('error', '⚠️ Failed to generate schedule');
-        });
-    }
-    
-    // ================= PATROL STATUS REFRESH =================
-    function refreshPatrolStatus() {
-        fetch('{% url "patrol_status_api" %}', {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updatePatrolGrid(data.active_patrols, data.stats);
-            }
-        })
-        .catch(error => {
-            console.error('Error refreshing patrol status:', error);
-        });
-    }
-    
-    function updatePatrolGrid(patrols, stats) {
-        const grid = document.getElementById('patrolGrid');
-        
-        if (patrols.length === 0) {
-            grid.innerHTML = '<p style="color:#64748B; text-align: center; padding: 40px;">No active patrols at the moment</p>';
-            return;
-        }
-        
-        grid.innerHTML = patrols.map(patrol => `
-            <div class="patrol-card active">
-                <div class="patrol-header">
-                    <div class="patrol-guard-info">
-                        <div class="guard-avatar-large">
-                            ${patrol.guard_initials}
-                        </div>
-                        <div>
-                            <h4>${patrol.guard}</h4>
-                            <p style="font-size:12px;color:#64748B;">
-                                Started ${patrol.started_at}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="patrol-status active">🟢 On Patrol</div>
+    wrap.innerHTML = '<div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Existing Shift Types</div>' +
+        templates.map((t, i) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:white;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:8px;">
+                <div>
+                    <div style="font-weight:700;font-size:14px;color:#1E293B;">${t.name}</div>
+                    <div style="font-size:12px;color:#6366f1;font-weight:600;">${formatTimeTo12(t.start)} – ${formatTimeTo12(t.end)} · ${calcDuration(t.start, t.end)}</div>
                 </div>
-                <div class="patrol-progress">
-                    <div class="progress-label">
-                        <span>Checkpoints</span>
-                        <span>${patrol.completed}/${patrol.total}</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: ${patrol.progress}%;"></div>
-                    </div>
-                </div>
+                <button onclick="deleteTemplate(${i})" style="background:#FEE2E2;color:#DC2626;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Delete</button>
             </div>
         `).join('');
-    }
-    
-    // ================= NOTIFICATION TOAST =================
-    function showNotification(type, message) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${type === 'success' ? '#10B981' : '#EF4444'};
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            z-index: 10001;
-            font-weight: 600;
-            font-size: 14px;
-            max-width: 90%;
-            text-align: center;
-            animation: slideDown 0.3s ease;
-        `;
-        
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'slideUp 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideDown {
-            from { transform: translate(-50%, -100%); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-        @keyframes slideUp {
-            from { transform: translate(-50%, 0); opacity: 1; }
-            to { transform: translate(-50%, -100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // ================= AUTO-REFRESH PATROL STATUS =================
-    setInterval(() => {
-        if (document.getElementById('patrol-tab').classList.contains('active')) {
-            refreshPatrolStatus();
-        }
-    }, 30000);
-    
-    // ================= INITIALIZE =================
-    document.addEventListener("DOMContentLoaded", function () {
-        const dateInput = document.querySelector('#addShiftModal input[name="date"]');
-        if (dateInput) {
-            const today = new Date();
-            dateInput.value = today.toISOString().split("T")[0];
-            dateInput.min = today.toISOString().split("T")[0];
-        }
+}
+
+function injectTemplatesIntoDropdown() {
+    const sel = document.getElementById('shiftTypeSelect');
+    if (!sel) return;
+    // Remove old custom options
+    Array.from(sel.options).forEach(opt => {
+        if (opt.dataset.custom === 'true') sel.remove(opt.index);
     });
-
-    // ================= PATROL DURATION CALCULATOR =================
-    function updatePatrolDurations() {
-        document.querySelectorAll('.patrol-duration').forEach(elem => {
-            const startTime = new Date(elem.dataset.start);
-            const now = new Date();
-            const diff = Math.floor((now - startTime) / 1000 / 60); // minutes
-            
-            const hours = Math.floor(diff / 60);
-            const minutes = diff % 60;
-            
-            if (hours > 0) {
-                elem.textContent = `${hours}h ${minutes}m`;
-            } else {
-                elem.textContent = `${minutes}m`;
-            }
+    const templates = getShiftTemplates();
+    if (templates.length > 0) {
+        const divider = document.createElement('option');
+        divider.disabled = true;
+        divider.textContent = '── Custom Shift Types ──';
+        divider.dataset.custom = 'true';
+        sel.add(divider);
+        templates.forEach((t, i) => {
+            const opt = document.createElement('option');
+            opt.value = 'custom_' + i;
+            opt.textContent = t.name + ' (' + formatTimeTo12(t.start) + ' – ' + formatTimeTo12(t.end) + ')';
+            opt.dataset.custom = 'true';
+            opt.dataset.start = t.start;
+            opt.dataset.end   = t.end;
+            opt.dataset.tname = t.name;
+            sel.add(opt);
         });
     }
+}
 
-    // Update durations every minute
-    setInterval(updatePatrolDurations, 60000);
-    document.addEventListener('DOMContentLoaded', updatePatrolDurations);
+function saveNewTemplate() {
+    const name  = document.getElementById('newTemplateName').value.trim();
+    const start = document.getElementById('newTemplateStart').value;
+    const end   = document.getElementById('newTemplateEnd').value;
 
-    // ================= TRACK PATROL LOCATION =================
-    function trackPatrolLocation(patrolId) {
-        // In a real implementation, this would show a map with real-time tracking
-        showNotification('info', '📍 Real-time tracking feature coming soon');
-        
-        // For now, show patrol details
-        window.location.href = `/guard/admin/patrol/${patrolId}/`;
-    }
+    if (!name || !start || !end) { showNotification('error', '⚠️ Please fill in all fields'); return; }
 
-    // ================= LOAD CHECKPOINT COVERAGE =================
-    function loadCheckpointCoverage() {
-        fetch('{% url "checkpoint_coverage_api" %}', {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateCheckpointCoverage(data.checkpoints);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading checkpoint coverage:', error);
-        });
-    }
+    const templates = getShiftTemplates();
+    templates.push({ name, start, end });
+    saveShiftTemplates(templates);
 
-    function updateCheckpointCoverage(checkpoints) {
-        const container = document.getElementById('checkpointCoverage');
-        
-        if (checkpoints.length === 0) {
-            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94A3B8;">No checkpoints configured</div>';
-            return;
-        }
-        
-        container.innerHTML = checkpoints.map(cp => `
-            <div class="checkpoint-coverage-item ${cp.scanned_today ? 'scanned' : ''}">
-                <div style="font-size: 24px; margin-bottom: 8px;">${cp.icon}</div>
-                <div class="checkpoint-type-badge checkpoint-type-${cp.type}">
-                    ${cp.type}
-                </div>
-                <div style="font-size: 13px; font-weight: 700; color: #1E293B; margin-top: 6px;">
-                    ${cp.name}
-                </div>
-                <div style="font-size: 11px; color: #64748B; margin-top: 4px;">
-                    ${cp.scanned_today ? `✓ Scanned ${cp.scan_count}x` : 'Not scanned'}
-                </div>
-            </div>
-        `).join('');
-    }
+    showNotification('success', '✓ Shift type "' + name + '" saved!');
+    document.getElementById('newTemplateName').value = '';
 
-    // ================= LOAD RECENT PATROL HISTORY =================
-    function loadRecentPatrolHistory() {
-        fetch('{% url "recent_patrol_history_api" %}?limit=5', {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updatePatrolHistory(data.patrols);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading patrol history:', error);
-        });
-    }
+    renderShiftTemplatesGrid();
+    renderTemplatesInModal();
+}
 
-    function updatePatrolHistory(patrols) {
-        const container = document.getElementById('recentPatrolHistory');
-        
-        if (patrols.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #94A3B8;">No recent patrols</div>';
-            return;
-        }
-        
-        container.innerHTML = patrols.map(patrol => `
-            <div class="patrol-history-item">
-                <div class="patrol-info">
-                    <h5>${patrol.guard_name} • ${patrol.date}</h5>
-                    <p>${patrol.start_time} - ${patrol.end_time} • Duration: ${patrol.duration}</p>
-                </div>
-                <div class="patrol-stats">
-                    <div class="patrol-stat">
-                        <div class="patrol-stat-value">${patrol.checkpoints}</div>
-                        <div class="patrol-stat-label">Checkpoints</div>
-                    </div>
-                    <div class="patrol-stat">
-                        <div class="patrol-stat-value">${patrol.completion}%</div>
-                        <div class="patrol-stat-label">Complete</div>
-                    </div>
-                    <a href="/guard/admin/patrol/${patrol.id}/" class="btn btn-secondary btn-small">
-                        View
-                    </a>
-                </div>
-            </div>
-        `).join('');
-    }
+function deleteTemplate(index) {
+    if (!confirm('Delete this shift type?')) return;
+    const templates = getShiftTemplates();
+    templates.splice(index, 1);
+    saveShiftTemplates(templates);
+    renderShiftTemplatesGrid();
+    renderTemplatesInModal();
+    showNotification('success', 'Shift type deleted');
+}
 
-    // ================= FILTER PATROL STATS =================
-    function filterPatrolStats(period) {
-        // This would make an API call to get stats for the selected period
-        showNotification('info', `Loading ${period} statistics...`);
-        
-        // In real implementation, you'd call:
-        // fetch(`/guard/admin/patrol-stats/?period=${period}`)
-    }
+// ── Shift Template Modal ──
+function openShiftTemplateModal() {
+    document.getElementById('shiftTemplateModal').classList.add('active');
+    renderTemplatesInModal();
+    setupNewTemplateDurationPreview();
+}
+function closeShiftTemplateModal() {
+    document.getElementById('shiftTemplateModal').classList.remove('active');
+    renderShiftTemplatesGrid();
+}
 
-    // ================= INITIALIZE PATROL TAB =================
-    document.addEventListener('DOMContentLoaded', function() {
-        // Load initial data
-        if (document.getElementById('patrol-tab')) {
-            loadCheckpointCoverage();
-            loadRecentPatrolHistory();
-        }
+function setupNewTemplateDurationPreview() {
+    ['newTemplateStart','newTemplateEnd'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateNewTemplateDuration);
     });
+    updateNewTemplateDuration();
+}
+function updateNewTemplateDuration() {
+    const s = document.getElementById('newTemplateStart').value;
+    const e = document.getElementById('newTemplateEnd').value;
+    document.getElementById('newTemplateDuration').innerHTML = '⏳ Duration: <strong>' + calcDuration(s, e) + '</strong>';
+}
 
-    // ================= AUTO-REFRESH FOR PATROL TAB =================
-    setInterval(() => {
-        if (document.getElementById('patrol-tab').classList.contains('active')) {
-            refreshPatrolStatus();
-            updatePatrolDurations();
-        }
-    }, 30000); // Refresh every 30 seconds
+// ================= ASSIGN SHIFT MODAL =================
+function openAddShiftModal() {
+    document.getElementById('addShiftModal').classList.add('active');
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.querySelector('#addShiftModal input[name="date"]');
+    if (dateInput) { dateInput.value = today; dateInput.min = today; }
+    injectTemplatesIntoDropdown();
+    updateCustomDurationPreview();
+}
+function closeAddShiftModal() {
+    document.getElementById('addShiftModal').classList.remove('active');
+}
+document.getElementById('addShiftModal').addEventListener('click', function(e) { if (e.target === this) closeAddShiftModal(); });
 
-    function moveUnderline(activeBtn) {
-        const underline = document.getElementById('tabUnderline');
-        const nav = document.getElementById('tabNav');
+function switchShiftMode(mode, btn) {
+    document.querySelectorAll('.shift-mode-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('shiftModePreset').style.display = mode === 'preset' ? '' : 'none';
+    document.getElementById('shiftModeCustom').style.display  = mode === 'custom' ? '' : 'none';
 
-        const btnRect = activeBtn.getBoundingClientRect();
-        const navRect = nav.getBoundingClientRect();
+    // Toggle required attributes
+    const shiftTypeSelect  = document.getElementById('shiftTypeSelect');
+    const customShiftName  = document.getElementById('customShiftName');
+    const customStartTime  = document.getElementById('customStartTime');
+    const customEndTime    = document.getElementById('customEndTime');
+    const customTypeHidden = document.getElementById('customShiftTypeHidden');
 
-        const left = btnRect.left - navRect.left;
-        const width = btnRect.width;
-
-        // Stretch slightly before settling
-        underline.style.width = width + 20 + "px";
-        underline.style.transform = `translateX(${left - 10}px)`;
-
-        // Settle after tiny delay
-        setTimeout(() => {
-            underline.style.width = width + "px";
-            underline.style.transform = `translateX(${left}px)`;
-        }, 120);
+    if (mode === 'preset') {
+        shiftTypeSelect.name  = 'shift_type';
+        customShiftName.name  = '';
+        customStartTime.name  = '';
+        customEndTime.name    = '';
+        customTypeHidden.name = '';
+    } else {
+        shiftTypeSelect.name  = '';
+        customShiftName.name  = 'shift_name';
+        customStartTime.name  = 'start_time';
+        customEndTime.name    = 'end_time';
+        customTypeHidden.name = 'shift_type';
     }
+}
 
+function onPresetChange(sel) {
+    const opt     = sel.options[sel.selectedIndex];
+    const preview = document.getElementById('presetTimePreview');
+    const text    = document.getElementById('presetTimeText');
 
+    if (opt.dataset.custom === 'true' && opt.dataset.start) {
+        preview.style.display = '';
+        text.textContent = formatTimeTo12(opt.dataset.start) + ' – ' + formatTimeTo12(opt.dataset.end) + '  (' + calcDuration(opt.dataset.start, opt.dataset.end) + ')';
+        // Also fill hidden start/end for backend
+        document.getElementById('customStartTime').name = 'start_time';
+        document.getElementById('customEndTime').name   = 'end_time';
+        document.getElementById('customStartTime').value = opt.dataset.start;
+        document.getElementById('customEndTime').value   = opt.dataset.end;
+        // Keep shift_type but also send name
+        document.getElementById('customShiftName').name  = 'shift_name';
+        document.getElementById('customShiftName').value = opt.dataset.tname || '';
+    } else {
+        preview.style.display = 'none';
+        document.getElementById('customStartTime').name = '';
+        document.getElementById('customEndTime').name   = '';
+        document.getElementById('customShiftName').name = '';
+    }
+}
+
+function updateCustomDurationPreview() {
+    const s   = document.getElementById('customStartTime').value;
+    const e   = document.getElementById('customEndTime').value;
+    const txt = document.getElementById('customDurationText');
+    if (txt) txt.textContent = calcDuration(s, e);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    ['customStartTime','customEndTime'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateCustomDurationPreview);
+    });
+});
+
+// ================= ATTENDANCE OVERRIDE =================
+function openAttendanceOverride(shiftId, guardName, currentStatus) {
+    currentShiftId = shiftId;
+    selectedStatus = currentStatus === 'auto' ? null : currentStatus;
+    const modal = document.getElementById('attendanceOverrideModal');
+    modal.classList.add('active');
+    modal.querySelector('.modal-title').textContent = '✏️ Mark Attendance - ' + guardName;
+    document.querySelectorAll('.override-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.status === currentStatus);
+    });
+}
+function closeAttendanceOverride() {
+    document.getElementById('attendanceOverrideModal').classList.remove('active');
+    currentShiftId = null; selectedStatus = null;
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.override-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.override-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedStatus = this.dataset.status;
+        });
+    });
+});
+
+function submitAttendanceOverride() {
+    if (!currentShiftId || !selectedStatus) { showNotification('error','⚠️ Please select a status'); return; }
+    const formData = new FormData();
+    formData.append('shift_id', currentShiftId);
+    formData.append('status', selectedStatus);
+    fetch('{% url "override_attendance" %}', { method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}'}, body: formData })
+    .then(r=>r.json()).then(data => {
+        if (data.success) { showNotification('success','✓ Attendance marked'); closeAttendanceOverride(); setTimeout(()=>location.reload(),1000); }
+        else { showNotification('error','⚠️ '+(data.error||'Failed')); }
+    }).catch(()=>showNotification('error','⚠️ Error'));
+}
+document.getElementById('attendanceOverrideModal').addEventListener('click', function(e) { if (e.target===this) closeAttendanceOverride(); });
+document.getElementById('shiftTemplateModal').addEventListener('click', function(e) { if (e.target===this) closeShiftTemplateModal(); });
+
+// ================= TAB SWITCHING =================
+function switchTab(event, tabName) {
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = event.currentTarget;
+    document.getElementById(tabName+'-tab').classList.add('active');
+    activeBtn.classList.add('active');
+    moveUnderline(activeBtn);
+    localStorage.setItem('guardAdminActiveTab', tabName);
+    if (tabName === 'patrol') refreshPatrolStatus();
+}
+
+function moveUnderline(activeBtn) {
+    const underline = document.getElementById('tabUnderline');
+    const nav = document.getElementById('tabNav');
+    const btnRect = activeBtn.getBoundingClientRect();
+    const navRect = nav.getBoundingClientRect();
+    const left = btnRect.left - navRect.left;
+    const width = btnRect.width;
+    underline.style.width = (width+20)+'px';
+    underline.style.transform = 'translateX('+(left-10)+'px)';
+    setTimeout(()=>{ underline.style.width=width+'px'; underline.style.transform='translateX('+left+'px)'; },120);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    renderShiftTemplatesGrid();
+    const savedTab = localStorage.getItem('guardAdminActiveTab');
+    if (savedTab) {
+        const savedBtn = document.querySelector('.tab-btn[data-tab="'+savedTab+'"]');
+        if (savedBtn) { savedBtn.click(); return; }
+    }
+    const defaultBtn = document.querySelector('.tab-btn.active');
+    if (defaultBtn) moveUnderline(defaultBtn);
+});
+
+window.addEventListener('resize', function() {
+    const activeBtn = document.querySelector('.tab-btn.active');
+    if (activeBtn) moveUnderline(activeBtn);
+});
+
+// ================= ATTENDANCE FILTER =================
+function filterAttendance() {
+    const selectedDate = document.getElementById('attendanceDate').value;
+    if (!selectedDate) { showNotification('error','⚠️ Please select a date'); return; }
+    fetch('{% url "filter_attendance" %}?date='+selectedDate, { headers:{'X-Requested-With':'XMLHttpRequest'} })
+    .then(r=>r.json()).then(data => {
+        if (data.success) { updateAttendanceTable(data.attendance); showNotification('success','✓ Showing attendance for '+data.date); }
+        else { showNotification('error','⚠️ Failed to load attendance'); }
+    }).catch(()=>showNotification('error','⚠️ Error loading attendance'));
+}
+
+function exportAttendance() {
+    const selectedDate = document.getElementById('attendanceDate').value;
+    if (!selectedDate) { showNotification('error','⚠️ Please select a date'); return; }
+    window.location.href = '{% url "export_attendance" %}?date='+selectedDate;
+}
+
+function updateAttendanceTable(attendanceData) {
+    const tbody = document.getElementById('attendanceTableBody');
+    if (!attendanceData || attendanceData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#64748B;padding:40px;">No records for selected date</td></tr>';
+        return;
+    }
+    tbody.innerHTML = attendanceData.map(shift => {
+        let statusBadge;
+        if (!shift.shift_id) { statusBadge = '<span class="status-badge status-absent">No Shift</span>'; }
+        else if (shift.attendance_override !== 'auto') {
+            const cls = {present:'status-present',absent:'status-absent',late:'status-late',leave:'status-leave'};
+            const lbl = {present:'✓ Present',absent:'✗ Absent',late:'⏰ Late',leave:'📅 Leave'};
+            statusBadge = '<span class="status-badge '+(cls[shift.attendance_override]||'status-absent')+'">'+(lbl[shift.attendance_override]||shift.attendance_override)+'</span>';
+        } else if (shift.status === 'on_duty') {
+            statusBadge = shift.is_late ? '<span class="status-badge status-late">⏰ On Duty (Late)</span>' : '<span class="status-badge status-present">On Duty</span>';
+        } else if (shift.status === 'completed') {
+            statusBadge = shift.is_late ? '<span class="status-badge status-late">⏰ Completed (Late)</span>' : '<span class="status-badge status-present">✓ Completed</span>';
+        } else { statusBadge = '<span class="status-badge status-absent">✗ Absent</span>'; }
+
+        let durationDisplay = '<span style="color:#94A3B8;">—</span>';
+        if (shift.duration) {
+            const color = shift.check_out ? '#059669' : '#2196F3';
+            const pulse = shift.check_out ? '' : '<span class="status-pulse" style="width:6px;height:6px;margin-right:4px;"></span>';
+            durationDisplay = '<div style="font-weight:600;color:'+color+';">'+pulse+shift.duration+'</div>';
+        }
+
+        let lateDisplay;
+        if (!shift.shift_id) lateDisplay = '<span style="color:#94A3B8;">No Shift</span>';
+        else if (shift.check_in === '—') lateDisplay = '<span style="color:#EF4444;font-weight:600;">No Check-in</span>';
+        else if (shift.is_late) lateDisplay = '<span style="color:#D97706;font-weight:700;">⏰ Late Check-in</span>';
+        else lateDisplay = '<span style="color:#059669;font-weight:700;">✓ Timely</span>';
+
+        return '<tr><td><div class="guard-name-cell"><div class="guard-avatar-large">'+shift.guard_name.substring(0,2).toUpperCase()+'</div><div class="guard-details"><h4>'+shift.guard_name+'</h4><p>'+shift.shift+'</p></div></div></td>' +
+            '<td>'+shift.shift_time+'</td><td>'+shift.check_in+'</td><td>'+shift.check_out+'</td>' +
+            '<td>'+durationDisplay+'</td><td>'+lateDisplay+'</td><td>'+statusBadge+'</td>' +
+            '<td>'+(shift.shift_id ? '<a href="/guard/admin/shift/'+shift.shift_id+'/" class="btn btn-secondary btn-small">View Log</a> <button class="attendance-override-btn" onclick="openAttendanceOverride('+shift.shift_id+', \''+shift.guard_name+'\', \''+shift.attendance_override+'\')">✏️ Mark</button>' : '—')+'</td></tr>';
+    }).join('');
+    updateLiveDurations();
+}
+
+// ================= LIVE DURATION =================
+function updateLiveDurations() {
+    document.querySelectorAll('.live-duration').forEach(elem => {
+        const checkIn = new Date(elem.dataset.checkin);
+        const diff = Math.max(0, new Date() - checkIn);
+        const totalMin = Math.floor(diff/1000/60);
+        const hrs = Math.floor(totalMin/60), mins = totalMin%60;
+        const dur = hrs > 0 ? hrs+'h '+mins+'m' : mins+'m';
+        elem.innerHTML = '<span class="status-pulse" style="width:6px;height:6px;margin-right:4px;"></span>'+dur;
+    });
+}
+setInterval(updateLiveDurations, 60000);
+document.addEventListener('DOMContentLoaded', updateLiveDurations);
+
+// ================= PATROL =================
+function refreshPatrolStatus() {
+    fetch('{% url "patrol_status_api" %}', { headers:{'X-Requested-With':'XMLHttpRequest'} })
+    .then(r=>r.json()).then(data => { if (data.success) updatePatrolGrid(data.active_patrols, data.stats); })
+    .catch(console.error);
+}
+
+function updatePatrolGrid(patrols, stats) {
+    const grid = document.getElementById('patrolGrid');
+    if (patrols.length === 0) { grid.innerHTML='<p style="color:#64748B;text-align:center;padding:40px;">No active patrols</p>'; return; }
+    grid.innerHTML = patrols.map(p => `
+        <div class="patrol-card active">
+            <div class="patrol-header">
+                <div class="patrol-guard-info">
+                    <div class="guard-avatar-large">${p.guard_initials}</div>
+                    <div><h4>${p.guard}</h4><p style="font-size:12px;color:#64748B;">Started ${p.started_at}</p></div>
+                </div>
+                <div class="patrol-status active">🟢 On Patrol</div>
+            </div>
+            <div class="patrol-progress">
+                <div class="progress-label"><span>Checkpoints</span><span>${p.completed}/${p.total}</span></div>
+                <div class="progress-bar-container"><div class="progress-bar" style="width:${p.progress}%;"></div></div>
+            </div>
+        </div>`).join('');
+}
+
+function updatePatrolDurations() {
+    document.querySelectorAll('.patrol-duration').forEach(elem => {
+        const diff = Math.floor((new Date() - new Date(elem.dataset.start))/1000/60);
+        const h = Math.floor(diff/60), m = diff%60;
+        elem.textContent = h > 0 ? h+'h '+m+'m' : m+'m';
+    });
+}
+setInterval(updatePatrolDurations, 60000);
+document.addEventListener('DOMContentLoaded', updatePatrolDurations);
+
+function trackPatrolLocation(patrolId) { window.location.href='/guard/admin/patrol/'+patrolId+'/'; }
+
+function loadCheckpointCoverage() {
+    fetch('{% url "checkpoint_coverage_api" %}', { headers:{'X-Requested-With':'XMLHttpRequest'} })
+    .then(r=>r.json()).then(data => { if (data.success) updateCheckpointCoverage(data.checkpoints); })
+    .catch(console.error);
+}
+function updateCheckpointCoverage(checkpoints) {
+    const c = document.getElementById('checkpointCoverage');
+    if (!checkpoints || checkpoints.length === 0) { c.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8;">No checkpoints configured</div>'; return; }
+    c.innerHTML = checkpoints.map(cp => `<div class="checkpoint-coverage-item ${cp.scanned_today?'scanned':''}"><div style="font-size:24px;margin-bottom:8px;">${cp.icon}</div><div style="font-size:13px;font-weight:700;color:#1E293B;">${cp.name}</div><div style="font-size:11px;color:#64748B;margin-top:4px;">${cp.scanned_today?'✓ Scanned '+cp.scan_count+'x':'Not scanned'}</div></div>`).join('');
+}
+
+function loadRecentPatrolHistory() {
+    fetch('{% url "recent_patrol_history_api" %}?limit=5', { headers:{'X-Requested-With':'XMLHttpRequest'} })
+    .then(r=>r.json()).then(data => { if (data.success) updatePatrolHistory(data.patrols); })
+    .catch(console.error);
+}
+function updatePatrolHistory(patrols) {
+    const c = document.getElementById('recentPatrolHistory');
+    if (!patrols || patrols.length === 0) { c.innerHTML='<div style="text-align:center;padding:40px;color:#94A3B8;">No recent patrols</div>'; return; }
+    c.innerHTML = patrols.map(p => `<div class="patrol-history-item"><div class="patrol-info"><h5>${p.guard_name} • ${p.date}</h5><p>${p.start_time} - ${p.end_time} · ${p.duration}</p></div><div class="patrol-stats"><div class="patrol-stat"><div class="patrol-stat-value">${p.checkpoints}</div><div class="patrol-stat-label">Checkpoints</div></div><div class="patrol-stat"><div class="patrol-stat-value">${p.completion}%</div><div class="patrol-stat-label">Complete</div></div><a href="/guard/admin/patrol/${p.id}/" class="btn btn-secondary btn-small">View</a></div></div>`).join('');
+}
+
+function filterPatrolStats(period) { showNotification('info','Loading '+period+' statistics…'); }
+setInterval(()=>{ if (document.getElementById('patrol-tab').classList.contains('active')) { refreshPatrolStatus(); updatePatrolDurations(); }}, 30000);
+document.addEventListener('DOMContentLoaded', function() { loadCheckpointCoverage(); loadRecentPatrolHistory(); });
+
+// ================= NOTIFICATION TOAST =================
+function showNotification(type, message) {
+    const colors = { success:'#10B981', error:'#EF4444', warning:'#F59E0B', info:'#2196F3' };
+    const t = document.createElement('div');
+    t.style.cssText = `position:fixed;top:80px;left:50%;transform:translateX(-50%);background:${colors[type]||colors.info};color:white;padding:16px 24px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:10001;font-weight:600;font-size:14px;max-width:90%;text-align:center;animation:slideDown 0.3s ease;`;
+    t.textContent = message;
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+const _s = document.createElement('style');
+_s.textContent = `@keyframes slideDown{from{transform:translate(-50%,-100%);opacity:0}to{transform:translate(-50%,0);opacity:1}}`;
+document.head.appendChild(_s);
+
+function viewShiftHistory() {
+    showNotification('success','📊 Opening shift history…');
+    setTimeout(()=>window.location.href='{% url "view_shift_history" %}',500);
+}
 </script>
 {% endblock %}
