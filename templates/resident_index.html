@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}MyGate – {{ apartment.block }}-{{ apartment.flat_number }} | Resident Dashboard{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block title %}MySociety – {{ apartment.block }}-{{ apartment.flat_number }} | Resident Dashboard{% endblock %}
 
 {% block extra_styles %}
+<style>
 /* ─── OVERRIDE BASE HEADER ─── */
 .header { display: none !important; }
-.bottom-nav { display: none !important; }
 
 :root {
   --mg-blue: #1A3CFF;
@@ -40,91 +42,10 @@
 * { box-sizing: border-box; }
 body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', sans-serif !important; margin: 0; }
 
-/* ── TOPBAR ── */
-.mg-topbar {
-  position: sticky; top: 0; z-index: 200;
-  background: var(--mg-blue);
-  padding: 0 18px; height: 56px;
-  display: flex; align-items: center; justify-content: space-between;
-  box-shadow: 0 2px 12px rgba(26,60,255,0.3);
-}
-.mg-topbar-brand { display: flex; align-items: center; gap: 10px; }
-.mg-logo-text { font-size: 20px; font-weight: 800; color: white; letter-spacing: -0.5px; }
-.mg-flat-badge {
-  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25);
-  color: white; font-size: 12px; font-weight: 600;
-  padding: 4px 10px; border-radius: 20px;
-  display: flex; align-items: center; gap: 5px;
-}
-.mg-topbar-right { display: flex; align-items: center; gap: 6px; }
-.mg-tb-btn {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(255,255,255,0.15); border: none;
-  display: flex; align-items: center; justify-content: center;
-  color: white; font-size: 17px; cursor: pointer;
-  transition: background 0.2s; position: relative;
-  text-decoration: none;
-}
-.mg-tb-btn:hover { background: rgba(255,255,255,0.28); }
-.mg-notif-dot {
-  position: absolute; top: 4px; right: 4px;
-  width: 9px; height: 9px; border-radius: 50%;
-  background: #FF4D4D; border: 1.5px solid var(--mg-blue);
-}
-
-/* ── HERO ── */
-.mg-hero {
-  background: var(--mg-blue);
-  padding: 4px 18px 36px; position: relative; overflow: hidden;
-}
-.mg-hero-mesh {
-  position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 80% at 90% 10%, rgba(255,255,255,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 10% 80%, rgba(255,255,255,0.05) 0%, transparent 60%);
-}
-.mg-hero-wave {
-  position: absolute; bottom: -2px; left: 0; right: 0;
-  height: 36px; background: var(--mg-bg); border-radius: 50% 50% 0 0 / 24px;
-}
-.mg-hero-inner { position: relative; z-index: 1; }
-.mg-hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.mg-hero-greet { color: rgba(255,255,255,0.75); font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-.mg-hero-name { color: white; font-size: 22px; font-weight: 800; letter-spacing: -0.4px; }
-.mg-sos-btn {
-  background: rgba(245,34,45,0.9); border: 1.5px solid rgba(255,100,100,0.5);
-  color: white; font-size: 11px; font-weight: 700; padding: 7px 12px;
-  border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px;
-  white-space: nowrap; transition: all 0.2s; flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(245,34,45,0.4);
-}
-.mg-sos-btn:hover { background: var(--mg-red); transform: scale(1.05); }
-.mg-hero-meta { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.mg-hero-chip {
-  background: rgba(255,255,255,0.14); backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.2); color: white;
-  font-size: 11.5px; font-weight: 600; padding: 5px 11px;
-  border-radius: 20px; display: flex; align-items: center; gap: 5px;
-}
-.mg-hero-chip .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #FF4D4D; display: inline-block; }
-
 /* ── SCROLL AREA ── */
 .mg-scroll { padding: 16px 14px 100px; display: flex; flex-direction: column; gap: 14px; }
 
-/* ── STATS ── */
-.mg-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
-.mg-stat {
-  background: var(--mg-card); border-radius: var(--radius);
-  padding: 14px 10px; text-align: center;
-  box-shadow: var(--mg-shadow); border: 1px solid var(--mg-border);
-  transition: transform 0.18s; cursor: pointer;
-}
-.mg-stat:active { transform: scale(0.96); }
-.mg-stat-icon { font-size: 22px; margin-bottom: 6px; display: block; }
-.mg-stat-num { font-size: 22px; font-weight: 800; color: var(--mg-blue); line-height: 1; margin-bottom: 3px; }
-.mg-stat-lbl { font-size: 9.5px; color: var(--mg-text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
-
-/* ── CARD ── */
+/* ── BASE CARD ── */
 .mg-card {
   background: var(--mg-card); border-radius: var(--radius);
   box-shadow: var(--mg-shadow); border: 1px solid var(--mg-border); overflow: hidden;
@@ -133,6 +54,7 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
   padding: 15px 16px 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
 }
 .mg-card-title { font-size: 15px; font-weight: 700; color: var(--mg-text); display: flex; align-items: center; gap: 7px; }
+.mg-card-title iconify-icon { font-size: 18px; }
 .mg-pill { padding: 4px 11px; border-radius: 20px; font-size: 11px; font-weight: 700; }
 .mg-pill-blue   { background: var(--mg-blue-light); color: var(--mg-blue); }
 .mg-pill-green  { background: var(--mg-green-light); color: #006D2C; }
@@ -140,27 +62,42 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
 .mg-pill-red    { background: var(--mg-red-light); color: var(--mg-red); }
 .mg-pill-yellow { background: var(--mg-yellow-light); color: #875400; }
 
+/* ── VIEW ALL LINK ── */
+.mg-view-all {
+  font-size: 12px; font-weight: 700; color: var(--mg-blue);
+  text-decoration: none; display: flex; align-items: center; gap: 3px;
+  padding: 4px 10px; border-radius: 20px; background: var(--mg-blue-light);
+  transition: all 0.2s;
+}
+.mg-view-all:hover { background: var(--mg-blue); color: white; }
+.mg-view-all iconify-icon { font-size: 13px; }
+
 /* ── QUICK ACTIONS ── */
 .mg-qa-grid { display: grid; grid-template-columns: repeat(4,1fr); padding: 0 8px 14px; gap: 2px; }
 .mg-qa-btn {
   display: flex; flex-direction: column; align-items: center;
   padding: 10px 4px; gap: 6px; cursor: pointer; border-radius: 12px;
-  border: none; background: transparent; transition: background 0.15s;
+  border: none; background: transparent; transition: background 0.15s; font-family: inherit;
 }
 .mg-qa-btn:active { background: var(--mg-bg); }
 .mg-qa-ic {
   width: 50px; height: 50px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; transition: transform 0.2s;
+  display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
 }
+.mg-qa-ic iconify-icon { font-size: 22px; }
 .mg-qa-btn:hover .mg-qa-ic { transform: scale(1.1); }
 .mg-qa-btn:hover { background: rgba(0,0,0,0.03); }
 .mg-qa-lbl { font-size: 10px; font-weight: 600; color: var(--mg-text2); text-align: center; line-height: 1.3; }
-.ic-b  { background: #EEF1FF; } .ic-g  { background: #E6FAF0; }
-.ic-o  { background: #FFF4EB; } .ic-r  { background: #FFF1F0; }
-.ic-p  { background: #F9F0FF; } .ic-t  { background: #E6FFFB; }
-.ic-y  { background: #FFFBEB; } .ic-pk { background: #FFF0F6; }
-.ic-gr { background: #F3F4F6; } .ic-in { background: #EEF2FF; }
+.ic-b  { background: #EEF1FF; color: var(--mg-blue); }
+.ic-g  { background: #E6FAF0; color: #00A846; }
+.ic-o  { background: #FFF4EB; color: var(--mg-orange); }
+.ic-r  { background: #FFF1F0; color: var(--mg-red); }
+.ic-p  { background: #F9F0FF; color: var(--mg-purple); }
+.ic-t  { background: #E6FFFB; color: var(--mg-teal); }
+.ic-y  { background: #FFFBEB; color: #875400; }
+.ic-pk { background: #FFF0F6; color: var(--mg-pink); }
+.ic-gr { background: #F3F4F6; color: var(--mg-text2); }
+.ic-in { background: #EEF2FF; color: var(--mg-blue); }
 .mg-qa-more {
   width: 50px; height: 50px; border-radius: 14px;
   background: var(--mg-bg); border: 2px dashed var(--mg-border);
@@ -169,11 +106,94 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
 }
 .mg-qa-btn:hover .mg-qa-more { background: var(--mg-blue-light); border-color: var(--mg-blue); }
 
-/* ── VISITOR ROW ── */
+/* ── TODAY'S ENTRY CARD ── */
+.mg-entry-card {
+  background: var(--mg-card); border-radius: var(--radius);
+  box-shadow: var(--mg-shadow); border: 1px solid var(--mg-border); overflow: hidden;
+}
+.mg-entry-head {
+  padding: 14px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--mg-border);
+}
+.mg-entry-title {
+  font-size: 15px; font-weight: 700; color: var(--mg-text);
+  display: flex; align-items: center; gap: 7px;
+}
+.mg-entry-title iconify-icon { font-size: 18px; color: var(--mg-blue); }
+
+/* Two-pane layout */
+.mg-entry-body {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+}
+.mg-entry-left { padding: 14px 16px; }
+.mg-entry-divider { background: var(--mg-border); }
+.mg-entry-right { padding: 14px 16px; }
+
+/* Shortcut buttons */
+.mg-shortcut-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.mg-shortcut-btn {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; border-radius: 11px; border: 1.5px solid var(--mg-border);
+  background: var(--mg-bg); cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.mg-shortcut-btn:hover { border-color: var(--mg-blue); background: var(--mg-blue-light); }
+.mg-shortcut-btn .sc-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.mg-shortcut-btn .sc-icon iconify-icon { font-size: 17px; }
+.mg-shortcut-btn .sc-label { font-size: 11px; font-weight: 700; color: var(--mg-text2); line-height: 1.3; }
+.mg-shortcut-btn:hover .sc-label { color: var(--mg-blue); }
+
+/* Section sub-heading */
+.mg-entry-sec-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--mg-text3); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 4px;
+}
+.mg-entry-sec-title iconify-icon { font-size: 13px; }
+
+/* Entry row */
+.mg-entry-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--mg-border);
+  cursor: pointer; transition: all 0.15s; border-radius: 0;
+}
+.mg-entry-row:last-child { border-bottom: none; padding-bottom: 0; }
+.mg-entry-row:first-child { padding-top: 0; }
+.mg-entry-row:hover { background: #FAFBFF; border-radius: 8px; padding-left: 5px; }
+.mg-entry-avatar {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--mg-blue), #7B5EA7);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 800; font-size: 13px; flex-shrink: 0;
+}
+.mg-entry-info { flex: 1; min-width: 0; }
+.mg-entry-name { font-size: 12.5px; font-weight: 700; color: var(--mg-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mg-entry-meta { font-size: 10.5px; color: var(--mg-text2); margin-top: 1px; display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+.mg-entry-meta iconify-icon { font-size: 11px; }
+.mg-entry-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; flex-shrink: 0;
+}
+.mg-entry-badge.in   { background: var(--mg-green-light); color: #006D2C; }
+.mg-entry-badge.out  { background: var(--mg-red-light); color: var(--mg-red); }
+.mg-entry-badge.pend { background: var(--mg-yellow-light); color: #875400; }
+
+/* Empty states */
+.mg-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px 10px; text-align: center; gap: 6px; min-height: 100px;
+}
+.mg-empty-state iconify-icon { font-size: 32px; color: var(--mg-text3); opacity: 0.5; }
+.mg-empty-state-title { font-size: 12.5px; font-weight: 700; color: var(--mg-text2); }
+.mg-empty-state-sub { font-size: 11px; color: var(--mg-text3); line-height: 1.5; }
+
+/* ── VISITOR ROWS ── */
 .mg-vis-row {
   display: flex; align-items: flex-start; gap: 12px;
-  padding: 13px 16px; border-bottom: 1px solid var(--mg-border);
-  transition: background 0.15s;
+  padding: 13px 16px; border-bottom: 1px solid var(--mg-border); transition: background 0.15s;
 }
 .mg-vis-row:last-child { border-bottom: none; }
 .mg-vis-row:hover { background: #FAFBFF; }
@@ -185,98 +205,203 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
 }
 .mg-vis-info { flex: 1; }
 .mg-vis-name { font-size: 14px; font-weight: 700; color: var(--mg-text); margin-bottom: 3px; }
-.mg-vis-meta { font-size: 12px; color: var(--mg-text2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mg-vis-meta { font-size: 12px; color: var(--mg-text2); display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.mg-vis-meta iconify-icon { font-size: 12px; }
 .mg-vis-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--mg-text3); }
-.mg-vis-time { font-size: 11px; color: var(--mg-text3); margin-top: 3px; }
+.mg-vis-time { font-size: 11px; color: var(--mg-text3); margin-top: 3px; display: flex; align-items: center; gap: 3px; }
 .mg-vis-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 .mg-btn-approve {
   padding: 7px 13px; background: var(--mg-green); color: white;
   border: none; border-radius: 8px; font-size: 12px; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;
+  cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: inherit;
 }
 .mg-btn-approve:hover { background: #00A846; transform: translateY(-1px); }
+.mg-btn-approve iconify-icon { font-size: 14px; }
 .mg-btn-reject {
   padding: 7px 13px; background: var(--mg-red-light); color: var(--mg-red);
   border: 1.5px solid var(--mg-red); border-radius: 8px; font-size: 12px; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;
+  cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: inherit;
 }
 .mg-btn-reject:hover { background: var(--mg-red); color: white; }
+.mg-btn-reject iconify-icon { font-size: 14px; }
 
-/* ── ANNOUNCEMENT ── */
-.mg-ann {
-  padding: 13px 16px; border-bottom: 1px solid var(--mg-border);
-  display: flex; gap: 12px; align-items: flex-start;
+/* ── COMMUNITY POSTS ── */
+.mg-new-post-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--mg-blue);
+  background: var(--mg-blue-light); border: none; cursor: pointer; font-family: inherit;
+  padding: 5px 12px; border-radius: 20px; transition: all 0.2s; text-decoration: none;
 }
-.mg-ann:last-child { border-bottom: none; }
-.mg-ann-dot {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--mg-yellow-light);
-  display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
-}
-.mg-ann-title { font-size: 13px; font-weight: 700; color: var(--mg-text); margin-bottom: 3px; }
-.mg-ann-text  { font-size: 12px; color: var(--mg-text2); line-height: 1.5; margin-bottom: 4px; }
-.mg-ann-time  { font-size: 11px; color: var(--mg-text3); }
+.mg-new-post-btn:hover { background: var(--mg-blue); color: white; }
+.mg-new-post-btn iconify-icon { font-size: 14px; }
 
-/* ── ACTIVITY ── */
-.mg-act {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; border-bottom: 1px solid var(--mg-border);
+.mg-post { padding: 14px 16px; border-bottom: 1px solid var(--mg-border); }
+.mg-post:last-child { border-bottom: none; }
+.mg-post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.mg-post-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--mg-blue), #7B5EA7);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 800; font-size: 14px; flex-shrink: 0;
 }
-.mg-act:last-child { border-bottom: none; }
-.mg-act-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-.mg-act-info { flex: 1; }
-.mg-act-name { font-size: 13px; font-weight: 600; color: var(--mg-text); }
-.mg-act-meta { font-size: 11px; color: var(--mg-text2); margin-top: 2px; }
+.mg-post-author { font-size: 13px; font-weight: 700; color: var(--mg-text); }
+.mg-post-meta { font-size: 11px; color: var(--mg-text3); margin-top: 1px; display: flex; align-items: center; gap: 4px; }
+.mg-post-meta iconify-icon { font-size: 11px; }
+.mg-post-type-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+  background: var(--mg-blue-light); color: var(--mg-blue); margin-left: auto; flex-shrink: 0;
+  display: flex; align-items: center; gap: 3px;
+}
+.mg-post-title { font-size: 14px; font-weight: 700; color: var(--mg-text); margin-bottom: 5px; }
+.mg-post-content { font-size: 13px; color: var(--mg-text); line-height: 1.6; margin-bottom: 10px; }
+.mg-post-actions { display: flex; gap: 16px; }
+.mg-post-action-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; color: var(--mg-text2);
+  background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; transition: color 0.2s;
+}
+.mg-post-action-btn:hover { color: var(--mg-blue); }
+.mg-post-action-btn iconify-icon { font-size: 16px; }
+
+/* Post type chooser grid */
+.mg-post-type-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 4px; }
+.mg-post-type-card {
+  border: 2px solid var(--mg-border); border-radius: 12px; padding: 16px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; transition: all 0.2s; background: white; font-family: inherit;
+}
+.mg-post-type-card:hover { border-color: var(--mg-blue); background: var(--mg-blue-light); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,60,255,0.12); }
+.mg-post-type-card iconify-icon { font-size: 28px; }
+.mg-post-type-card .ptc-label { font-size: 12px; font-weight: 700; color: var(--mg-text2); text-align: center; }
+.mg-post-type-card:hover .ptc-label { color: var(--mg-blue); }
 
 /* ── OVERSTAY ── */
 .mg-overstay-card {
   background: #FFF7F0; border: 2px solid var(--mg-orange);
-  border-radius: var(--radius); overflow: hidden;
-  box-shadow: var(--mg-shadow);
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--mg-shadow);
 }
 .mg-overstay-head { background: var(--mg-orange); padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+.mg-overstay-head iconify-icon { color: white; font-size: 18px; }
 .mg-overstay-head span { color: white; font-size: 13px; font-weight: 700; }
 
-/* ── BOTTOM SHEET MODALS ── */
+/* ── MODALS — centered dialog on all screens ── */
 .mg-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(10,14,26,0.55); z-index: 400;
-  align-items: flex-end; justify-content: center;
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(10,14,26,0.60);
+  z-index: 9000;
+  align-items: center;        /* vertical center */
+  justify-content: center;    /* horizontal center */
+  padding: 16px;              /* safe edge gap */
+  overflow-y: auto;           /* if viewport very short */
 }
 .mg-overlay.open { display: flex; }
+
+/* When any modal is open, push header & nav behind */
+body.mg-modal-open .header,
+body.mg-modal-open header.header { z-index: 1 !important; }
+body.mg-modal-open .bottom-nav,
+body.mg-modal-open nav.bottom-nav,
+body.mg-modal-open .mg-bottom-nav { z-index: 1 !important; }
+
 .mg-sheet {
-  background: white; width: 100%; max-width: 540px;
-  border-radius: 22px 22px 0 0;
-  animation: mgBsUp 0.32s cubic-bezier(0.34,1.56,0.64,1);
-  max-height: 92vh; overflow: hidden;
-  display: flex; flex-direction: column;
+  background: white;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 22px;        /* fully rounded — not just top */
+  animation: mgModalIn 0.28s cubic-bezier(0.34,1.20,0.64,1);
+  /* NO fixed max-height — let content decide; clamp with min/max */
+  min-height: 0;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(10,14,26,0.22), 0 4px 16px rgba(10,14,26,0.10);
+  /* sit in the normal flow of the flex overlay */
+  margin: auto;
 }
-@keyframes mgBsUp { from{transform:translateY(110%);opacity:0} to{transform:translateY(0);opacity:1} }
-.mg-handle { width: 40px; height: 4px; background: #E2E8F0; border-radius: 2px; margin: 12px auto 0; flex-shrink: 0; }
+
+@keyframes mgModalIn {
+  from { transform: scale(0.93) translateY(16px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+}
+
+/* hide the drag handle — not needed for centered dialog */
+.mg-handle { display: none; }
+
 .mg-sheet-head {
-  padding: 14px 20px 12px; flex-shrink: 0;
+  padding: 18px 20px 14px;
+  flex-shrink: 0;
   display: flex; justify-content: space-between; align-items: center;
   border-bottom: 1px solid var(--mg-border);
 }
-.mg-sheet-title { font-size: 17px; font-weight: 800; color: var(--mg-text); display: flex; align-items: center; gap: 8px; }
+.mg-sheet-title {
+  font-size: 17px; font-weight: 800; color: var(--mg-text);
+  display: flex; align-items: center; gap: 8px;
+}
+.mg-sheet-title iconify-icon { font-size: 20px; }
+
 .mg-sheet-close {
   width: 32px; height: 32px; border-radius: 50%;
   background: var(--mg-bg); border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px; color: var(--mg-text2); transition: background 0.2s;
+  color: var(--mg-text2); transition: background 0.2s; font-family: inherit;
+  flex-shrink: 0;
 }
-.mg-sheet-close:hover { background: var(--mg-border); }
-.mg-sheet-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
-.mg-sheet-foot { padding: 12px 20px 16px; border-top: 1px solid var(--mg-border); flex-shrink: 0; }
+.mg-sheet-close iconify-icon { font-size: 18px; }
+.mg-sheet-close:hover { background: var(--mg-border); color: var(--mg-text); }
 
-/* ── FORM ELEMENTS ── */
-.mg-form-group { margin-bottom: 15px; }
+/* body scrolls internally so footer always visible */
+.mg-sheet-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  flex: 1;
+  /* smooth momentum scroll on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+.mg-sheet-foot {
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--mg-border);
+  flex-shrink: 0;
+  background: white;          /* stays visible above scroll */
+}
+
+/* Pre-approve type pills */
+.mg-pa-types { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 18px; }
+.mg-pa-type {
+  border: 2px solid var(--mg-border); border-radius: 12px; padding: 12px 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; transition: all 0.2s; background: white; font-family: inherit;
+}
+.mg-pa-type:hover, .mg-pa-type.selected { border-color: var(--mg-blue); background: var(--mg-blue-light); }
+.mg-pa-type iconify-icon { font-size: 22px; color: var(--mg-blue); }
+.mg-pa-type .pat-label { font-size: 10.5px; font-weight: 700; color: var(--mg-text2); text-align: center; line-height: 1.3; }
+.mg-pa-type.selected .pat-label { color: var(--mg-blue); }
+.mg-pa-subform { display: none; }
+.mg-pa-subform.active { display: block; }
+
+/* Daily Help type grid */
+.mg-dh-types { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 6px; }
+.mg-dh-type {
+  border: 2px solid var(--mg-border); border-radius: 14px; padding: 18px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; transition: all 0.2s; background: white; text-decoration: none;
+}
+.mg-dh-type:hover { border-color: var(--mg-blue); background: var(--mg-blue-light); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,60,255,0.12); }
+.mg-dh-type .dh-icon { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+.mg-dh-type .dh-icon iconify-icon { font-size: 28px; }
+.mg-dh-type .dh-label { font-size: 13px; font-weight: 700; color: var(--mg-text2); text-align: center; }
+.mg-dh-type .dh-sub { font-size: 10.5px; color: var(--mg-text3); text-align: center; line-height: 1.4; }
+.mg-dh-type:hover .dh-label { color: var(--mg-blue); }
+
+/* Form elements */
+.mg-form-group { margin-bottom: 14px; }
 .mg-label { font-size: 12px; font-weight: 700; color: var(--mg-text2); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
 .mg-input, .mg-select, .mg-textarea {
   width: 100%; padding: 12px 14px;
   border: 2px solid var(--mg-border); border-radius: var(--radius-sm);
-  font-size: 14px; font-family: inherit;
-  outline: none; transition: border-color 0.2s; background: white; color: var(--mg-text);
+  font-size: 14px; font-family: inherit; outline: none;
+  transition: border-color 0.2s; background: white; color: var(--mg-text);
 }
 .mg-input:focus, .mg-select:focus, .mg-textarea:focus { border-color: var(--mg-blue); }
 .mg-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -285,27 +410,27 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
   background: var(--mg-blue-light); border-radius: var(--radius-sm);
   padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px;
 }
+.mg-info-box iconify-icon { font-size: 18px; color: var(--mg-blue); flex-shrink: 0; margin-top: 1px; }
 .mg-info-text { font-size: 12px; color: var(--mg-blue); font-weight: 500; line-height: 1.5; }
 
-/* chips */
 .mg-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .mg-chip {
   padding: 6px 12px; border-radius: 20px; border: 2px solid var(--mg-border);
   font-size: 12px; font-weight: 600; cursor: pointer; background: white;
-  color: var(--mg-text2); transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+  color: var(--mg-text2); transition: all 0.15s; display: flex; align-items: center; gap: 5px; font-family: inherit;
 }
+.mg-chip iconify-icon { font-size: 13px; }
 .mg-chip.selected { border-color: var(--mg-blue); background: var(--mg-blue-light); color: var(--mg-blue); }
 
-/* toggle btn */
-.mg-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
-.mg-toggle-btn {
-  flex: 1; padding: 10px; border-radius: 10px; border: 2px solid var(--mg-border);
-  background: white; font-size: 13px; font-weight: 700; cursor: pointer;
-  color: var(--mg-text2); transition: all 0.2s;
+.mg-upload-area {
+  border: 2px dashed var(--mg-border); border-radius: 10px; padding: 18px;
+  text-align: center; cursor: pointer; color: var(--mg-text2); transition: all 0.2s; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.mg-toggle-btn.active { border-color: var(--mg-blue); background: var(--mg-blue-light); color: var(--mg-blue); }
+.mg-upload-area:hover { border-color: var(--mg-blue); background: var(--mg-blue-light); }
+.mg-upload-area iconify-icon { font-size: 20px; }
 
-/* buttons */
+/* Buttons */
 .mg-btn-primary {
   width: 100%; padding: 15px; background: var(--mg-blue);
   color: white; border: none; border-radius: var(--radius-sm);
@@ -314,6 +439,7 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
   transition: all 0.2s; box-shadow: 0 4px 14px rgba(26,60,255,0.3);
 }
 .mg-btn-primary:hover { background: var(--mg-blue-dark); transform: translateY(-1px); }
+.mg-btn-primary iconify-icon { font-size: 18px; }
 .mg-btn-secondary {
   width: 100%; padding: 13px; background: var(--mg-bg);
   color: var(--mg-text2); border: none; border-radius: var(--radius-sm);
@@ -328,190 +454,144 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
   transition: all 0.2s; box-shadow: 0 4px 14px rgba(245,34,45,0.3);
 }
 .mg-btn-red:hover { background: #CF1322; }
+.mg-btn-red iconify-icon { font-size: 18px; }
 .mg-btn-pair { display: flex; gap: 10px; }
 .mg-btn-pair .mg-btn-secondary { flex: 1; }
-.mg-btn-pair .mg-btn-primary { flex: 2; }
+.mg-btn-pair .mg-btn-primary  { flex: 2; }
 
-/* pass card */
-.mg-pass {
-  background: linear-gradient(135deg, var(--mg-blue), #5B7FFF);
-  border-radius: var(--radius); padding: 18px; color: white; margin-bottom: 14px;
-}
-.mg-pass-num { font-size: 28px; font-weight: 600; letter-spacing: 4px; margin: 8px 0; }
-.mg-pass-detail { font-size: 12px; opacity: 0.8; margin-top: 4px; }
-
-/* security chat */
-.mg-guard-card {
-  background: var(--mg-bg); border-radius: var(--radius-sm);
-  padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
-}
-.mg-guard-avatar {
-  width: 44px; height: 44px; border-radius: 12px;
-  background: linear-gradient(135deg,var(--mg-blue),#7B5EA7);
-  display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 17px;
-}
+/* Security */
+.mg-guard-card { background: var(--mg-bg); border-radius: var(--radius-sm); padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.mg-guard-avatar { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg,var(--mg-blue),#7B5EA7); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 17px; }
 .mg-guard-name { font-size: 14px; font-weight: 700; }
 .mg-guard-role { font-size: 12px; color: var(--mg-text2); }
 .mg-guard-status { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--mg-green); margin-top: 2px; }
 .mg-guard-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mg-green); animation: mgPulse 1.8s infinite; }
 @keyframes mgPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
-.mg-call-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--mg-green); border: none; display: flex; align-items: center; justify-content: center; font-size: 17px; color: white; cursor: pointer; }
+.mg-call-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--mg-green); border: none; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; }
+.mg-call-btn iconify-icon { font-size: 18px; }
 .mg-msgs { min-height: 100px; max-height: 180px; overflow-y: auto; margin-bottom: 12px; }
 .mg-bubble { background: var(--mg-blue-light); border-radius: 12px 12px 12px 0; padding: 10px 14px; font-size: 13px; color: var(--mg-blue); font-weight: 500; margin-bottom: 8px; max-width: 85%; }
 .mg-bubble.sent { background: var(--mg-blue); color: white; border-radius: 12px 12px 0 12px; margin-left: auto; }
 .mg-msg-row { display: flex; gap: 8px; }
-.mg-msg-send { width: 44px; height: 44px; background: var(--mg-blue); border: none; border-radius: 10px; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mg-msg-send { width: 44px; height: 44px; background: var(--mg-blue); border: none; border-radius: 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mg-msg-send iconify-icon { font-size: 18px; }
 
-/* expanded more grid */
+/* Pass card */
+.mg-pass { background: linear-gradient(135deg, var(--mg-blue), #5B7FFF); border-radius: var(--radius); padding: 18px; color: white; margin-bottom: 14px; }
+.mg-pass-num { font-size: 28px; font-weight: 600; letter-spacing: 4px; margin: 8px 0; }
+.mg-pass-detail { font-size: 12px; opacity: 0.8; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+
+/* More grid */
 .mg-exp-section { margin-bottom: 18px; }
-.mg-exp-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--mg-text2); margin-bottom: 10px; padding: 0 2px; }
+.mg-exp-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--mg-text2); margin-bottom: 10px; padding: 0 2px; display: flex; align-items: center; gap: 5px; }
+.mg-exp-label iconify-icon { font-size: 14px; }
 .mg-exp-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; }
 
-/* toast */
+/* Visitor detail rows */
+.mg-vis-detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--mg-border); }
+.mg-vis-detail-row:last-child { border-bottom: none; }
+.mg-vis-detail-label { font-size: 12px; color: var(--mg-text2); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+.mg-vis-detail-label iconify-icon { font-size: 14px; }
+.mg-vis-detail-val { font-size: 13px; font-weight: 700; color: var(--mg-text); text-align: right; max-width: 55%; }
+
+/* Toast */
 .mg-toast {
   position: fixed; top: 66px; left: 50%; transform: translateX(-50%);
   padding: 11px 20px; border-radius: 12px; color: white; font-weight: 700;
   font-size: 13px; z-index: 9999; box-shadow: var(--mg-shadow-lg);
   animation: mgToastIn 0.28s ease; white-space: nowrap;
-  max-width: calc(100vw - 32px); font-family: inherit;
-  display: flex; align-items: center; gap: 8px;
+  max-width: calc(100vw - 32px); font-family: inherit; display: flex; align-items: center; gap: 8px;
 }
 @keyframes mgToastIn { from{transform:translate(-50%,-120%);opacity:0} to{transform:translate(-50%,0);opacity:1} }
 
-/* bottom nav */
-.mg-bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: white; border-top: 1px solid var(--mg-border);
-  display: flex; z-index: 150; padding-bottom: env(safe-area-inset-bottom,0);
-  box-shadow: 0 -4px 20px rgba(10,14,26,0.06);
-}
-.mg-nav-btn {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  padding: 10px 4px 8px; cursor: pointer; gap: 3px; border: none;
-  background: transparent; color: var(--mg-text2); text-decoration: none;
-  transition: color 0.15s; position: relative; font-family: inherit;
-}
-.mg-nav-btn.active { color: var(--mg-blue); }
-.mg-nav-icon { font-size: 20px; }
-.mg-nav-label { font-size: 10px; font-weight: 600; }
-.mg-nav-notif { position: absolute; top: 8px; right: calc(50% - 16px); width: 8px; height: 8px; border-radius: 50%; background: var(--mg-red); border: 1.5px solid white; }
+/* Footer link */
+.mg-card-foot { padding: 12px 16px; border-top: 1px solid var(--mg-border); }
+.mg-card-foot a { font-size: 13px; font-weight: 700; color: var(--mg-blue); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+.mg-card-foot a:hover { text-decoration: underline; }
 
-.mg-empty { text-align: center; padding: 32px 16px; color: var(--mg-text3); }
-.mg-empty-icon { font-size: 40px; margin-bottom: 8px; opacity: 0.5; }
-.mg-empty-txt { font-size: 13px; font-weight: 500; }
-.mg-upload-area {
-  border: 2px dashed var(--mg-border); border-radius: 10px; padding: 20px;
-  text-align: center; cursor: pointer; color: var(--mg-text2); transition: all 0.2s;
-}
-.mg-upload-area:hover { border-color: var(--mg-blue); background: var(--mg-blue-light); }
+/* Empty fallback */
+.mg-empty { text-align: center; padding: 28px 16px; color: var(--mg-text3); }
+.mg-empty-icon iconify-icon { font-size: 40px; opacity: 0.4; }
+.mg-empty-txt { font-size: 13px; font-weight: 500; margin-top: 8px; }
 
-@media(max-width:380px){
-  .mg-stats { grid-template-columns: repeat(2,1fr); }
-  .mg-qa-ic { width: 44px; height: 44px; font-size: 19px; }
+/* ── RESPONSIVE ── */
+@media (max-width: 560px) {
+  .mg-overlay { padding: 12px 8px; align-items: center; }
+  .mg-sheet { border-radius: 18px; max-height: calc(100vh - 32px); }
+  .mg-entry-body { grid-template-columns: 1fr; }
+  .mg-entry-divider { height: 1px; width: 100%; }
+  .mg-pa-types { grid-template-columns: repeat(2, 1fr); }
+  .mg-post-type-grid { grid-template-columns: 1fr; }
+  .mg-dh-types { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 380px) {
+  .mg-overlay { padding: 8px 4px; }
+  .mg-sheet { border-radius: 16px; }
+  .mg-sheet-body { padding: 14px; }
+  .mg-sheet-foot { padding: 12px 14px 14px; }
+  .mg-sheet-head { padding: 14px 14px 12px; }
+  .mg-qa-ic { width: 44px; height: 44px; }
+  .mg-qa-ic iconify-icon { font-size: 19px; }
   .mg-qa-lbl { font-size: 9.5px; }
   .mg-qa-more { width: 44px; height: 44px; }
+  .mg-shortcut-row { flex-direction: column; }
+  .mg-dh-types { gap: 6px; }
+  .mg-dh-type { padding: 12px 4px; }
+  .mg-dh-type .dh-icon { width: 40px; height: 40px; }
+  .mg-dh-type .dh-icon iconify-icon { font-size: 22px; }
+  .mg-dh-type .dh-label { font-size: 11px; }
 }
+  .mg-qa-ic iconify-icon { font-size: 19px; }
+  .mg-qa-lbl { font-size: 9.5px; }
+  .mg-qa-more { width: 44px; height: 44px; }
+  .mg-shortcut-row { flex-direction: column; }
+  .mg-dh-types { gap: 6px; }
+  .mg-dh-type { padding: 12px 4px; }
+  .mg-dh-type .dh-icon { width: 40px; height: 40px; }
+  .mg-dh-type .dh-icon iconify-icon { font-size: 22px; }
+  .mg-dh-type .dh-label { font-size: 11px; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-
-<!-- ═══ TOPBAR ═══ -->
-<div class="mg-topbar">
-  <div class="mg-topbar-brand">
-    <div class="mg-logo-text">mygate</div>
-    <div class="mg-flat-badge">🏠 {{ apartment.block }}-{{ apartment.flat_number }}</div>
-  </div>
-  <div class="mg-topbar-right">
-    <a href="{% url 'resident_notifications' %}" class="mg-tb-btn" style="position:relative;">
-      🔔{% if pending_count > 0 %}<span class="mg-notif-dot"></span>{% endif %}
-    </a>
-    <a href="{% url 'profile' %}" class="mg-tb-btn">👤</a>
-  </div>
-</div>
-
-<!-- ═══ HERO ═══ -->
-<div class="mg-hero">
-  <div class="mg-hero-mesh"></div>
-  <div class="mg-hero-inner">
-    <div class="mg-hero-row">
-      <div>
-        <div class="mg-hero-greet" id="mgGreeting">Good day ✨</div>
-        <div class="mg-hero-name">{{ user.first_name }} {{ user.last_name }}</div>
-      </div>
-      <button class="mg-sos-btn" onclick="mgOpenModal('mg-sos-mdl')">
-        🚨 SOS
-      </button>
-    </div>
-    <div class="mg-hero-meta">
-      <div class="mg-hero-chip">🏢 {{ society.name }}</div>
-      <div class="mg-hero-chip">🚪 Block {{ apartment.block }}, Flat {{ apartment.flat_number }}</div>
-      {% if pending_count > 0 %}
-      <div class="mg-hero-chip"><span class="badge-dot"></span> {{ pending_count }} Pending</div>
-      {% endif %}
-    </div>
-  </div>
-  <div class="mg-hero-wave"></div>
-</div>
-
-<!-- ═══ SCROLL AREA ═══ -->
 <div class="mg-scroll">
 
-  <!-- STATS -->
-  <div class="mg-stats">
-    <div class="mg-stat" onclick="window.location.href='{% url 'resident_visitors' %}'">
-      <span class="mg-stat-icon">⏳</span>
-      <div class="mg-stat-num">{{ pending_count }}</div>
-      <div class="mg-stat-lbl">Pending</div>
-    </div>
-    <div class="mg-stat" onclick="window.location.href='{% url 'resident_visitors' %}'">
-      <span class="mg-stat-icon">🚶</span>
-      <div class="mg-stat-num">{{ today_visitors_count }}</div>
-      <div class="mg-stat-lbl">Today</div>
-    </div>
-    <div class="mg-stat" onclick="window.location.href='{% url 'resident_services' %}'">
-      <span class="mg-stat-icon">🏃</span>
-      <div class="mg-stat-num">{{ active_staff_count }}</div>
-      <div class="mg-stat-lbl">Staff In</div>
-    </div>
-    <div class="mg-stat">
-      <span class="mg-stat-icon">📦</span>
-      <div class="mg-stat-num">{{ deliveries_count }}</div>
-      <div class="mg-stat-lbl">Parcels</div>
-    </div>
-  </div>
-
-  <!-- QUICK ACTIONS -->
+  <!-- ══ QUICK ACTIONS ══ -->
   <div class="mg-card">
     <div class="mg-card-head">
-      <div class="mg-card-title">⚡ Quick Actions</div>
+      <div class="mg-card-title">
+        <iconify-icon icon="mdi:lightning-bolt" style="color:var(--mg-yellow);"></iconify-icon>
+        Quick Actions
+      </div>
     </div>
     <div class="mg-qa-grid">
       <button class="mg-qa-btn" onclick="mgOpenModal('mg-preapprove-mdl')">
-        <div class="mg-qa-ic ic-g">✅</div>
+        <div class="mg-qa-ic ic-g"><iconify-icon icon="mdi:account-plus-outline"></iconify-icon></div>
         <div class="mg-qa-lbl">Pre-Approve</div>
       </button>
       <button class="mg-qa-btn" onclick="mgOpenModal('mg-security-mdl')">
-        <div class="mg-qa-ic ic-b">🛡️</div>
+        <div class="mg-qa-ic ic-b"><iconify-icon icon="mdi:shield-account-outline"></iconify-icon></div>
         <div class="mg-qa-lbl">Security</div>
       </button>
-      <button class="mg-qa-btn" onclick="mgOpenModal('mg-asksociety-mdl')">
-        <div class="mg-qa-ic ic-o">💬</div>
-        <div class="mg-qa-lbl">Ask Society</div>
-      </button>
-      <button class="mg-qa-btn" onclick="mgOpenModal('mg-posts-mdl')">
-        <div class="mg-qa-ic ic-p">📢</div>
+      <button class="mg-qa-btn" onclick="window.location.href='{% url "resident_notices" %}?tab=feed'">
+        <div class="mg-qa-ic ic-p"><iconify-icon icon="mdi:post-outline"></iconify-icon></div>
         <div class="mg-qa-lbl">Posts</div>
       </button>
+      <button class="mg-qa-btn" onclick="window.location.href='{% url "resident_notices" %}?tab=announcements'">
+        <div class="mg-qa-ic ic-o"><iconify-icon icon="mdi:bullhorn-outline"></iconify-icon></div>
+        <div class="mg-qa-lbl">Announcements</div>
+      </button>
       <button class="mg-qa-btn" onclick="mgOpenModal('mg-dailyhelp-mdl')">
-        <div class="mg-qa-ic ic-t">🧹</div>
-        <div class="mg-qa-lbl">Find Daily Help</div>
+        <div class="mg-qa-ic ic-t"><iconify-icon icon="mdi:broom"></iconify-icon></div>
+        <div class="mg-qa-lbl">Daily Help</div>
       </button>
       <button class="mg-qa-btn" onclick="mgOpenModal('mg-alert-mdl')">
-        <div class="mg-qa-ic ic-r">🔔</div>
+        <div class="mg-qa-ic ic-r"><iconify-icon icon="mdi:alert-outline"></iconify-icon></div>
         <div class="mg-qa-lbl">Raise Alert</div>
       </button>
       <button class="mg-qa-btn" onclick="mgOpenModal('mg-invite-mdl')">
-        <div class="mg-qa-ic ic-y">🎟️</div>
+        <div class="mg-qa-ic ic-y"><iconify-icon icon="mdi:ticket-outline"></iconify-icon></div>
         <div class="mg-qa-lbl">Invite Guest</div>
       </button>
       <button class="mg-qa-btn" onclick="mgOpenModal('mg-more-mdl')">
@@ -521,236 +601,597 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
     </div>
   </div>
 
-  <!-- OVERSTAY ALERT -->
+  <!-- ══ OVERSTAY ALERT ══ -->
   {% if overstays %}
   <div class="mg-overstay-card">
     <div class="mg-overstay-head">
-      ⚠️ <span>Overstay Alert — {{ overstays|length }} visitor(s) checked in for 3+ hours</span>
+      <iconify-icon icon="mdi:clock-alert-outline"></iconify-icon>
+      <span>Overstay Alert — {{ overstays|length }} visitor(s) checked in for 3+ hours</span>
     </div>
-    <div style="padding:0;">
-      {% for v in overstays %}
-      <div class="mg-vis-row">
-        <div class="mg-vis-avatar">{{ v.name|first|upper }}</div>
-        <div class="mg-vis-info">
-          <div class="mg-vis-name">{{ v.name }}</div>
-          <div class="mg-vis-meta">
-            🕐 Checked in {{ v.check_in_time|timesince }} ago
-            <span class="mg-vis-dot"></span>
-            {{ v.apartment.block }}-{{ v.apartment.flat_number }}
-          </div>
+    {% for v in overstays %}
+    <div class="mg-vis-row">
+      <div class="mg-vis-avatar">{{ v.name|first|upper }}</div>
+      <div class="mg-vis-info">
+        <div class="mg-vis-name">{{ v.name }}</div>
+        <div class="mg-vis-meta">
+          <iconify-icon icon="mdi:clock-outline"></iconify-icon>
+          Checked in {{ v.check_in_time|timesince }} ago
+          <span class="mg-vis-dot"></span>{{ v.apartment.block }}-{{ v.apartment.flat_number }}
         </div>
-        <a href="{% url 'mark_exit' v.id %}" class="mg-btn-reject" style="text-decoration:none;">Exit</a>
       </div>
-      {% endfor %}
+      <a href="{% url 'mark_exit' v.id %}" class="mg-btn-reject" style="text-decoration:none;">
+        <iconify-icon icon="mdi:exit-run"></iconify-icon> Exit
+      </a>
     </div>
+    {% endfor %}
   </div>
   {% endif %}
 
-  <!-- PENDING APPROVALS -->
+  <!-- ══ TODAY'S ENTRY UPDATES ══ -->
+  <div class="mg-entry-card">
+    <div class="mg-entry-head">
+      <div class="mg-entry-title">
+        <iconify-icon icon="mdi:gate"></iconify-icon>
+        Today's Entry Updates
+      </div>
+      <a href="{% url 'resident_visitors' %}" class="mg-view-all">
+        View All <iconify-icon icon="mdi:arrow-right"></iconify-icon>
+      </a>
+    </div>
+
+    <div class="mg-entry-body">
+
+      <!-- LEFT PANE: Shortcuts + Today's activity -->
+      <div class="mg-entry-left">
+        <div class="mg-shortcut-row">
+          <button class="mg-shortcut-btn" onclick="mgOpenModal('mg-preapprove-mdl')">
+            <div class="sc-icon ic-g"><iconify-icon icon="mdi:account-check-outline"></iconify-icon></div>
+            <span class="sc-label">Pre-Approve</span>
+          </button>
+          <button class="mg-shortcut-btn" onclick="mgOpenModal('mg-dailyhelp-mdl')">
+            <div class="sc-icon ic-t"><iconify-icon icon="mdi:broom"></iconify-icon></div>
+            <span class="sc-label">Daily Help</span>
+          </button>
+        </div>
+
+        <div class="mg-entry-sec-title">
+          <iconify-icon icon="mdi:calendar-today-outline"></iconify-icon> Today's Visitors
+        </div>
+
+        {% if recent_activity %}
+          {% for act in recent_activity %}
+          <div class="mg-entry-row" onclick="mgShowVisitorDetail('{{ act.name|escapejs }}','{{ act.get_visitor_type_display|escapejs }}','{{ act.status|escapejs }}','{{ act.created_at|date:"h:i A" }}','{{ act.mobile|default:"-"|escapejs }}')">
+            <div class="mg-entry-avatar">{{ act.name|first|upper }}</div>
+            <div class="mg-entry-info">
+              <div class="mg-entry-name">{{ act.name }}</div>
+              <div class="mg-entry-meta">
+                <iconify-icon icon="{% if act.visitor_type == 'delivery' %}mdi:package-variant-closed{% elif act.visitor_type == 'cab' %}mdi:taxi{% elif act.visitor_type == 'service' %}mdi:wrench-outline{% else %}mdi:account-outline{% endif %}"></iconify-icon>
+                {{ act.get_visitor_type_display }} · {{ act.created_at|date:"h:i A" }}
+              </div>
+            </div>
+            <span class="mg-entry-badge {% if act.status == 'checked_in' %}in{% elif act.status == 'checked_out' or act.status == 'rejected' %}out{% else %}pend{% endif %}">
+              {{ act.status|title }}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="mg-empty-state">
+            <iconify-icon icon="mdi:walk"></iconify-icon>
+            <div class="mg-empty-state-title">No activity today</div>
+            <div class="mg-empty-state-sub">Visitor entries will show up here</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- DIVIDER -->
+      <div class="mg-entry-divider"></div>
+
+      <!-- RIGHT PANE: Upcoming / pending visitors -->
+      <div class="mg-entry-right">
+        <div class="mg-entry-sec-title">
+          <iconify-icon icon="mdi:calendar-clock-outline"></iconify-icon> Upcoming Visitors
+        </div>
+
+        {% if pending_visitors %}
+          {% for v in pending_visitors %}
+          <div class="mg-entry-row" onclick="mgShowVisitorDetail('{{ v.name|escapejs }}','{{ v.get_visitor_type_display|escapejs }}','Expected','{% if v.expected_at %}{{ v.expected_at|date:"h:i A" }}{% else %}TBD{% endif %}','{{ v.mobile|default:"-"|escapejs }}')">
+            <div class="mg-entry-avatar" style="background:linear-gradient(135deg,#FF6B00,#FAAD14);">
+              {{ v.name|first|upper }}
+            </div>
+            <div class="mg-entry-info">
+              <div class="mg-entry-name">{{ v.name }}</div>
+              <div class="mg-entry-meta">
+                <iconify-icon icon="mdi:clock-outline"></iconify-icon>
+                {% if v.expected_at %}{{ v.expected_at|date:"h:i A" }}{% else %}Today{% endif %}
+              </div>
+            </div>
+            <span class="mg-entry-badge pend">Expected</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="mg-empty-state">
+            <iconify-icon icon="mdi:calendar-blank-outline"></iconify-icon>
+            <div class="mg-empty-state-title">No upcoming visitors</div>
+            <div class="mg-empty-state-sub">Pre-approve a visitor to see them here</div>
+          </div>
+        {% endif %}
+      </div>
+
+    </div><!-- /mg-entry-body -->
+  </div>
+
+  <!-- ══ PENDING APPROVALS ══ -->
+  {% if pending_visitors %}
   <div class="mg-card">
     <div class="mg-card-head">
-      <div class="mg-card-title">⏳ Pending Approvals</div>
+      <div class="mg-card-title">
+        <iconify-icon icon="mdi:clock-alert-outline" style="color:var(--mg-orange);"></iconify-icon>
+        Pending Approvals
+      </div>
       <div class="mg-pill {% if pending_count > 0 %}mg-pill-orange{% else %}mg-pill-green{% endif %}">
         {{ pending_count }} Pending
       </div>
     </div>
-    <div style="padding:0;">
+    <div>
       {% for visitor in pending_visitors %}
       <div class="mg-vis-row" id="vis-row-{{ visitor.id }}">
         <div class="mg-vis-avatar">{{ visitor.name|first|upper }}</div>
         <div class="mg-vis-info">
           <div class="mg-vis-name">{{ visitor.name }}</div>
           <div class="mg-vis-meta">
-            {% if visitor.visitor_type == 'delivery' %}📦 Delivery
-            {% elif visitor.visitor_type == 'service' %}🔧 Service
-            {% elif visitor.visitor_type == 'cab' %}🚕 Cab
-            {% else %}👤 Guest{% endif %}
+            <iconify-icon icon="{% if visitor.visitor_type == 'delivery' %}mdi:package-variant-closed{% elif visitor.visitor_type == 'service' %}mdi:wrench-outline{% elif visitor.visitor_type == 'cab' %}mdi:taxi{% else %}mdi:account-outline{% endif %}"></iconify-icon>
+            {{ visitor.get_visitor_type_display }}
             <span class="mg-vis-dot"></span>
-            📱 {{ visitor.mobile }}
+            <iconify-icon icon="mdi:phone-outline"></iconify-icon>
+            {{ visitor.mobile }}
           </div>
-          <div class="mg-vis-time">🕐 {{ visitor.created_at|timesince }} ago</div>
+          <div class="mg-vis-time">
+            <iconify-icon icon="mdi:clock-outline"></iconify-icon>
+            {{ visitor.created_at|timesince }} ago
+          </div>
         </div>
         <div class="mg-vis-actions">
-          <button class="mg-btn-approve"
-            onclick="mgApproveVisitor({{ visitor.id }}, '{{ visitor.name|escapejs }}', this)">✓</button>
-          <button class="mg-btn-reject"
-            onclick="mgDenyVisitor({{ visitor.id }}, '{{ visitor.name|escapejs }}', this)">✗</button>
+          <button class="mg-btn-approve" onclick="mgApproveVisitor({{ visitor.id }},'{{ visitor.name|escapejs }}',this)">
+            <iconify-icon icon="mdi:check"></iconify-icon>
+          </button>
+          <button class="mg-btn-reject" onclick="mgDenyVisitor({{ visitor.id }},'{{ visitor.name|escapejs }}',this)">
+            <iconify-icon icon="mdi:close"></iconify-icon>
+          </button>
         </div>
-      </div>
-      {% empty %}
-      <div class="mg-empty">
-        <div class="mg-empty-icon">🎉</div>
-        <div class="mg-empty-txt">No pending visitors — you're all clear!</div>
       </div>
       {% endfor %}
     </div>
-    {% if pending_visitors %}
-    <div style="padding:12px 16px;border-top:1px solid var(--mg-border);">
-      <a href="{% url 'resident_visitors' %}" style="font-size:13px;font-weight:700;color:var(--mg-blue);text-decoration:none;">
-        View all visitors →
+    <div class="mg-card-foot">
+      <a href="{% url 'resident_visitors' %}">
+        View all visitors <iconify-icon icon="mdi:arrow-right"></iconify-icon>
       </a>
     </div>
-    {% endif %}
   </div>
+  {% endif %}
 
-  <!-- ANNOUNCEMENTS -->
+  <!-- ══ COMMUNITY POSTS ══ -->
   <div class="mg-card">
     <div class="mg-card-head">
-      <div class="mg-card-title">📢 Society Notices</div>
-      <a href="{% url 'resident_notices' %}" class="mg-pill mg-pill-blue" style="text-decoration:none;">See All</a>
+      <div class="mg-card-title">
+        <iconify-icon icon="mdi:forum-outline" style="color:var(--mg-purple);"></iconify-icon>
+        Community Posts
+      </div>
+      <button class="mg-new-post-btn" onclick="mgOpenModal('mg-newpost-mdl')">
+        <iconify-icon icon="mdi:plus"></iconify-icon>
+        New Post
+      </button>
     </div>
-    <div style="padding:0;">
+    <div>
       {% for a in announcements %}
-      <div class="mg-ann">
-        <div class="mg-ann-dot">📣</div>
-        <div>
-          <div class="mg-ann-title">{{ a.title }}</div>
-          <div class="mg-ann-text">{{ a.message|truncatewords:20 }}</div>
-          <div class="mg-ann-time">🕐 {{ a.created_at|timesince }} ago</div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="mg-empty">
-        <div class="mg-empty-icon">📭</div>
-        <div class="mg-empty-txt">No announcements yet</div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- RECENT ACTIVITY -->
-  <div class="mg-card">
-    <div class="mg-card-head">
-      <div class="mg-card-title">🕐 Recent Activity</div>
-      <a href="{% url 'resident_visitors' %}" class="mg-pill mg-pill-blue" style="text-decoration:none;">View All</a>
-    </div>
-    <div style="padding:0;">
-      {% for act in recent_activity %}
-      <div class="mg-act">
-        <div class="mg-act-icon ic-b">
-          {% if act.status == 'checked_in' %}🟢
-          {% elif act.status == 'checked_out' %}🔴
-          {% elif act.status == 'approved' %}✅
-          {% elif act.status == 'rejected' %}❌
-          {% else %}⏳{% endif %}
-        </div>
-        <div class="mg-act-info">
-          <div class="mg-act-name">{{ act.name }}</div>
-          <div class="mg-act-meta">
-            {{ act.get_visitor_type_display }} • {{ act.created_at|date:"h:i A" }}
+      <div class="mg-post">
+        <div class="mg-post-header">
+          <div class="mg-post-avatar">
+            {% if a.created_by %}{{ a.created_by.username|slice:":1"|upper }}{% else %}S{% endif %}
           </div>
+          <div style="flex:1;min-width:0;">
+            <div class="mg-post-author">
+              {% if a.created_by %}{{ a.created_by.get_full_name|default:a.created_by.username }}{% else %}Society Admin{% endif %}
+            </div>
+            <div class="mg-post-meta">
+              <iconify-icon icon="mdi:clock-outline"></iconify-icon>
+              {{ a.created_at|timesince }} ago
+            </div>
+          </div>
+          <span class="mg-post-type-badge">
+            <iconify-icon icon="mdi:bullhorn-outline"></iconify-icon> Notice
+          </span>
         </div>
-        <span class="mg-pill
-          {% if act.status == 'checked_in' %}mg-pill-green
-          {% elif act.status == 'pending' %}mg-pill-orange
-          {% elif act.status == 'rejected' %}mg-pill-red
-          {% else %}mg-pill-blue{% endif %}">
-          {{ act.status|title }}
-        </span>
+        <div class="mg-post-title">{{ a.title }}</div>
+        <div class="mg-post-content">{{ a.message|truncatewords:30 }}</div>
+        <div class="mg-post-actions">
+          <button class="mg-post-action-btn">
+            <iconify-icon icon="mdi:thumb-up-outline"></iconify-icon> Like
+          </button>
+          <button class="mg-post-action-btn">
+            <iconify-icon icon="mdi:comment-outline"></iconify-icon> Comment
+          </button>
+          <button class="mg-post-action-btn" style="margin-left:auto;">
+            <iconify-icon icon="mdi:share-outline"></iconify-icon> Share
+          </button>
+        </div>
       </div>
       {% empty %}
       <div class="mg-empty">
-        <div class="mg-empty-icon">🕰️</div>
-        <div class="mg-empty-txt">No recent visitor activity</div>
+        <div class="mg-empty-icon"><iconify-icon icon="mdi:post-outline"></iconify-icon></div>
+        <div class="mg-empty-txt">No community posts yet. Be the first to post!</div>
       </div>
       {% endfor %}
+    </div>
+    <div class="mg-card-foot">
+      <a href="{% url 'resident_notices' %}">
+        View all posts <iconify-icon icon="mdi:arrow-right"></iconify-icon>
+      </a>
     </div>
   </div>
 
 </div><!-- /mg-scroll -->
 
-<!-- ═══ BOTTOM NAV ═══ -->
-<div class="mg-bottom-nav">
-  <a class="mg-nav-btn active" href="{% url 'resident_dashboard' %}">
-    <span class="mg-nav-icon">🏠</span><span class="mg-nav-label">Home</span>
-  </a>
-  <a class="mg-nav-btn" href="{% url 'resident_visitors' %}">
-    <span class="mg-nav-icon">👥</span><span class="mg-nav-label">Visitors</span>
-    {% if pending_count > 0 %}<span class="mg-nav-notif"></span>{% endif %}
-  </a>
-  <a class="mg-nav-btn" href="{% url 'resident_services' %}">
-    <span class="mg-nav-icon">🛠️</span><span class="mg-nav-label">Services</span>
-  </a>
-  <a class="mg-nav-btn" href="{% url 'resident_notices' %}">
-    <span class="mg-nav-icon">📢</span><span class="mg-nav-label">Community</span>
-  </a>
-  <a class="mg-nav-btn" href="{% url 'profile' %}">
-    <span class="mg-nav-icon">👤</span><span class="mg-nav-label">Profile</span>
-  </a>
-</div>
 
-<!-- ══════════════════════════════════════
-     ★ BOTTOM SHEET MODALS
-══════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════ -->
 
-<!-- ── 1. PRE-APPROVE ── -->
+<!-- ── PRE-APPROVE ── -->
 <div class="mg-overlay" id="mg-preapprove-mdl" onclick="mgOverlayClose(event,this)">
 <div class="mg-sheet">
   <div class="mg-handle"></div>
   <div class="mg-sheet-head">
-    <div class="mg-sheet-title">✅ Pre-Approve Visitor</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-preapprove-mdl')">✕</button>
+    <div class="mg-sheet-title">
+      <iconify-icon icon="mdi:account-check-outline" style="color:var(--mg-green);"></iconify-icon>
+      Pre-Approve Entry
+    </div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-preapprove-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
   </div>
   <div class="mg-sheet-body">
-    <div class="mg-info-box">
-      <div style="font-size:18px;flex-shrink:0;">ℹ️</div>
-      <div class="mg-info-text">Pre-approving lets your visitor enter directly at the gate without waiting for your call confirmation.</div>
+    <div class="mg-form-group">
+      <label class="mg-label">Choose Entry Type</label>
+      <div class="mg-pa-types" id="paTypeGrid">
+        <button class="mg-pa-type selected" onclick="mgSelectPAType(this,'pa-guest')">
+          <iconify-icon icon="mdi:account-outline"></iconify-icon>
+          <span class="pat-label">Guest</span>
+        </button>
+        <button class="mg-pa-type" onclick="mgSelectPAType(this,'pa-cab')">
+          <iconify-icon icon="mdi:taxi"></iconify-icon>
+          <span class="pat-label">Cab / Auto</span>
+        </button>
+        <button class="mg-pa-type" onclick="mgSelectPAType(this,'pa-delivery')">
+          <iconify-icon icon="mdi:package-variant-closed"></iconify-icon>
+          <span class="pat-label">Delivery</span>
+        </button>
+        <button class="mg-pa-type" onclick="mgSelectPAType(this,'pa-vhelp')">
+          <iconify-icon icon="mdi:wrench-outline"></iconify-icon>
+          <span class="pat-label">Visiting Help</span>
+        </button>
+      </div>
     </div>
-    <form method="POST" action="{% url 'preapprove_visitor' %}" enctype="multipart/form-data" id="preapprove-form">
+
+    <!-- GUEST FORM -->
+    <form method="POST" action="{% url 'preapprove_visitor' %}" enctype="multipart/form-data" id="pa-guest" class="mg-pa-subform active">
       {% csrf_token %}
-      <div class="mg-form-group">
-        <label class="mg-label">Visitor Name *</label>
-        <input type="text" name="name" class="mg-input" placeholder="Full name" required>
+      <input type="hidden" name="visitor_type" value="guest">
+      <div class="mg-info-box"><iconify-icon icon="mdi:information-outline"></iconify-icon><div class="mg-info-text">Guest will receive a digital pass and enter without a call confirmation at the gate.</div></div>
+      <div class="mg-form-group"><label class="mg-label">Guest Name *</label><input type="text" name="name" class="mg-input" placeholder="Full name" required></div>
+      <div class="mg-form-group"><label class="mg-label">Mobile *</label><input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000" required></div>
+      <div class="mg-form-row">
+        <div class="mg-form-group"><label class="mg-label">Date</label><input type="date" name="expected_date" class="mg-input"></div>
+        <div class="mg-form-group"><label class="mg-label">Time</label><input type="time" name="expected_time" class="mg-input"></div>
       </div>
+      <div class="mg-form-group"><label class="mg-label">Purpose</label><input type="text" name="purpose" class="mg-input" placeholder="e.g. Birthday party, Meeting"></div>
       <div class="mg-form-group">
-        <label class="mg-label">Mobile Number *</label>
-        <input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000" required>
+        <label class="mg-label">Photo (optional)</label>
+        <div class="mg-upload-area" onclick="document.getElementById('pa-g-photo').click()"><iconify-icon icon="mdi:camera-outline"></iconify-icon> Tap to attach<input type="file" name="photos" id="pa-g-photo" accept="image/*" style="display:none;" multiple onchange="mgShowFileNames(this,'pa-g-fn')"></div>
+        <div id="pa-g-fn" class="mg-hint"></div>
       </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Visitor Type</label>
-        <select name="visitor_type" class="mg-select">
-          <option value="guest">Guest</option>
-          <option value="cab">Cab / Auto</option>
-          <option value="delivery">Delivery</option>
-          <option value="service">Service Professional</option>
+    </form>
+
+    <!-- CAB FORM -->
+    <form method="POST" action="{% url 'preapprove_visitor' %}" id="pa-cab" class="mg-pa-subform">
+      {% csrf_token %}
+      <input type="hidden" name="visitor_type" value="cab">
+      <div class="mg-info-box"><iconify-icon icon="mdi:information-outline"></iconify-icon><div class="mg-info-text">Guard will verify the vehicle number and allow entry automatically.</div></div>
+      <div class="mg-form-group"><label class="mg-label">Cab Type</label>
+        <div class="mg-chips" id="paCabChips">
+          <div class="mg-chip selected" onclick="mgSelectOne(this,'paCabChips')">Ola / Uber</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paCabChips')">Auto</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paCabChips')">Bus / Tempo</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paCabChips')">School Van</div>
+        </div>
+      </div>
+      <div class="mg-form-group"><label class="mg-label">Driver Name *</label><input type="text" name="name" class="mg-input" placeholder="Driver name" required></div>
+      <div class="mg-form-group"><label class="mg-label">Driver Mobile</label><input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000"></div>
+      <div class="mg-form-group"><label class="mg-label">Vehicle Number</label><input type="text" name="purpose" class="mg-input" placeholder="e.g. MH12AB1234"></div>
+      <div class="mg-form-group"><label class="mg-label">Expected Arrival</label><input type="datetime-local" name="expected_at" class="mg-input"></div>
+    </form>
+
+    <!-- DELIVERY FORM -->
+    <form method="POST" action="{% url 'preapprove_visitor' %}" id="pa-delivery" class="mg-pa-subform">
+      {% csrf_token %}
+      <input type="hidden" name="visitor_type" value="delivery">
+      <div class="mg-info-box"><iconify-icon icon="mdi:information-outline"></iconify-icon><div class="mg-info-text">Delivery agent enters without a call. You'll get a notification on arrival.</div></div>
+      <div class="mg-form-group"><label class="mg-label">Delivery Partner</label>
+        <div class="mg-chips" id="paDlvChips">
+          <div class="mg-chip selected" onclick="mgSelectOne(this,'paDlvChips')">Amazon</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paDlvChips')">Swiggy</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paDlvChips')">Zomato</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paDlvChips')">Flipkart</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paDlvChips')">Courier</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paDlvChips')">Other</div>
+        </div>
+      </div>
+      <div class="mg-form-group"><label class="mg-label">Agent Name</label><input type="text" name="name" class="mg-input" placeholder="Delivery agent name"></div>
+      <div class="mg-form-group"><label class="mg-label">Agent Mobile</label><input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000"></div>
+      <div class="mg-form-group"><label class="mg-label">Expected Arrival</label><input type="datetime-local" name="expected_at" class="mg-input"></div>
+      <div class="mg-form-group"><label class="mg-label">If I'm not home, deliver to</label>
+        <div class="mg-chips" id="paDlvFb">
+          <div class="mg-chip selected" onclick="mgSelectOne(this,'paDlvFb')">Security Desk</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paDlvFb')">Neighbour</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'paDlvFb')">Re-attempt</div>
+        </div>
+      </div>
+    </form>
+
+    <!-- VISITING HELP FORM -->
+    <form method="POST" action="{% url 'preapprove_visitor' %}" id="pa-vhelp" class="mg-pa-subform">
+      {% csrf_token %}
+      <input type="hidden" name="visitor_type" value="service">
+      <div class="mg-info-box"><iconify-icon icon="mdi:information-outline"></iconify-icon><div class="mg-info-text">Service professional entry will be logged. Guard will verify ID at gate.</div></div>
+      <div class="mg-form-group"><label class="mg-label">Helper Name *</label><input type="text" name="name" class="mg-input" placeholder="Full name" required></div>
+      <div class="mg-form-group"><label class="mg-label">Mobile</label><input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000"></div>
+      <div class="mg-form-group"><label class="mg-label">Service Type</label>
+        <select name="purpose" class="mg-select">
+          <option>Plumber</option><option>Electrician</option><option>Carpenter</option>
+          <option>Pest Control</option><option>AC Service</option>
+          <option>Internet Technician</option><option>Painter</option><option>Other</option>
         </select>
       </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Expected Date & Time</label>
-        <input type="datetime-local" name="expected_at" class="mg-input">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Purpose</label>
-        <textarea name="purpose" class="mg-textarea" rows="2" placeholder="Reason for visit"></textarea>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Visitor Photo (optional)</label>
-        <div class="mg-upload-area" onclick="document.getElementById('pa-photos').click()">
-          📷 Tap to attach photo
-          <input type="file" name="photos" id="pa-photos" accept="image/*" style="display:none;" multiple onchange="mgShowFileNames(this,'pa-filenames')">
+      <div class="mg-form-row">
+        <div class="mg-form-group"><label class="mg-label">Expected Time</label><input type="datetime-local" name="expected_at" class="mg-input"></div>
+        <div class="mg-form-group"><label class="mg-label">Duration</label>
+          <select class="mg-select"><option>~1 Hour</option><option>~2 Hours</option><option>Half Day</option><option>Full Day</option></select>
         </div>
-        <div id="pa-filenames" class="mg-hint"></div>
       </div>
     </form>
   </div>
   <div class="mg-sheet-foot">
     <div class="mg-btn-pair">
       <button class="mg-btn-secondary" onclick="mgCloseModal('mg-preapprove-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="document.getElementById('preapprove-form').submit()">
-        ✅ Pre-Approve
+      <button class="mg-btn-primary" onclick="mgSubmitActivePA()">
+        <iconify-icon icon="mdi:check-circle-outline"></iconify-icon> Pre-Approve
       </button>
     </div>
   </div>
 </div>
 </div>
 
-<!-- ── 2. SECURITY ── -->
+<!-- ── DAILY HELP ── -->
+<div class="mg-overlay" id="mg-dailyhelp-mdl" onclick="mgOverlayClose(event,this)">
+<div class="mg-sheet">
+  <div class="mg-handle"></div>
+  <div class="mg-sheet-head">
+    <div class="mg-sheet-title">
+      <iconify-icon icon="mdi:broom" style="color:var(--mg-teal);"></iconify-icon>
+      Find Daily Help
+    </div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-dailyhelp-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
+  </div>
+  <div class="mg-sheet-body">
+    <div class="mg-info-box">
+      <iconify-icon icon="mdi:information-outline"></iconify-icon>
+      <div class="mg-info-text">Browse verified helpers in {{ society.name }}. Tap a category to filter results.</div>
+    </div>
+    <div class="mg-dh-types">
+      <a href="{% url 'resident_services' %}?category=maid" class="mg-dh-type" onclick="mgCloseModal('mg-dailyhelp-mdl')">
+        <div class="dh-icon ic-p"><iconify-icon icon="mdi:account-tie-woman-outline"></iconify-icon></div>
+        <div class="dh-label">Maid</div>
+        <div class="dh-sub">Cleaning & household chores</div>
+      </a>
+      <a href="{% url 'resident_services' %}?category=cook" class="mg-dh-type" onclick="mgCloseModal('mg-dailyhelp-mdl')">
+        <div class="dh-icon ic-o"><iconify-icon icon="mdi:chef-hat"></iconify-icon></div>
+        <div class="dh-label">Cook</div>
+        <div class="dh-sub">Home cooked meals</div>
+      </a>
+      <a href="{% url 'resident_services' %}" class="mg-dh-type" onclick="mgCloseModal('mg-dailyhelp-mdl')">
+        <div class="dh-icon ic-b"><iconify-icon icon="mdi:account-group-outline"></iconify-icon></div>
+        <div class="dh-label">All Daily Helps</div>
+        <div class="dh-sub">Browse all available services</div>
+      </a>
+    </div>
+  </div>
+  <div class="mg-sheet-foot">
+    <button class="mg-btn-secondary" onclick="mgCloseModal('mg-dailyhelp-mdl')">Close</button>
+  </div>
+</div>
+</div>
+
+<!-- ── VISITOR DETAIL ── -->
+<div class="mg-overlay" id="mg-visdetail-mdl" onclick="mgOverlayClose(event,this)">
+<div class="mg-sheet">
+  <div class="mg-handle"></div>
+  <div class="mg-sheet-head">
+    <div class="mg-sheet-title">
+      <iconify-icon icon="mdi:account-details-outline" style="color:var(--mg-blue);"></iconify-icon>
+      Visitor Details
+    </div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-visdetail-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
+  </div>
+  <div class="mg-sheet-body">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:var(--mg-bg);border-radius:12px;">
+      <div id="vd-avatar" style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--mg-blue),#7B5EA7);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:20px;flex-shrink:0;">?</div>
+      <div>
+        <div id="vd-name" style="font-size:16px;font-weight:800;color:var(--mg-text);">–</div>
+        <div id="vd-type" style="font-size:12px;color:var(--mg-text2);margin-top:2px;"></div>
+      </div>
+    </div>
+    <div class="mg-vis-detail-row">
+      <span class="mg-vis-detail-label"><iconify-icon icon="mdi:information-outline"></iconify-icon> Status</span>
+      <span id="vd-status" class="mg-vis-detail-val">–</span>
+    </div>
+    <div class="mg-vis-detail-row">
+      <span class="mg-vis-detail-label"><iconify-icon icon="mdi:clock-outline"></iconify-icon> Time</span>
+      <span id="vd-time" class="mg-vis-detail-val">–</span>
+    </div>
+    <div class="mg-vis-detail-row">
+      <span class="mg-vis-detail-label"><iconify-icon icon="mdi:phone-outline"></iconify-icon> Mobile</span>
+      <span id="vd-mobile" class="mg-vis-detail-val">–</span>
+    </div>
+  </div>
+  <div class="mg-sheet-foot">
+    <a href="{% url 'resident_visitors' %}" class="mg-btn-primary" style="text-decoration:none;justify-content:center;">
+      <iconify-icon icon="mdi:clipboard-list-outline"></iconify-icon>
+      View Full Visitor Log
+    </a>
+  </div>
+</div>
+</div>
+
+<!-- ── NEW POST CHOOSER ── -->
+<div class="mg-overlay" id="mg-newpost-mdl" onclick="mgOverlayClose(event,this)">
+<div class="mg-sheet">
+  <div class="mg-handle"></div>
+  <div class="mg-sheet-head">
+    <div class="mg-sheet-title">
+      <iconify-icon icon="mdi:pencil-plus-outline" style="color:var(--mg-purple);"></iconify-icon>
+      Create New Post
+    </div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-newpost-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
+  </div>
+  <div class="mg-sheet-body">
+    <p style="font-size:13px;color:var(--mg-text2);margin-bottom:16px;line-height:1.6;">What would you like to share with the community?</p>
+    <div class="mg-post-type-grid">
+      <button class="mg-post-type-card" onclick="mgSwitch('mg-newpost-mdl','mg-posts-mdl')">
+        <iconify-icon icon="mdi:post-outline" style="color:var(--mg-purple);"></iconify-icon>
+        <span class="ptc-label">Community Post</span>
+      </button>
+      <button class="mg-post-type-card" onclick="mgSwitch('mg-newpost-mdl','mg-poll-mdl')">
+        <iconify-icon icon="mdi:poll" style="color:var(--mg-blue);"></iconify-icon>
+        <span class="ptc-label">Create Poll</span>
+      </button>
+      {% if current_role == 'admin' or profile.is_society_admin %}
+      <button class="mg-post-type-card" onclick="mgSwitch('mg-newpost-mdl','mg-announcement-mdl')">
+        <iconify-icon icon="mdi:bullhorn-outline" style="color:var(--mg-orange);"></iconify-icon>
+        <span class="ptc-label">Announcement</span>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── COMMUNITY POST FORM ── -->
+<div class="mg-overlay" id="mg-posts-mdl" onclick="mgOverlayClose(event,this)">
+<div class="mg-sheet">
+  <div class="mg-handle"></div>
+  <div class="mg-sheet-head">
+    <div class="mg-sheet-title"><iconify-icon icon="mdi:post-outline" style="color:var(--mg-purple);"></iconify-icon>Community Post</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-posts-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
+  </div>
+  <div class="mg-sheet-body">
+    <form method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data" id="post-form">
+      {% csrf_token %}
+      <div class="mg-form-group"><label class="mg-label">Post Type</label>
+        <select name="post_type" class="mg-select">
+          <option value="general">General Update</option>
+          <option value="lost">Lost & Found</option>
+          <option value="sale">For Sale / Rent</option>
+          <option value="event">Event / Party</option>
+          <option value="help">Neighbour Help</option>
+        </select>
+      </div>
+      <div class="mg-form-group"><label class="mg-label">What's on your mind?</label><textarea name="content" class="mg-textarea" rows="4" placeholder="Share something with the society…" required></textarea></div>
+      <div class="mg-form-group">
+        <label class="mg-label">Add Photo (optional)</label>
+        <div class="mg-upload-area" onclick="document.getElementById('post-img').click()"><iconify-icon icon="mdi:image-outline"></iconify-icon>Tap to add image<input type="file" name="image" id="post-img" accept="image/*" style="display:none;" onchange="mgShowFileNames(this,'post-fn')"></div>
+        <div id="post-fn" class="mg-hint"></div>
+      </div>
+    </form>
+  </div>
+  <div class="mg-sheet-foot">
+    <div class="mg-btn-pair">
+      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-posts-mdl')">Cancel</button>
+      <button class="mg-btn-primary" onclick="document.getElementById('post-form').submit()"><iconify-icon icon="mdi:send-outline"></iconify-icon>Publish</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── CREATE POLL ── -->
+<div class="mg-overlay" id="mg-poll-mdl" onclick="mgOverlayClose(event,this)">
+<div class="mg-sheet">
+  <div class="mg-handle"></div>
+  <div class="mg-sheet-head">
+    <div class="mg-sheet-title"><iconify-icon icon="mdi:poll" style="color:var(--mg-blue);"></iconify-icon>Create Poll</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-poll-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
+  </div>
+  <div class="mg-sheet-body">
+    <form method="POST" action="{% url 'resident_notices' %}?tab=polls" id="poll-form">
+      {% csrf_token %}
+      <input type="hidden" name="post_type" value="poll">
+      <div class="mg-form-group"><label class="mg-label">Poll Question *</label><input type="text" name="poll_question" class="mg-input" placeholder="e.g. Should we have a society picnic?" required></div>
+      <div class="mg-form-group"><label class="mg-label">Option 1 *</label><input type="text" name="option1" class="mg-input" placeholder="Yes" required></div>
+      <div class="mg-form-group"><label class="mg-label">Option 2 *</label><input type="text" name="option2" class="mg-input" placeholder="No" required></div>
+      <div class="mg-form-group"><label class="mg-label">Option 3 (optional)</label><input type="text" name="option3" class="mg-input" placeholder="Maybe"></div>
+      <div class="mg-form-group"><label class="mg-label">Poll Ends On</label><input type="datetime-local" name="ends_at" class="mg-input"></div>
+    </form>
+  </div>
+  <div class="mg-sheet-foot">
+    <div class="mg-btn-pair">
+      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-poll-mdl')">Cancel</button>
+      <button class="mg-btn-primary" onclick="document.getElementById('poll-form').submit()"><iconify-icon icon="mdi:poll"></iconify-icon>Launch Poll</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── ANNOUNCEMENT (admin only) ── -->
+<div class="mg-overlay" id="mg-announcement-mdl" onclick="mgOverlayClose(event,this)">
+<div class="mg-sheet">
+  <div class="mg-handle"></div>
+  <div class="mg-sheet-head">
+    <div class="mg-sheet-title"><iconify-icon icon="mdi:bullhorn-outline" style="color:var(--mg-orange);"></iconify-icon>Create Announcement</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-announcement-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
+  </div>
+  <div class="mg-sheet-body">
+    <div class="mg-info-box" style="background:#FFF4EB;">
+      <iconify-icon icon="mdi:shield-star-outline" style="color:var(--mg-orange);"></iconify-icon>
+      <div class="mg-info-text" style="color:var(--mg-orange);">This will be sent to all residents of {{ society.name }}.</div>
+    </div>
+    <form method="POST" action="{% url 'resident_notices' %}?tab=announcements" id="ann-form">
+      {% csrf_token %}
+      <input type="hidden" name="post_type" value="announcement">
+      <div class="mg-form-group"><label class="mg-label">Title *</label><input type="text" name="title" class="mg-input" placeholder="Announcement title" required></div>
+      <div class="mg-form-group"><label class="mg-label">Message *</label><textarea name="message" class="mg-textarea" rows="4" placeholder="Describe the announcement…" required></textarea></div>
+      <div class="mg-form-group"><label class="mg-label">Priority</label>
+        <div class="mg-chips" id="annPriChips">
+          <div class="mg-chip selected" onclick="mgSelectOne(this,'annPriChips')">Normal</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'annPriChips')">Urgent</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'annPriChips')">Informational</div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="mg-sheet-foot">
+    <div class="mg-btn-pair">
+      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-announcement-mdl')">Cancel</button>
+      <button class="mg-btn-primary" style="background:var(--mg-orange);box-shadow:0 4px 14px rgba(255,107,0,0.3);" onclick="document.getElementById('ann-form').submit()">
+        <iconify-icon icon="mdi:bullhorn-outline"></iconify-icon> Send Announcement
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── SECURITY ── -->
 <div class="mg-overlay" id="mg-security-mdl" onclick="mgOverlayClose(event,this)">
 <div class="mg-sheet">
   <div class="mg-handle"></div>
   <div class="mg-sheet-head">
-    <div class="mg-sheet-title">🛡️ Security</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-security-mdl')">✕</button>
+    <div class="mg-sheet-title"><iconify-icon icon="mdi:shield-account-outline" style="color:var(--mg-blue);"></iconify-icon>Security</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-security-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
   </div>
   <div class="mg-sheet-body">
     <div class="mg-guard-card">
@@ -760,198 +1201,47 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
         <div class="mg-guard-role">{{ society.name }}</div>
         <div class="mg-guard-status"><span class="mg-guard-dot"></span> On Duty</div>
       </div>
-      <button class="mg-call-btn" onclick="mgToast('📞 Calling Gate Guard…','info')">📞</button>
+      <button class="mg-call-btn" onclick="mgToast('📞 Calling Gate Guard…','info')"><iconify-icon icon="mdi:phone-outline"></iconify-icon></button>
     </div>
-    <div style="margin-bottom:12px;">
-      <div style="font-size:12px;font-weight:700;color:var(--mg-text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Send Message to Guard</div>
-      <div class="mg-msgs" id="mgSecMsgs">
-        <div style="display:flex;justify-content:flex-start;margin-bottom:8px;"><div class="mg-bubble">Good day! How can I help you? 👋</div></div>
-      </div>
-      <div class="mg-msg-row">
-        <input type="text" class="mg-input" placeholder="Type a message…" id="mgSecInput" style="padding:10px 12px;" onkeydown="if(event.key==='Enter')mgSendSecMsg()">
-        <button class="mg-msg-send" onclick="mgSendSecMsg()">➤</button>
-      </div>
+    <div style="font-size:12px;font-weight:700;color:var(--mg-text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Message Guard</div>
+    <div class="mg-msgs" id="mgSecMsgs">
+      <div style="display:flex;justify-content:flex-start;margin-bottom:8px;"><div class="mg-bubble">Good day! How can I help you? 👋</div></div>
+    </div>
+    <div class="mg-msg-row">
+      <input type="text" class="mg-input" placeholder="Type a message…" id="mgSecInput" style="padding:10px 12px;" onkeydown="if(event.key==='Enter')mgSendSecMsg()">
+      <button class="mg-msg-send" onclick="mgSendSecMsg()"><iconify-icon icon="mdi:send"></iconify-icon></button>
     </div>
   </div>
   <div class="mg-sheet-foot">
-    <button class="mg-btn-red" onclick="mgSwitch('mg-security-mdl','mg-sos-mdl')">🚨 Send SOS / Emergency Alert</button>
+    <button class="mg-btn-red" onclick="mgSwitch('mg-security-mdl','mg-sos-mdl')">
+      <iconify-icon icon="mdi:alarm-light-outline"></iconify-icon> Send SOS / Emergency Alert
+    </button>
   </div>
 </div>
 </div>
 
-<!-- ── 3. ASK SOCIETY ── -->
-<div class="mg-overlay" id="mg-asksociety-mdl" onclick="mgOverlayClose(event,this)">
-<div class="mg-sheet">
-  <div class="mg-handle"></div>
-  <div class="mg-sheet-head">
-    <div class="mg-sheet-title">💬 Ask Society</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-asksociety-mdl')">✕</button>
-  </div>
-  <div class="mg-sheet-body">
-    <form method="POST" action="{% url 'create_post' %}" id="ask-society-form">
-      {% csrf_token %}
-      <input type="hidden" name="post_type" value="query">
-      <div class="mg-form-group">
-        <label class="mg-label">Category</label>
-        <select name="category" class="mg-select">
-          <option value="general">General Query</option>
-          <option value="maintenance">Maintenance Issue</option>
-          <option value="billing">Billing / Payments</option>
-          <option value="noise">Noise Complaint</option>
-          <option value="parking">Parking Issue</option>
-          <option value="amenity">Amenity Request</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Priority</label>
-        <div class="mg-chips" id="askPriChips">
-          <div class="mg-chip" onclick="mgSelectOne(this,'askPriChips');document.getElementById('ask-priority').value='urgent'">🔴 Urgent</div>
-          <div class="mg-chip selected" onclick="mgSelectOne(this,'askPriChips');document.getElementById('ask-priority').value='normal'">🟡 Normal</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'askPriChips');document.getElementById('ask-priority').value='low'">🔵 Low</div>
-        </div>
-        <input type="hidden" name="priority" id="ask-priority" value="normal">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Your Query</label>
-        <textarea name="content" class="mg-textarea" rows="4" placeholder="Describe your issue or question in detail…" required></textarea>
-      </div>
-    </form>
-  </div>
-  <div class="mg-sheet-foot">
-    <div class="mg-btn-pair">
-      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-asksociety-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="document.getElementById('ask-society-form').submit()">
-        📨 Submit Query
-      </button>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ── 4. POSTS ── -->
-<div class="mg-overlay" id="mg-posts-mdl" onclick="mgOverlayClose(event,this)">
-<div class="mg-sheet">
-  <div class="mg-handle"></div>
-  <div class="mg-sheet-head">
-    <div class="mg-sheet-title">📢 Community Post</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-posts-mdl')">✕</button>
-  </div>
-  <div class="mg-sheet-body">
-    <form method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data" id="post-form">
-      {% csrf_token %}
-      <div class="mg-form-group">
-        <label class="mg-label">Post Type</label>
-        <select name="post_type" class="mg-select">
-          <option value="general">General Update</option>
-          <option value="lost">Lost & Found</option>
-          <option value="sale">For Sale / Rent</option>
-          <option value="event">Event / Party</option>
-          <option value="help">Neighbour Help</option>
-        </select>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">What's on your mind?</label>
-        <textarea name="content" class="mg-textarea" rows="4" placeholder="Share something with the society…" required></textarea>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Add Photo (optional)</label>
-        <div class="mg-upload-area" onclick="document.getElementById('post-img').click()">
-          🖼️ Tap to add image
-          <input type="file" name="image" id="post-img" accept="image/*" style="display:none;" onchange="mgShowFileNames(this,'post-filenames')">
-        </div>
-        <div id="post-filenames" class="mg-hint"></div>
-      </div>
-    </form>
-  </div>
-  <div class="mg-sheet-foot">
-    <div class="mg-btn-pair">
-      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-posts-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="document.getElementById('post-form').submit()">
-        📢 Publish Post
-      </button>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ── 5. FIND DAILY HELP ── -->
-<div class="mg-overlay" id="mg-dailyhelp-mdl" onclick="mgOverlayClose(event,this)">
-<div class="mg-sheet">
-  <div class="mg-handle"></div>
-  <div class="mg-sheet-head">
-    <div class="mg-sheet-title">🧹 Find Daily Help</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-dailyhelp-mdl')">✕</button>
-  </div>
-  <div class="mg-sheet-body">
-    <div class="mg-form-group">
-      <label class="mg-label">Service Type</label>
-      <div class="mg-chips" id="helpChips">
-        <div class="mg-chip selected" onclick="mgSelectOne(this,'helpChips')">🧹 Maid</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'helpChips')">🍳 Cook</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'helpChips')">👶 Nanny</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'helpChips')">🐕 Dog Walker</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'helpChips')">🔧 Plumber</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'helpChips')">⚡ Electrician</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'helpChips')">🖌️ Painter</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'helpChips')">🌿 Gardener</div>
-      </div>
-    </div>
-    <div class="mg-form-row">
-      <div class="mg-form-group">
-        <label class="mg-label">Frequency</label>
-        <select class="mg-select">
-          <option>Daily</option><option>Alternate Days</option><option>Weekly</option><option>One-time</option>
-        </select>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Timing</label>
-        <select class="mg-select">
-          <option>Morning</option><option>Afternoon</option><option>Evening</option><option>Flexible</option>
-        </select>
-      </div>
-    </div>
-    <div class="mg-info-box">
-      <div style="font-size:18px;flex-shrink:0;">👥</div>
-      <div class="mg-info-text">We'll show you verified helpers registered in {{ society.name }}. Browse and hire directly.</div>
-    </div>
-  </div>
-  <div class="mg-sheet-foot">
-    <div class="mg-btn-pair">
-      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-dailyhelp-mdl')">Cancel</button>
-      <a href="{% url 'resident_services' %}" class="mg-btn-primary" style="text-decoration:none;flex:2;justify-content:center;">
-        🔍 Browse Helpers
-      </a>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ── 6. RAISE ALERT ── -->
+<!-- ── RAISE ALERT ── -->
 <div class="mg-overlay" id="mg-alert-mdl" onclick="mgOverlayClose(event,this)">
 <div class="mg-sheet">
   <div class="mg-handle"></div>
   <div class="mg-sheet-head">
-    <div class="mg-sheet-title">🔔 Raise Alert</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-alert-mdl')">✕</button>
+    <div class="mg-sheet-title"><iconify-icon icon="mdi:alert-outline" style="color:var(--mg-red);"></iconify-icon>Raise Alert</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-alert-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
   </div>
   <div class="mg-sheet-body">
     <form method="POST" action="{% url 'send_sos' %}" id="alert-form">
       {% csrf_token %}
-      <div class="mg-form-group">
-        <label class="mg-label">Alert Type</label>
+      <div class="mg-form-group"><label class="mg-label">Alert Type</label>
         <div class="mg-chips" id="alertTypeChips">
-          <div class="mg-chip selected" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='emergency'">🚨 Emergency</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='suspicious'">👀 Suspicious Person</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='fire'">🔥 Fire / Hazard</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='vehicle'">🚗 Vehicle Issue</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='noise'">🔊 Noise Complaint</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='infra'">🔧 Infrastructure</div>
+          <div class="mg-chip selected" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='emergency'"><iconify-icon icon="mdi:alarm-light-outline"></iconify-icon>Emergency</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='suspicious'"><iconify-icon icon="mdi:eye-outline"></iconify-icon>Suspicious</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='fire'"><iconify-icon icon="mdi:fire"></iconify-icon>Fire</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='noise'"><iconify-icon icon="mdi:volume-high"></iconify-icon>Noise</div>
+          <div class="mg-chip" onclick="mgSelectOne(this,'alertTypeChips');document.getElementById('alert-type').value='infra'"><iconify-icon icon="mdi:wrench-outline"></iconify-icon>Infrastructure</div>
         </div>
         <input type="hidden" name="alert_type" id="alert-type" value="emergency">
       </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Location</label>
+      <div class="mg-form-group"><label class="mg-label">Location</label>
         <select name="location" class="mg-select">
           <option value="apartment">My Apartment ({{ apartment.block }}-{{ apartment.flat_number }})</option>
           <option value="corridor">Block {{ apartment.block }} Corridor</option>
@@ -962,643 +1252,284 @@ body { background: var(--mg-bg) !important; font-family: 'DM Sans', 'Segoe UI', 
           <option value="other">Other</option>
         </select>
       </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Description</label>
-        <textarea name="description" class="mg-textarea" rows="3" placeholder="Briefly describe the situation…"></textarea>
-      </div>
+      <div class="mg-form-group"><label class="mg-label">Description</label><textarea name="description" class="mg-textarea" rows="3" placeholder="Briefly describe the situation…"></textarea></div>
     </form>
   </div>
   <div class="mg-sheet-foot">
-    <button class="mg-btn-red" onclick="mgSendAlert()">
-      🔔 Raise Alert Now
+    <button class="mg-btn-red" onclick="document.getElementById('alert-form').submit()">
+      <iconify-icon icon="mdi:bell-alert-outline"></iconify-icon> Raise Alert Now
     </button>
   </div>
 </div>
 </div>
 
-<!-- ── 7. INVITE GUEST ── -->
+<!-- ── INVITE GUEST ── -->
 <div class="mg-overlay" id="mg-invite-mdl" onclick="mgOverlayClose(event,this)">
 <div class="mg-sheet">
   <div class="mg-handle"></div>
   <div class="mg-sheet-head">
-    <div class="mg-sheet-title">🎟️ Invite Guest</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-invite-mdl')">✕</button>
+    <div class="mg-sheet-title"><iconify-icon icon="mdi:ticket-outline" style="color:#875400;"></iconify-icon>Invite Guest</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-invite-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
   </div>
   <div class="mg-sheet-body">
-    <form method="POST" action="{% url 'preapprove_visitor' %}" id="invite-form">
+    <form method="POST" action="{% url 'preapprove_visitor' %}" enctype="multipart/form-data" id="invite-form">
       {% csrf_token %}
       <input type="hidden" name="visitor_type" value="guest">
-      <div class="mg-form-group">
-        <label class="mg-label">Guest Name *</label>
-        <input type="text" name="name" id="ig-name" class="mg-input" placeholder="Full name" required>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Mobile Number *</label>
-        <input type="tel" name="mobile" id="ig-mobile" class="mg-input" placeholder="+91 00000 00000" required>
-      </div>
+      <div class="mg-form-group"><label class="mg-label">Guest Name *</label><input type="text" name="name" id="ig-name" class="mg-input" placeholder="Full name" required></div>
+      <div class="mg-form-group"><label class="mg-label">Mobile *</label><input type="tel" name="mobile" id="ig-mobile" class="mg-input" placeholder="+91 00000 00000" required></div>
       <div class="mg-form-row">
-        <div class="mg-form-group">
-          <label class="mg-label">Expected Date</label>
-          <input type="date" id="ig-date" class="mg-input">
-        </div>
-        <div class="mg-form-group">
-          <label class="mg-label">Expected Time</label>
-          <input type="time" id="ig-time" class="mg-input">
-        </div>
+        <div class="mg-form-group"><label class="mg-label">Date</label><input type="date" id="ig-date" class="mg-input"></div>
+        <div class="mg-form-group"><label class="mg-label">Time</label><input type="time" id="ig-time" class="mg-input"></div>
       </div>
+      <div class="mg-form-group"><label class="mg-label">Purpose</label><input type="text" name="purpose" class="mg-input" placeholder="e.g. Birthday party"></div>
       <div class="mg-form-group">
-        <label class="mg-label">Purpose</label>
-        <input type="text" name="purpose" class="mg-input" placeholder="e.g. Birthday party, Meeting">
+        <label class="mg-label">Photos (optional)</label>
+        <div class="mg-upload-area" onclick="document.getElementById('ig-photos').click()"><iconify-icon icon="mdi:camera-outline"></iconify-icon>Tap to upload<input type="file" name="photos" id="ig-photos" accept="image/*" multiple style="display:none;" onchange="mgShowFileNames(this,'ig-fn')"></div>
+        <div id="ig-fn" class="mg-hint"></div>
       </div>
     </form>
-    <!-- Pass preview (hidden until generated) -->
     <div id="mg-pass-preview" class="mg-pass" style="display:none;">
       <div style="font-size:11px;opacity:0.75;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Guest Entry Pass</div>
       <div class="mg-pass-num" id="mg-pass-num">MG-000000</div>
-      <div class="mg-pass-detail">🏢 {{ society.name }} · {{ apartment.block }}-{{ apartment.flat_number }}</div>
-      <div class="mg-pass-detail" id="mg-pass-date">📅 —</div>
+      <div class="mg-pass-detail"><iconify-icon icon="mdi:office-building-outline"></iconify-icon> {{ society.name }} · {{ apartment.block }}-{{ apartment.flat_number }}</div>
+      <div class="mg-pass-detail" id="mg-pass-date"><iconify-icon icon="mdi:calendar-outline"></iconify-icon> –</div>
     </div>
   </div>
   <div class="mg-sheet-foot">
     <div class="mg-btn-pair">
       <button class="mg-btn-secondary" onclick="mgCloseModal('mg-invite-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="mgGeneratePass()">
-        🎟️ Generate Pass & Invite
-      </button>
+      <button class="mg-btn-primary" onclick="mgGeneratePass()"><iconify-icon icon="mdi:ticket-outline"></iconify-icon>Generate Pass</button>
     </div>
   </div>
 </div>
 </div>
 
-<!-- ── 8. VIEW MORE ── -->
+<!-- ── MORE ── -->
 <div class="mg-overlay" id="mg-more-mdl" onclick="mgOverlayClose(event,this)">
 <div class="mg-sheet">
   <div class="mg-handle"></div>
   <div class="mg-sheet-head">
-    <div class="mg-sheet-title">⋯ All Quick Actions</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-more-mdl')">✕</button>
+    <div class="mg-sheet-title">All Quick Actions</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-more-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
   </div>
   <div class="mg-sheet-body">
-    <!-- Visitor & Security -->
     <div class="mg-exp-section">
-      <div class="mg-exp-label">🛡️ Visitor & Security</div>
+      <div class="mg-exp-label"><iconify-icon icon="mdi:shield-account-outline"></iconify-icon> Visitor & Security</div>
       <div class="mg-exp-grid">
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-invite-mdl')">
-          <div class="mg-qa-ic ic-y">🎟️</div><div class="mg-qa-lbl">Invite Guest</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-cab-mdl')">
-          <div class="mg-qa-ic ic-t">🚕</div><div class="mg-qa-lbl">Cab / Auto</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-delivery-mdl')">
-          <div class="mg-qa-ic ic-o">📦</div><div class="mg-qa-lbl">Allow Delivery</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-visiting-help-mdl')">
-          <div class="mg-qa-ic ic-g">🔧</div><div class="mg-qa-lbl">Visiting Help</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-security-mdl')">
-          <div class="mg-qa-ic ic-b">🛡️</div><div class="mg-qa-lbl">Call Security</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-kid-exit-mdl')">
-          <div class="mg-qa-ic ic-pk">👦</div><div class="mg-qa-lbl">Allow Kid Exit</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-preapprove-mdl')">
-          <div class="mg-qa-ic ic-g">✅</div><div class="mg-qa-lbl">Pre-Approve</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-alert-mdl')">
-          <div class="mg-qa-ic ic-r">🔔</div><div class="mg-qa-lbl">Raise Alert</div>
-        </button>
+        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-invite-mdl')"><div class="mg-qa-ic ic-y"><iconify-icon icon="mdi:ticket-outline"></iconify-icon></div><div class="mg-qa-lbl">Invite Guest</div></button>
+        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-preapprove-mdl')"><div class="mg-qa-ic ic-g"><iconify-icon icon="mdi:account-check-outline"></iconify-icon></div><div class="mg-qa-lbl">Pre-Approve</div></button>
+        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-alert-mdl')"><div class="mg-qa-ic ic-r"><iconify-icon icon="mdi:alert-outline"></iconify-icon></div><div class="mg-qa-lbl">Raise Alert</div></button>
+        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-security-mdl')"><div class="mg-qa-ic ic-b"><iconify-icon icon="mdi:shield-check-outline"></iconify-icon></div><div class="mg-qa-lbl">Call Security</div></button>
       </div>
     </div>
-    <!-- Society & Services -->
     <div class="mg-exp-section">
-      <div class="mg-exp-label">🏢 Society & Services</div>
+      <div class="mg-exp-label"><iconify-icon icon="mdi:office-building-outline"></iconify-icon> Society & Services</div>
       <div class="mg-exp-grid">
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-asksociety-mdl')">
-          <div class="mg-qa-ic ic-o">💬</div><div class="mg-qa-lbl">Ask Society</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-posts-mdl')">
-          <div class="mg-qa-ic ic-p">📢</div><div class="mg-qa-lbl">Posts</div>
-        </button>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-dailyhelp-mdl')">
-          <div class="mg-qa-ic ic-t">🧹</div><div class="mg-qa-lbl">Daily Help</div>
-        </button>
-        <a href="{% url 'resident_vehicles' %}" class="mg-qa-btn" style="text-decoration:none;" onclick="mgCloseModal('mg-more-mdl')">
-          <div class="mg-qa-ic ic-gr">🚗</div><div class="mg-qa-lbl">My Vehicles</div>
-        </a>
-        <a href="{% url 'resident_directory' %}" class="mg-qa-btn" style="text-decoration:none;" onclick="mgCloseModal('mg-more-mdl')">
-          <div class="mg-qa-ic ic-in">📖</div><div class="mg-qa-lbl">Directory</div>
-        </a>
-        <a href="{% url 'resident_notices' %}" class="mg-qa-btn" style="text-decoration:none;" onclick="mgCloseModal('mg-more-mdl')">
-          <div class="mg-qa-ic ic-y">📋</div><div class="mg-qa-lbl">Notices</div>
-        </a>
-        <a href="{% url 'resident_notifications' %}" class="mg-qa-btn" style="text-decoration:none;" onclick="mgCloseModal('mg-more-mdl')">
-          <div class="mg-qa-ic ic-b">🔔</div><div class="mg-qa-lbl">Notifications</div>
-        </a>
-        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-sos-mdl')">
-          <div class="mg-qa-ic ic-r">🚨</div><div class="mg-qa-lbl" style="color:var(--mg-red);font-weight:700;">SOS</div>
-        </button>
+        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-dailyhelp-mdl')"><div class="mg-qa-ic ic-t"><iconify-icon icon="mdi:broom"></iconify-icon></div><div class="mg-qa-lbl">Daily Help</div></button>
+        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-newpost-mdl')"><div class="mg-qa-ic ic-p"><iconify-icon icon="mdi:post-outline"></iconify-icon></div><div class="mg-qa-lbl">New Post</div></button>
+        <a href="{% url 'resident_vehicles' %}" class="mg-qa-btn" style="text-decoration:none;" onclick="mgCloseModal('mg-more-mdl')"><div class="mg-qa-ic ic-gr"><iconify-icon icon="mdi:car-outline"></iconify-icon></div><div class="mg-qa-lbl">My Vehicles</div></a>
+        <a href="{% url 'resident_notices' %}" class="mg-qa-btn" style="text-decoration:none;" onclick="mgCloseModal('mg-more-mdl')"><div class="mg-qa-ic ic-y"><iconify-icon icon="mdi:clipboard-text-outline"></iconify-icon></div><div class="mg-qa-lbl">Notices</div></a>
+        <a href="{% url 'resident_notifications' %}" class="mg-qa-btn" style="text-decoration:none;" onclick="mgCloseModal('mg-more-mdl')"><div class="mg-qa-ic ic-b"><iconify-icon icon="mdi:bell-outline"></iconify-icon></div><div class="mg-qa-lbl">Notifications</div></a>
+        <button class="mg-qa-btn" onclick="mgSwitch('mg-more-mdl','mg-sos-mdl')"><div class="mg-qa-ic ic-r"><iconify-icon icon="mdi:alarm-light-outline"></iconify-icon></div><div class="mg-qa-lbl" style="color:var(--mg-red);font-weight:700;">SOS</div></button>
       </div>
     </div>
   </div>
 </div>
 </div>
 
-<!-- ── CAB / AUTO ── -->
-<div class="mg-overlay" id="mg-cab-mdl" onclick="mgOverlayClose(event,this)">
-<div class="mg-sheet">
-  <div class="mg-handle"></div>
-  <div class="mg-sheet-head">
-    <div class="mg-sheet-title">🚕 Cab / Auto Entry</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-cab-mdl')">✕</button>
-  </div>
-  <div class="mg-sheet-body">
-    <form method="POST" action="{% url 'preapprove_visitor' %}" id="cab-form">
-      {% csrf_token %}
-      <input type="hidden" name="visitor_type" value="cab">
-      <div class="mg-form-group">
-        <label class="mg-label">Cab Type</label>
-        <div class="mg-chips" id="cabChips">
-          <div class="mg-chip selected" onclick="mgSelectOne(this,'cabChips')">🚗 Ola / Uber</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'cabChips')">🛺 Auto</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'cabChips')">🚌 Bus / Tempo</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'cabChips')">🚐 School Van</div>
-        </div>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Driver Name *</label>
-        <input type="text" name="name" class="mg-input" placeholder="Driver name" required>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Driver Mobile</label>
-        <input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Vehicle Number</label>
-        <input type="text" name="purpose" class="mg-input" placeholder="e.g. MH12AB1234">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Expected Arrival</label>
-        <input type="datetime-local" name="expected_at" class="mg-input">
-      </div>
-    </form>
-  </div>
-  <div class="mg-sheet-foot">
-    <div class="mg-btn-pair">
-      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-cab-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="document.getElementById('cab-form').submit()">🚕 Allow Entry</button>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ── ALLOW DELIVERY ── -->
-<div class="mg-overlay" id="mg-delivery-mdl" onclick="mgOverlayClose(event,this)">
-<div class="mg-sheet">
-  <div class="mg-handle"></div>
-  <div class="mg-sheet-head">
-    <div class="mg-sheet-title">📦 Allow Delivery</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-delivery-mdl')">✕</button>
-  </div>
-  <div class="mg-sheet-body">
-    <form method="POST" action="{% url 'preapprove_visitor' %}" id="delivery-form">
-      {% csrf_token %}
-      <input type="hidden" name="visitor_type" value="delivery">
-      <div class="mg-form-group">
-        <label class="mg-label">Delivery Partner</label>
-        <div class="mg-chips" id="dlvChips">
-          <div class="mg-chip selected" onclick="mgSelectOne(this,'dlvChips')">🛍️ Amazon</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'dlvChips')">🍔 Swiggy</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'dlvChips')">🍕 Zomato</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'dlvChips')">📦 Flipkart</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'dlvChips')">🚚 Courier</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'dlvChips')">Other</div>
-        </div>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Delivery Agent Name</label>
-        <input type="text" name="name" class="mg-input" placeholder="Agent name (or 'Delivery Agent')">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Agent Mobile</label>
-        <input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Expected Arrival</label>
-        <input type="datetime-local" name="expected_at" class="mg-input">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">If I'm not home, deliver to</label>
-        <div class="mg-chips" id="dlvFallback">
-          <div class="mg-chip selected" onclick="mgSelectOne(this,'dlvFallback')">🚪 Security Desk</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'dlvFallback')">👥 Neighbour</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'dlvFallback')">🔄 Re-attempt</div>
-        </div>
-      </div>
-    </form>
-  </div>
-  <div class="mg-sheet-foot">
-    <div class="mg-btn-pair">
-      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-delivery-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="document.getElementById('delivery-form').submit()">📦 Allow Delivery</button>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ── VISITING HELP ── -->
-<div class="mg-overlay" id="mg-visiting-help-mdl" onclick="mgOverlayClose(event,this)">
-<div class="mg-sheet">
-  <div class="mg-handle"></div>
-  <div class="mg-sheet-head">
-    <div class="mg-sheet-title">🔧 Visiting Help</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-visiting-help-mdl')">✕</button>
-  </div>
-  <div class="mg-sheet-body">
-    <form method="POST" action="{% url 'preapprove_visitor' %}" id="vhelp-form">
-      {% csrf_token %}
-      <input type="hidden" name="visitor_type" value="service">
-      <div class="mg-form-group">
-        <label class="mg-label">Helper Name *</label>
-        <input type="text" name="name" class="mg-input" placeholder="Full name" required>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Mobile Number</label>
-        <input type="tel" name="mobile" class="mg-input" placeholder="+91 00000 00000">
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Service Type</label>
-        <select name="purpose" class="mg-select">
-          <option>Plumber</option><option>Electrician</option><option>Carpenter</option>
-          <option>Pest Control</option><option>AC Service</option>
-          <option>Internet Technician</option><option>Painter</option><option>Other</option>
-        </select>
-      </div>
-      <div class="mg-form-row">
-        <div class="mg-form-group">
-          <label class="mg-label">Expected Time</label>
-          <input type="datetime-local" name="expected_at" class="mg-input">
-        </div>
-        <div class="mg-form-group">
-          <label class="mg-label">Duration</label>
-          <select class="mg-select">
-            <option>~1 Hour</option><option>~2 Hours</option><option>Half Day</option><option>Full Day</option>
-          </select>
-        </div>
-      </div>
-    </form>
-  </div>
-  <div class="mg-sheet-foot">
-    <div class="mg-btn-pair">
-      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-visiting-help-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="document.getElementById('vhelp-form').submit()">🔧 Approve Entry</button>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ── ALLOW KID EXIT ── -->
-<div class="mg-overlay" id="mg-kid-exit-mdl" onclick="mgOverlayClose(event,this)">
-<div class="mg-sheet">
-  <div class="mg-handle"></div>
-  <div class="mg-sheet-head">
-    <div class="mg-sheet-title">👦 Allow Kid Exit</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-kid-exit-mdl')">✕</button>
-  </div>
-  <div class="mg-sheet-body">
-    <div class="mg-info-box">
-      <div style="font-size:18px;flex-shrink:0;">🛡️</div>
-      <div class="mg-info-text">Set a timed exit permission for your child. The gate guard will verify and log the exit.</div>
-    </div>
-    <form method="POST" action="{% url 'preapprove_visitor' %}" id="kid-form">
-      {% csrf_token %}
-      <input type="hidden" name="visitor_type" value="guest">
-      <input type="hidden" name="purpose" value="Child Exit Permission">
-      <div class="mg-form-group">
-        <label class="mg-label">Child's Name *</label>
-        <input type="text" name="name" class="mg-input" placeholder="Child's name" required>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Emergency Contact</label>
-        <input type="tel" name="mobile" class="mg-input" placeholder="Your mobile number" required>
-      </div>
-      <div class="mg-form-row">
-        <div class="mg-form-group">
-          <label class="mg-label">Exit After</label>
-          <input type="time" class="mg-input" value="15:00">
-        </div>
-        <div class="mg-form-group">
-          <label class="mg-label">Return By</label>
-          <input type="datetime-local" name="expected_at" class="mg-input">
-        </div>
-      </div>
-      <div class="mg-form-group">
-        <label class="mg-label">Accompanied By</label>
-        <div class="mg-chips" id="kidAccChips">
-          <div class="mg-chip selected" onclick="mgSelectOne(this,'kidAccChips')">👤 Alone</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'kidAccChips')">👫 With Friends</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'kidAccChips')">🚌 School Bus</div>
-          <div class="mg-chip" onclick="mgSelectOne(this,'kidAccChips')">🚗 Driver</div>
-        </div>
-      </div>
-    </form>
-  </div>
-  <div class="mg-sheet-foot">
-    <div class="mg-btn-pair">
-      <button class="mg-btn-secondary" onclick="mgCloseModal('mg-kid-exit-mdl')">Cancel</button>
-      <button class="mg-btn-primary" onclick="document.getElementById('kid-form').submit()">✅ Set Permission</button>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ── SOS MODAL ── -->
+<!-- ── SOS ── -->
 <div class="mg-overlay" id="mg-sos-mdl" onclick="mgOverlayClose(event,this)">
 <div class="mg-sheet">
   <div class="mg-handle"></div>
   <div class="mg-sheet-head">
-    <div class="mg-sheet-title">🚨 SOS Emergency Alert</div>
-    <button class="mg-sheet-close" onclick="mgCloseModal('mg-sos-mdl')">✕</button>
+    <div class="mg-sheet-title"><iconify-icon icon="mdi:alarm-light-outline" style="color:var(--mg-red);"></iconify-icon>SOS Emergency Alert</div>
+    <button class="mg-sheet-close" onclick="mgCloseModal('mg-sos-mdl')"><iconify-icon icon="mdi:close"></iconify-icon></button>
   </div>
   <div class="mg-sheet-body">
-    <div style="background:var(--mg-red-light);border:2px solid var(--mg-red);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;text-align:center;">
-      <div style="font-size:40px;margin-bottom:8px;">🚨</div>
-      <div style="font-size:14px;font-weight:700;color:var(--mg-red);">This will immediately alert all security in {{ society.name }} and your emergency contacts.</div>
+    <div style="background:var(--mg-red-light);border:2px solid var(--mg-red);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;text-align:center;">
+      <iconify-icon icon="mdi:alarm-light" style="font-size:48px;color:var(--mg-red);"></iconify-icon>
+      <div style="font-size:13px;font-weight:700;color:var(--mg-red);margin-top:8px;line-height:1.5;">This will immediately alert all security in {{ society.name }} and your emergency contacts.</div>
     </div>
-    <div class="mg-form-group">
-      <label class="mg-label">Emergency Type</label>
+    <div class="mg-form-group"><label class="mg-label">Emergency Type</label>
       <div class="mg-chips" id="sosChips">
-        <div class="mg-chip selected" onclick="mgSelectOne(this,'sosChips')">❤️‍🩹 Medical</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'sosChips')">🔥 Fire</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'sosChips')">🚨 Intruder</div>
-        <div class="mg-chip" onclick="mgSelectOne(this,'sosChips')">⚠️ Other</div>
+        <div class="mg-chip selected" onclick="mgSelectOne(this,'sosChips')"><iconify-icon icon="mdi:heart-pulse"></iconify-icon>Medical</div>
+        <div class="mg-chip" onclick="mgSelectOne(this,'sosChips')"><iconify-icon icon="mdi:fire"></iconify-icon>Fire</div>
+        <div class="mg-chip" onclick="mgSelectOne(this,'sosChips')"><iconify-icon icon="mdi:account-alert-outline"></iconify-icon>Intruder</div>
+        <div class="mg-chip" onclick="mgSelectOne(this,'sosChips')"><iconify-icon icon="mdi:alert-outline"></iconify-icon>Other</div>
       </div>
     </div>
-    <div class="mg-form-group">
-      <label class="mg-label">Your Apartment</label>
-      <input class="mg-input" value="{{ apartment.block }}-{{ apartment.flat_number }}, {{ society.name }}" readonly style="background:var(--mg-bg);">
-    </div>
-    <div class="mg-form-group">
-      <label class="mg-label">Additional Info (optional)</label>
-      <textarea class="mg-textarea" rows="2" placeholder="Any details that help responders…" id="sos-details"></textarea>
-    </div>
+    <div class="mg-form-group"><label class="mg-label">Your Apartment</label><input class="mg-input" value="{{ apartment.block }}-{{ apartment.flat_number }}, {{ society.name }}" readonly style="background:var(--mg-bg);"></div>
+    <div class="mg-form-group"><label class="mg-label">Additional Info</label><textarea class="mg-textarea" rows="2" placeholder="Any details that help responders…" id="sos-details"></textarea></div>
   </div>
   <div class="mg-sheet-foot">
-    <button class="mg-btn-red" onclick="mgSendSOS()">
-      🚨 SEND SOS NOW
-    </button>
+    <button class="mg-btn-red" onclick="mgSendSOS()"><iconify-icon icon="mdi:alarm-light-outline"></iconify-icon>SEND SOS NOW</button>
   </div>
 </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     DJANGO MESSAGES AS TOASTS
-══════════════════════════════════════ -->
 {% if messages %}
 <div id="mg-django-messages" style="display:none;">
-  {% for message in messages %}
-  <span data-msg="{{ message|escapejs }}" data-type="{{ message.tags }}"></span>
-  {% endfor %}
+  {% for message in messages %}<span data-msg="{{ message|escapejs }}" data-type="{{ message.tags }}"></span>{% endfor %}
 </div>
 {% endif %}
 
 {% endblock %}
 
+
 {% block scripts %}
 <script>
-// ─── MODAL SYSTEM ───
+const GUARD_ID = {{ guard_id|default:"null" }};
+
+// ─── MODAL SYSTEM ───────────────────────────────────────────────
+// Teleport every overlay to <body> on first open so it is never
+// trapped inside a stacking context created by <main> or any
+// parent. This guarantees z-index: 9000 actually beats the
+// sticky header (z-index: 200) and fixed bottom-nav (z-index: 100).
 function mgOpenModal(id) {
-  document.getElementById(id).classList.add('open');
+  var el = document.getElementById(id);
+  if (!el) return;
+  // Teleport to <body> if not already a direct child
+  if (el.parentNode !== document.body) {
+    document.body.appendChild(el);
+  }
+  el.classList.add('open');
+  document.body.classList.add('mg-modal-open');
   document.body.style.overflow = 'hidden';
 }
 function mgCloseModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('open');
+  // Only remove scroll-lock if no other modal is open
+  if (!document.querySelector('.mg-overlay.open')) {
+    document.body.classList.remove('mg-modal-open');
+    document.body.style.overflow = '';
+  }
 }
 function mgOverlayClose(e, el) {
-  if (e.target === el) { el.classList.remove('open'); document.body.style.overflow = ''; }
+  if (e.target === el) { mgCloseModal(el.id); }
 }
 function mgSwitch(from, to) {
   mgCloseModal(from);
   setTimeout(() => mgOpenModal(to), 220);
 }
 
-// ─── TOAST ───
-function mgToast(msg, type='success') {
-  const colors = { success:'#10B981', error:'#F5222D', warning:'#FAAD14', info:'#1A3CFF' };
-  const t = document.createElement('div');
-  t.className = 'mg-toast';
-  t.style.background = colors[type] || colors.info;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.transition='opacity 0.3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3500);
+function mgToast(msg,type='success'){
+  const colors={success:'#10B981',error:'#F5222D',warning:'#FAAD14',info:'#1A3CFF'};
+  const t=document.createElement('div');t.className='mg-toast';t.style.background=colors[type]||colors.info;t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>{t.style.transition='opacity 0.3s';t.style.opacity='0';setTimeout(()=>t.remove(),300);},3500);
 }
 
-// ─── CHIP HELPERS ───
-function mgToggleChip(el) { el.classList.toggle('selected'); }
-function mgSelectOne(el, groupId) {
-  document.getElementById(groupId).querySelectorAll('.mg-chip').forEach(c => c.classList.remove('selected'));
+function mgSelectOne(el,groupId){
+  document.getElementById(groupId).querySelectorAll('.mg-chip').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
 }
 
-// ─── FILE NAME DISPLAY ───
-function mgShowFileNames(input, targetId) {
-  const el = document.getElementById(targetId);
-  if (!el) return;
-  if (input.files.length === 0) { el.textContent = ''; return; }
-  const names = Array.from(input.files).map(f => f.name).join(', ');
-  el.textContent = '📎 ' + names;
+function mgShowFileNames(input,targetId){
+  const el=document.getElementById(targetId);if(!el)return;
+  el.textContent=input.files.length?'📎 '+Array.from(input.files).map(f=>f.name).join(', '):'';
 }
 
-// ─── VISITOR APPROVE / DENY (AJAX) ───
-function mgApproveVisitor(id, name, btn) {
-  const row = btn.closest('.mg-vis-row');
-  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+// Pre-approve type switcher
+let activePAFormId='pa-guest';
+function mgSelectPAType(btn,formId){
+  document.querySelectorAll('.mg-pa-type').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.querySelectorAll('.mg-pa-subform').forEach(f=>f.classList.remove('active'));
+  document.getElementById(formId).classList.add('active');
+  activePAFormId=formId;
+}
+function mgSubmitActivePA(){const f=document.getElementById(activePAFormId);if(f)f.submit();}
 
-  fetch(`/visitors/approve/${id}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' }
-  })
-  .then(res => {
-    if (res.ok || res.redirected) {
-      btn.closest('.mg-vis-actions').innerHTML = '<span class="mg-pill mg-pill-green">✅ Approved</span>';
-      mgToast(`✅ ${name} approved! Entry code sent.`, 'success');
-      setTimeout(() => {
-        row.style.transition = 'opacity 0.4s, transform 0.4s';
-        row.style.opacity = '0';
-        row.style.transform = 'translateX(40px)';
-        setTimeout(() => { row.remove(); updatePendingCount(-1); }, 400);
-      }, 1500);
-    } else {
-      mgToast('❌ Could not approve. Try refreshing.', 'error');
-    }
-  })
-  .catch(() => {
-    // Fallback: direct link
-    window.location.href = `/visitors/approve/${id}/`;
-  });
+// Visitor detail drawer
+function mgShowVisitorDetail(name,type,status,time,mobile){
+  document.getElementById('vd-avatar').textContent=name?name[0].toUpperCase():'?';
+  document.getElementById('vd-name').textContent=name||'–';
+  document.getElementById('vd-type').textContent=type||'–';
+  document.getElementById('vd-time').textContent=time||'–';
+  document.getElementById('vd-mobile').textContent=mobile||'–';
+  document.getElementById('vd-status').textContent=status?status.charAt(0).toUpperCase()+status.slice(1):'–';
+  mgOpenModal('mg-visdetail-mdl');
 }
 
-function mgDenyVisitor(id, name, btn) {
-  if (!confirm(`Deny entry for ${name}?`)) return;
-  const row = btn.closest('.mg-vis-row');
-  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  fetch(`/visitors/deny/${id}/`, {
-    method: 'POST',
-    headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' }
-  })
-  .then(res => {
-    if (res.ok || res.redirected) {
-      btn.closest('.mg-vis-actions').innerHTML = '<span class="mg-pill mg-pill-red">❌ Denied</span>';
-      mgToast(`${name} has been denied entry.`, 'error');
-      setTimeout(() => {
-        row.style.transition = 'opacity 0.4s, transform 0.4s';
-        row.style.opacity = '0';
-        row.style.transform = 'translateX(-40px)';
-        setTimeout(() => { row.remove(); updatePendingCount(-1); }, 400);
-      }, 1500);
-    } else {
-      mgToast('❌ Could not deny. Try refreshing.', 'error');
-    }
-  })
-  .catch(() => {
-    window.location.href = `/visitors/deny/${id}/`;
-  });
+// Approve / deny
+function mgApproveVisitor(id,name,btn){
+  const row=btn.closest('.mg-vis-row');
+  const csrf=document.querySelector('[name=csrfmiddlewaretoken]').value;
+  fetch(`/visitors/approve/${id}/`,{method:'POST',headers:{'X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest'}})
+  .then(res=>{
+    if(res.ok||res.redirected){
+      btn.closest('.mg-vis-actions').innerHTML='<span class="mg-pill mg-pill-green">✓ Approved</span>';
+      mgToast(`✅ ${name} approved!`,'success');
+      setTimeout(()=>{row.style.transition='opacity 0.4s,transform 0.4s';row.style.opacity='0';row.style.transform='translateX(40px)';setTimeout(()=>row.remove(),400);},1500);
+    }else{mgToast('❌ Could not approve.','error');}
+  }).catch(()=>{window.location.href=`/visitors/approve/${id}/`;});
 }
 
-function updatePendingCount(delta) {
-  document.querySelectorAll('.mg-stat-num').forEach(el => {
-    const lbl = el.nextElementSibling;
-    if (lbl && lbl.textContent.trim() === 'Pending') {
-      const cur = parseInt(el.textContent) || 0;
-      el.textContent = Math.max(0, cur + delta);
-    }
-  });
+function mgDenyVisitor(id,name,btn){
+  if(!confirm(`Deny entry for ${name}?`))return;
+  const row=btn.closest('.mg-vis-row');
+  const csrf=document.querySelector('[name=csrfmiddlewaretoken]').value;
+  fetch(`/visitors/deny/${id}/`,{method:'POST',headers:{'X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest'}})
+  .then(res=>{
+    if(res.ok||res.redirected){
+      btn.closest('.mg-vis-actions').innerHTML='<span class="mg-pill mg-pill-red">✗ Denied</span>';
+      mgToast(`${name} denied entry.`,'error');
+      setTimeout(()=>{row.style.transition='opacity 0.4s,transform 0.4s';row.style.opacity='0';row.style.transform='translateX(-40px)';setTimeout(()=>row.remove(),400);},1500);
+    }else{mgToast('❌ Could not deny.','error');}
+  }).catch(()=>{window.location.href=`/visitors/deny/${id}/`;});
 }
 
-// ─── SECURITY CHAT ───
-const mgSecReplies = [
-  'Got it! I\'ll take care of that right away ✅',
-  'Understood, will do 👍',
-  'Sure, noted! Let me know if you need anything else.',
-  'On it! Will update you shortly 🛡️',
-];
-
-function mgSendSecMsg() {
-  const inp = document.getElementById('mgSecInput');
-  const area = document.getElementById('mgSecMsgs');
-  const txt = inp.value.trim();
-  if (!txt) return;
-  area.innerHTML += `<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><div class="mg-bubble sent">${txt}</div></div>`;
-  inp.value = '';
-  area.scrollTop = area.scrollHeight;
-  setTimeout(() => {
-    const reply = mgSecReplies[Math.floor(Math.random() * mgSecReplies.length)];
-    area.innerHTML += `<div style="display:flex;justify-content:flex-start;margin-bottom:8px;"><div class="mg-bubble">${reply}</div></div>`;
-    area.scrollTop = area.scrollHeight;
-  }, 1200);
+function mgSendSecMsg(){
+  const inp=document.getElementById('mgSecInput');const area=document.getElementById('mgSecMsgs');const txt=inp.value.trim();
+  if(!txt)return;if(!GUARD_ID){mgToast('⚠️ No guard available','error');return;}
+  area.innerHTML+=`<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><div class="mg-bubble sent">${txt}</div></div>`;
+  inp.value='';area.scrollTop=area.scrollHeight;
+  const csrf=document.querySelector('[name=csrfmiddlewaretoken]').value;
+  fetch('/api/chats/create/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({user_id:GUARD_ID})})
+  .then(r=>r.json()).then(data=>{if(data.success){return fetch(`/api/chats/${data.chat_id}/send/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({message:txt})});}})
+  .catch(()=>mgToast('⚠️ Message failed','error'));
 }
 
-// ─── RAISE ALERT ───
-function mgSendAlert() {
-  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
-  fetch("{% url 'send_sos' %}", {
-    method: 'POST',
-    headers: { 'X-CSRFToken': csrf }
-  })
-  .then(() => {
-    mgCloseModal('mg-alert-mdl');
-    setTimeout(() => mgToast('🚨 Alert raised! Security has been notified.', 'error'), 200);
-  })
-  .catch(() => {
-    mgCloseModal('mg-alert-mdl');
-    setTimeout(() => mgToast('🔔 Alert sent to society management!', 'warning'), 200);
-  });
+function mgGeneratePass(){
+  const name=document.getElementById('ig-name').value.trim();const date=document.getElementById('ig-date').value;
+  if(!name){mgToast('Please enter guest name','error');return;}
+  const code='MG-'+Math.floor(100000+Math.random()*900000);
+  document.getElementById('mg-pass-num').textContent=code;
+  document.getElementById('mg-pass-date').innerHTML=date?`📅 ${new Date(date).toDateString()}`:'📅 Today';
+  document.getElementById('mg-pass-preview').style.display='block';
+  mgToast('🎉 Entry pass generated! Sending invite…','success');
+  setTimeout(()=>document.getElementById('invite-form').submit(),1800);
 }
 
-// ─── GUEST PASS ───
-function mgGeneratePass() {
-  const name = document.getElementById('ig-name').value.trim();
-  const date = document.getElementById('ig-date').value;
-  if (!name) { mgToast('Please enter guest name', 'error'); return; }
-  const code = 'MG-' + Math.floor(100000 + Math.random() * 900000);
-  document.getElementById('mg-pass-num').textContent = code;
-  document.getElementById('mg-pass-date').innerHTML = date
-    ? `📅 ${new Date(date).toDateString()}`
-    : '📅 Today';
-  document.getElementById('mg-pass-preview').style.display = 'block';
-  mgToast('🎉 Entry pass generated! Sending invite…', 'success');
-  // Submit the form after brief delay
-  setTimeout(() => document.getElementById('invite-form').submit(), 1800);
-}
-
-// ─── SOS ───
-function mgSendSOS() {
-  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+function mgSendSOS(){
+  const csrf=document.querySelector('[name=csrfmiddlewaretoken]').value;
   mgCloseModal('mg-sos-mdl');
-
-  fetch("{% url 'send_sos' %}", {
-    method: 'POST',
-    headers: { 'X-CSRFToken': csrf }
-  });
-
-  // Full screen SOS overlay
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position:fixed;inset:0;background:rgba(220,20,60,0.95);z-index:9999;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    color:white;font-family:inherit;
-  `;
-  overlay.innerHTML = `
-    <div style="font-size:80px;animation:mgPulse 1s infinite">🚨</div>
-    <div style="font-size:28px;font-weight:800;margin:12px 0;letter-spacing:-0.5px;">SOS SENT!</div>
-    <div style="font-size:14px;opacity:0.9;text-align:center;max-width:280px;line-height:1.6;">
-      Security personnel at {{ society.name }} and your emergency contacts have been alerted.
-    </div>
-    <div style="margin-top:30px;font-size:12px;opacity:0.7;">Tap anywhere to dismiss</div>
-  `;
-  overlay.onclick = () => { overlay.style.opacity='0'; overlay.style.transition='opacity 0.3s'; setTimeout(()=>overlay.remove(),300); };
+  fetch("{% url 'send_sos' %}",{method:'POST',headers:{'X-CSRFToken':csrf}});
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(220,20,60,0.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:inherit;';
+  overlay.innerHTML=`<iconify-icon icon="mdi:alarm-light" style="font-size:80px;animation:mgPulse 1s infinite;color:white;"></iconify-icon><div style="font-size:28px;font-weight:800;margin:12px 0;letter-spacing:-0.5px;">SOS SENT!</div><div style="font-size:14px;opacity:0.9;text-align:center;max-width:280px;line-height:1.6;">Security at {{ society.name }} and your emergency contacts have been alerted.</div><div style="margin-top:30px;font-size:12px;opacity:0.7;">Tap anywhere to dismiss</div>`;
+  overlay.onclick=()=>{overlay.style.transition='opacity 0.3s';overlay.style.opacity='0';setTimeout(()=>overlay.remove(),300);};
   document.body.appendChild(overlay);
 }
 
-// ─── DYNAMIC GREETING ───
-function setGreeting() {
-  const h = new Date().getHours();
-  const greet = h < 12 ? 'Good morning ☀️' : h < 17 ? 'Good afternoon 🌤️' : 'Good evening ✨';
-  const el = document.getElementById('mgGreeting');
-  if (el) el.textContent = greet;
-}
-
-// ─── DJANGO MESSAGES → TOASTS ───
-function showDjangoMessages() {
-  const container = document.getElementById('mg-django-messages');
-  if (!container) return;
-  container.querySelectorAll('span').forEach(s => {
-    const tags = s.dataset.type || '';
-    let type = 'info';
-    if (tags.includes('success')) type = 'success';
-    else if (tags.includes('error') || tags.includes('danger')) type = 'error';
-    else if (tags.includes('warning')) type = 'warning';
-    mgToast(s.dataset.msg, type);
+function showDjangoMessages(){
+  const c=document.getElementById('mg-django-messages');if(!c)return;
+  c.querySelectorAll('span').forEach(s=>{
+    const tags=s.dataset.type||'';let type='info';
+    if(tags.includes('success'))type='success';else if(tags.includes('error')||tags.includes('danger'))type='error';else if(tags.includes('warning'))type='warning';
+    mgToast(s.dataset.msg,type);
   });
 }
 
-// ─── SET DATE DEFAULTS ───
-document.addEventListener('DOMContentLoaded', () => {
-  setGreeting();
+document.addEventListener('DOMContentLoaded',()=>{
   showDjangoMessages();
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const dtStr = now.toISOString().slice(0,16);
-  document.querySelectorAll('input[type=date]').forEach(i => { if (!i.value) i.min = dateStr; });
-  document.querySelectorAll('input[type=datetime-local]').forEach(i => { if (!i.value) i.min = dtStr; });
-
-  // Keyboard support for security chat
+  const now=new Date();const dateStr=now.toISOString().split('T')[0];const dtStr=now.toISOString().slice(0,16);
+  document.querySelectorAll('input[type=date]').forEach(i=>{if(!i.value)i.min=dateStr;});
+  document.querySelectorAll('input[type=datetime-local]').forEach(i=>{if(!i.value)i.min=dtStr;});
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      document.querySelectorAll('.mg-overlay.open').forEach(m => {
-        m.classList.remove('open'); document.body.style.overflow = '';
-      });
+      document.querySelectorAll('.mg-overlay.open').forEach(m => mgCloseModal(m.id));
     }
   });
 });

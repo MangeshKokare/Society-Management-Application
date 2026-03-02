@@ -336,6 +336,12 @@ def resident_dashboard(request):
     profile = user.userprofile
     apartment = profile.apartment
     society = apartment.society
+
+    # Get one guard from this society
+    guard_user = User.objects.filter(
+        userprofile__society=society,
+        userprofile__role="guard"
+    ).first()
     today = now().date()
 
     # ─────────────────────────────────────
@@ -429,7 +435,7 @@ def resident_dashboard(request):
         "active_staff_count": attendance_today.count(),
         "deliveries_count": deliveries.count(),
         "overstays": overstays,
-
+        "guard_id": guard_user.id if guard_user else None,
         # Lists
         "announcements": announcements,
         "recent_activity": recent_activity,

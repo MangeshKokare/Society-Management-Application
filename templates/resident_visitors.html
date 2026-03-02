@@ -4,7 +4,6 @@
 {% block nav_visitors %}active{% endblock %}
 
 {% block extra_styles %}
-<style>
 
     /* 👤 Visitor Photos */
     .visitor-photo-row {
@@ -22,7 +21,7 @@
         border: 2px solid #eee;
     }
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
         color: white;
         padding: 25px;
         border-radius: 12px;
@@ -45,7 +44,7 @@
         gap: 10px;
         margin-bottom: 20px;
         overflow-x: auto;
-        border-bottom: 2px solid #e0e0e0;
+        border-bottom: 2px solid var(--border);
         padding-bottom: 10px;
     }
 
@@ -56,7 +55,7 @@
         cursor: pointer;
         font-size: 14px;
         font-weight: 600;
-        color: #666;
+        color: var(--text-secondary);
         white-space: nowrap;
         position: relative;
         transition: all 0.3s;
@@ -66,17 +65,17 @@
     }
 
     .tab.active {
-        color: #667eea;
+        color: var(--accent);
     }
 
     .tab.active::after {
+        background: var(--accent);
         content: '';
         position: absolute;
         bottom: -12px;
         left: 0;
         right: 0;
         height: 3px;
-        background: #667eea;
         border-radius: 3px 3px 0 0;
     }
 
@@ -87,16 +86,16 @@
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
         font-size: 28px;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         z-index: 99;
         display: flex;
         align-items: center;
         justify-content: center;
+        background: var(--accent);
+        box-shadow: 0 6px 18px rgba(0,179,134,0.30);
     }
 
     .add-visitor-btn:hover {
@@ -104,11 +103,12 @@
     }
 
     .visitor-card {
-        background: white;
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
         border-radius: 12px;
         padding: 15px;
         margin-bottom: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .visitor-header {
@@ -126,7 +126,7 @@
 
     .visitor-details {
         font-size: 13px;
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 3px;
     }
 
@@ -177,18 +177,18 @@
     .form-input, .form-select {
         width: 100%;
         padding: 12px;
-        border: 2px solid #e0e0e0;
+        border: 1.5px solid var(--border);
         border-radius: 8px;
         font-size: 14px;
     }
 
     .form-input:focus, .form-select:focus {
         outline: none;
-        border-color: #667eea;
+        border-color: var(--accent);
     }
 
     .daily-help-card {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: var(--accent);
         color: white;
         border-radius: 12px;
         padding: 20px;
@@ -216,8 +216,8 @@
     }
 
     .overstay-alert {
-        background: #fff3cd;
-        border-left: 4px solid #ffc107;
+        background: var(--sos-light);
+        border-left: 4px solid var(--sos);
         padding: 12px;
         border-radius: 0 8px 8px 0;
         margin-bottom: 10px;
@@ -251,11 +251,12 @@
     }
 
     .all-visitors-bar {
-        background: white;
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
         border-radius: 12px;
         padding: 15px;
         margin-bottom: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .all-visitors-title {
@@ -306,7 +307,8 @@
     }
 
     .visitor-chip {
-        background: #f8f9fa;
+        background: var(--surface-2);
+        border: 1px solid var(--border-light);
         border-radius: 10px;
         padding: 10px 12px;
         font-size: 13px;
@@ -321,7 +323,7 @@
 
     .visitor-chip-status {
         font-size: 12px;
-        color: #666;
+        color: var(--text-secondary);
     }
 
     .visitor-actions {
@@ -358,13 +360,7 @@
             font-size: 13px;
         }
         
-        .add-visitor-btn {
-            width: 56px;
-            height: 56px;
-            bottom: 80px;
-            right: 15px;
-            font-size: 24px;
-        }
+
     }
 
     /* Modal Styles */
@@ -404,7 +400,7 @@
     }
 
     .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--accent);
         color: white;
         padding: 20px;
         border-radius: 12px 12px 0 0;
@@ -459,7 +455,7 @@
     }
 
     .entry-code-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--accent);
         color: white;
         border-radius: 12px;
         padding: 20px;
@@ -506,8 +502,8 @@
     .time-badge {
         display: inline-block;
         padding: 4px 10px;
-        background: #e8f5e9;
-        color: #2e7d32;
+        background: var(--accent-light);
+        color: var(--accent-dark);
         border-radius: 12px;
         font-size: 12px;
         font-weight: 600;
@@ -517,14 +513,13 @@
     .duration-badge {
         display: inline-block;
         padding: 4px 10px;
-        background: #fff3e0;
-        color: #e65100;
+        background: var(--sos-light);
+        color: var(--sos);
         border-radius: 12px;
         font-size: 12px;
         font-weight: 600;
         margin-top: 5px;
     }
-</style>
 {% endblock %}
 
 {% block content %}

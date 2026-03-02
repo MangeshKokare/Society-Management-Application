@@ -4,25 +4,13 @@
 {% block nav_community %}active{% endblock %}
 
 {% block extra_styles %}
-<style>
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
     }
 
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: #f5f5f5;
-        color: #333;
-        padding-bottom: 80px;
-    }
 
-    .main-content {
-        max-width: 1200px;
-        margin: 20px auto;
-        padding: 0 20px;
-    }
 
     .page-title {
         font-size: 28px;
@@ -438,13 +426,10 @@
         border-color: #667eea;
         background: #f0f3ff;
     }
-
-
-</style>
 {% endblock %}
 
 {% block content %}
-<main class="main-content">
+<div>
     <h1 class="page-title">Community</h1>
 
     <div class="tabs">
@@ -569,8 +554,7 @@
         </div>
         {% endfor %}
     </div>
-</main>
-
+</div>
 <!-- FAB Button - Conditional Display -->
 <button class="fab-btn" id="fabButton" onclick="openCreateModal()">✏️</button>
 
