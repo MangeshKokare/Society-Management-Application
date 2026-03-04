@@ -57,6 +57,8 @@ from .models import (
     GuardShift,
     LeaveRequest,
     GuardAdminChat,
+    FamilyMember, 
+    Pet,
 )
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -188,70 +190,243 @@ def emergency(request):
 
 
 
-# ---------------- PROFILE ----------------
 from .forms import ProfileEditForm, UserEmailForm
 
+# ── TINY HELPER ────────────────────────────────────────────────
+def _interests_list(profile):
+    """Return a clean list from the comma-separated interests field."""
+    raw = getattr(profile, 'interests', '') or ''
+    return [i.strip() for i in raw.split(',') if i.strip()]
+
+
+# ── PROFILE VIEW ───────────────────────────────────────────────
 @login_required(login_url='login')
 def profile(request):
 
-    profile = UserProfile.objects.select_related(
-        'apartment', 'apartment__society'
+    # ── Fetch profile ──────────────────────────────────
+    profile_obj = UserProfile.objects.select_related(
+        'apartment', 'apartment__society',
     ).get(user=request.user)
 
-    # -------- STATS (UNCHANGED) --------
-    visitors_count = Visitor.objects.count()
+    society = profile_obj.apartment.society if profile_obj.apartment else None
+
+    # ── Stats ──────────────────────────────────────────
+    visitors_count = Visitor.objects.filter(
+        apartment__society=society).count() if society else 0
 
     active_services_count = DailyHelp.objects.filter(
-        user=request.user,
-        active=True
-    ).count()
+        user=request.user, active=True).count()
 
-    deliveries_count = Delivery.objects.count()
+    deliveries_count = Delivery.objects.filter(
+        apartment__society=society).count() if society else 0
 
-    posts_count = Post.objects.filter(
-        user=request.user
-    ).count() if 'Post' in globals() else 0
+    posts_count = CommunityPost.objects.filter(user=request.user).count()
 
-    pending_visitors_count = Visitor.objects.filter(
-        status='pending'
-    ).count()
+    vehicles_count = Vehicle.objects.filter(
+        apartment=profile_obj.apartment).count() if profile_obj.apartment else 0
 
-    # -------- FORM HANDLING --------
-    if request.method == "POST":
-        profile_form = ProfileEditForm(
-            request.POST, instance=profile
-        )
-        user_form = UserEmailForm(
-            request.POST, instance=request.user
-        )
+    security_alerts = IncidentReport.objects.filter(
+        society=society).order_by('-reported_at')[:10] if society else []
 
-        if profile_form.is_valid() and user_form.is_valid():
-            profile_form.save()
-            user_form.save()
-            return redirect("profile")
+    security_alerts_count = IncidentReport.objects.filter(
+        society=society, status='reported').count() if society else 0
 
-    else:
-        profile_form = ProfileEditForm(instance=profile)
-        user_form = UserEmailForm(instance=request.user)
+    # ── Household lists ────────────────────────────────
+    family_members = FamilyMember.objects.filter(user=request.user).order_by('name')
+    vehicles       = Vehicle.objects.filter(apartment=profile_obj.apartment) if profile_obj.apartment else []
+    daily_helps    = DailyHelp.objects.filter(user=request.user, active=True).select_related('service')
+    pets           = Pet.objects.filter(user=request.user).order_by('name')
+    services       = Service.objects.filter(active=True)
 
+    # ── POST handlers ──────────────────────────────────
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', '')
+
+        # ── Photo upload ──
+        if form_type == 'photo':
+            if 'photo' in request.FILES:
+                profile_obj.photo = request.FILES['photo']
+                profile_obj.save(update_fields=['photo'])
+                messages.success(request, '✅ Profile photo updated!')
+            else:
+                messages.error(request, '❌ Please select a photo.')
+            return redirect('profile')
+
+        # ── Cover photo ──
+        if form_type == 'cover_photo':
+            if 'cover_photo' in request.FILES:
+                profile_obj.cover_photo = request.FILES['cover_photo']
+                profile_obj.save(update_fields=['cover_photo'])
+                messages.success(request, '✅ Cover photo updated!')
+            else:
+                messages.error(request, '❌ Please select a cover photo.')
+            return redirect('profile')
+
+        # ── Bio ──
+        if form_type == 'bio':
+            fields = []
+            for f in ('work', 'hometown', 'interests'):
+                if hasattr(profile_obj, f):
+                    setattr(profile_obj, f, request.POST.get(f, '').strip())
+                    fields.append(f)
+            if fields:
+                profile_obj.save(update_fields=fields)
+            messages.success(request, '✅ Bio updated!')
+            return redirect('profile')
+
+        # ── Main profile ──
+        if form_type == 'profile':
+            first = request.POST.get('first_name', '').strip()
+            last  = request.POST.get('last_name',  '').strip()
+            email = request.POST.get('email', '').strip()
+            if first or last:
+                request.user.first_name = first
+                request.user.last_name  = last
+            if email:
+                request.user.email = email
+            request.user.save()
+
+            phone   = request.POST.get('phone', '').strip()
+            address = request.POST.get('address', '').strip()
+            fields  = []
+            if phone:
+                profile_obj.phone = phone;   fields.append('phone')
+            if address:
+                profile_obj.address = address; fields.append('address')
+            if fields:
+                profile_obj.save(update_fields=fields)
+
+            messages.success(request, '✅ Profile updated!')
+            return redirect('profile')
+
+        # ── ADD FAMILY ──
+        if form_type == 'add_family':
+            name     = request.POST.get('name', '').strip()
+            relation = request.POST.get('relation', '').strip()
+            mobile   = request.POST.get('mobile', '').strip()
+            if name and relation:
+                FamilyMember.objects.create(
+                    user=request.user,
+                    name=name,
+                    relation=relation,
+                    mobile=mobile,
+                )
+                messages.success(request, f'✅ {name} added to family!')
+            else:
+                messages.error(request, '❌ Name and relation are required.')
+            return redirect('profile')
+
+        # ── DELETE FAMILY ──
+        if form_type == 'delete_family':
+            member_id = request.POST.get('member_id')
+            FamilyMember.objects.filter(id=member_id, user=request.user).delete()
+            messages.success(request, '✅ Family member removed.')
+            return redirect('profile')
+
+        # ── ADD VEHICLE ──
+        if form_type == 'add_vehicle':
+            reg  = request.POST.get('registration_number', '').strip().upper()
+            vtype = request.POST.get('vehicle_type', '').strip()
+            if reg and vtype and profile_obj.apartment:
+                Vehicle.objects.get_or_create(
+                    apartment=profile_obj.apartment,
+                    registration_number=reg,
+                    defaults={
+                        'vehicle_type':  vtype,
+                        'brand':         request.POST.get('brand', '').strip(),
+                        'model':         request.POST.get('model', '').strip(),
+                        'color':         request.POST.get('color', '').strip(),
+                        'parking_slot':  request.POST.get('parking_slot', '').strip(),
+                    }
+                )
+                messages.success(request, f'✅ Vehicle {reg} registered!')
+            else:
+                messages.error(request, '❌ Registration number and type are required.')
+            return redirect('profile')
+
+        # ── DELETE VEHICLE ──
+        if form_type == 'delete_vehicle':
+            vid = request.POST.get('vehicle_id')
+            Vehicle.objects.filter(id=vid, apartment=profile_obj.apartment).delete()
+            messages.success(request, '✅ Vehicle removed.')
+            return redirect('profile')
+
+        # ── ADD DAILY HELP ──
+        if form_type == 'add_help':
+            name       = request.POST.get('name', '').strip()
+            service_id = request.POST.get('service_id')
+            mobile     = request.POST.get('mobile', '').strip()
+            timing     = request.POST.get('timing', '').strip()
+            days       = request.POST.get('days', '').strip()
+            if name and service_id and mobile and timing and days:
+                try:
+                    service = Service.objects.get(id=service_id, active=True)
+                    DailyHelp.objects.create(
+                        user=request.user,
+                        service=service,
+                        name=name,
+                        mobile=mobile,
+                        timing=timing,
+                        days=days,
+                        active=True,
+                    )
+                    messages.success(request, f'✅ {name} added as daily help!')
+                except Service.DoesNotExist:
+                    messages.error(request, '❌ Invalid service selected.')
+            else:
+                messages.error(request, '❌ All fields are required.')
+            return redirect('profile')
+
+        # ── DELETE DAILY HELP ──
+        if form_type == 'delete_help':
+            hid = request.POST.get('help_id')
+            DailyHelp.objects.filter(id=hid, user=request.user).delete()
+            messages.success(request, '✅ Helper removed.')
+            return redirect('profile')
+
+        # ── ADD PET ──
+        if form_type == 'add_pet':
+            pet_name = request.POST.get('pet_name', '').strip()
+            pet_type = request.POST.get('pet_type', '').strip()
+            if pet_name and pet_type and profile_obj.apartment:
+                Pet.objects.create(
+                    user=request.user,
+                    apartment=profile_obj.apartment,
+                    name=pet_name,
+                    pet_type=pet_type,
+                    breed=request.POST.get('breed', '').strip(),
+                    description=request.POST.get('description', '').strip(),
+                )
+                messages.success(request, f'✅ {pet_name} added!')
+            else:
+                messages.error(request, '❌ Pet name and type are required.')
+            return redirect('profile')
+
+        # ── DELETE PET ──
+        if form_type == 'delete_pet':
+            pid = request.POST.get('pet_id')
+            Pet.objects.filter(id=pid, user=request.user).delete()
+            messages.success(request, '✅ Pet removed.')
+            return redirect('profile')
+
+    # ── Context ───────────────────────────────────────
     context = {
-        "profile": profile,
-
-        # forms
-        "profile_form": profile_form,
-        "user_form": user_form,
-
-        # stats
-        "visitors_count": visitors_count,
-        "active_services_count": active_services_count,
-        "deliveries_count": deliveries_count,
-        "posts_count": posts_count,
-        "pending_visitors_count": pending_visitors_count,
+        'profile':               profile_obj,
+        'visitors_count':        visitors_count,
+        'active_services_count': active_services_count,
+        'deliveries_count':      deliveries_count,
+        'posts_count':           posts_count,
+        'vehicles_count':        vehicles_count,
+        'security_alerts':       security_alerts,
+        'security_alerts_count': security_alerts_count,
+        # Household
+        'family_members':        family_members,
+        'vehicles':              vehicles,
+        'daily_helps':           daily_helps,
+        'pets':                  pets,
+        'services':              services,
     }
-
-    return render(request, "profile.html", context)
-
-
+    return render(request, 'profile.html', context)
 
 # ---------------- COMMUNITY ----------------
 

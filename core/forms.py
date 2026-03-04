@@ -2,16 +2,52 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import UserProfile
 
-class ProfileEditForm(forms.ModelForm):
+# forms.py  ·  Profile-related forms
+# Add these to your existing forms.py
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import UserProfile
+
+
+class UserEmailForm(forms.ModelForm):
+    """Update User.email"""
     class Meta:
-        model = UserProfile
-        fields = ["phone", "address"]
+        model  = User
+        fields = ['email']
         widgets = {
-            "address": forms.Textarea(attrs={
-                "rows": 2,
-                "readonly": "readonly",
-                "style": "resize:none;"
+            'email': forms.EmailInput(attrs={
+                'class':       'form-control',
+                'placeholder': 'your@email.com',
             })
+        }
+
+
+class ProfileEditForm(forms.ModelForm):
+    """
+    Update UserProfile fields.
+
+    NOTE: photo, cover_photo, work, hometown, interests are handled
+    separately in the view (form_type routing). This form covers the
+    core fields that are always present on UserProfile.
+
+    If your UserProfile does not yet have work / hometown / interests
+    fields, add them as TextField(blank=True) in models.py and run
+    makemigrations before using this form.
+    """
+
+    class Meta:
+        model  = UserProfile
+        fields = ['phone', 'address']
+        widgets = {
+            'phone': forms.TextInput(attrs={
+                'class':       'form-control',
+                'placeholder': '+91 XXXXX XXXXX',
+            }),
+            'address': forms.TextInput(attrs={
+                'class':       'form-control',
+                'placeholder': 'Your address',
+            }),
         }
 
 

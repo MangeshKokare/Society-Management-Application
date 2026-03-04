@@ -88,6 +88,13 @@ class UserProfile(models.Model):
     phone = models.CharField(max_length=15)
     address = models.TextField(blank=True)
 
+    photo       = models.ImageField(upload_to='profiles/photos/',   null=True, blank=True)
+    cover_photo = models.ImageField(upload_to='profiles/covers/',   null=True, blank=True)
+    work        = models.CharField(max_length=200, blank=True)
+    hometown    = models.CharField(max_length=200, blank=True)
+    interests   = models.CharField(max_length=500, blank=True,
+                                   help_text="Comma-separated list, e.g. Music, Travel, Cricket")
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -102,6 +109,12 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} ({self.role})"
 
+    @property
+    def interests_list(self):
+        """Return interests as a Python list."""
+        if not self.interests:
+            return []
+        return [i.strip() for i in self.interests.split(',') if i.strip()]
 
 class Visitor(models.Model):
     VISITOR_TYPE = [
@@ -1541,3 +1554,41 @@ class BillPayer(models.Model):
         self.payment_reference = reference
         self.save()
         self.bill.update_status()
+
+
+
+
+class FamilyMember(models.Model):
+    """Family members linked to a user's profile."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_members')
+    name = models.CharField(max_length=100)
+    relation = models.CharField(max_length=50)
+    mobile = models.CharField(max_length=15, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.relation}) – {self.user.username}"
+
+
+class Pet(models.Model):
+    """Pets registered to a flat/user."""
+    PET_TYPE_CHOICES = [
+        ('dog',    'Dog'),
+        ('cat',    'Cat'),
+        ('bird',   'Bird'),
+        ('fish',   'Fish'),
+        ('rabbit', 'Rabbit'),
+        ('other',  'Other'),
+    ]
+
+    user      = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pets')
+    apartment = models.ForeignKey('Apartment', on_delete=models.CASCADE, related_name='pets')
+    name      = models.CharField(max_length=100)
+    pet_type  = models.CharField(max_length=20, choices=PET_TYPE_CHOICES)
+    breed     = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=200, blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.get_pet_type_display()}) – {self.apartment}"
+

@@ -1,601 +1,693 @@
 {% extends "base.html" %}
-
-{% block title %}MyGate - Profile{% endblock %}
+{% block title %}MySociety – My Profile{% endblock %}
 
 {% block extra_styles %}
+<style>
+.pg-wrap { max-width: 520px; margin: 0 auto; }
 
-.profile-header {
-    background: white;
-    border-radius: 16px;
-    padding: 30px;
-    text-align: center;
-    margin-bottom: 20px;
-}
+/* Flash */
+.flash-stack { margin-bottom: 14px; }
+.flash-msg { display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:700;animation:fadeSlideDown .35s ease; }
+.flash-msg.success { background:var(--accent-light);color:var(--accent-dark);border-left:3px solid var(--accent); }
+.flash-msg.error   { background:var(--sos-light);color:var(--sos);border-left:3px solid var(--sos); }
+@keyframes fadeSlideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 
-#profileForm input,
-#profileForm textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    background: transparent;
-    font-weight: 600;
-    font-family: inherit;
-    resize: none;
-    height: 38px;
-}
-.profile-header {
-    background: white;
-    border-radius: 16px;
-    padding: 30px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-#profileForm input,
-#profileForm textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    background: transparent;
-    font-weight: 600;
-    font-family: inherit;
-    resize: none;
-    height: 38px;
-}
+/* Hero */
+.hero-card { background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--border-light);margin-bottom:14px; }
+.cover-strip { height:110px;background:linear-gradient(135deg,#00b386 0%,#0891b2 50%,#7c3aed 100%);position:relative;cursor:pointer;overflow:hidden;transition:filter .2s; }
+.cover-strip:hover { filter:brightness(1.06); }
+.cover-strip img.cover-img { position:absolute;inset:0;width:100%;height:100%;object-fit:cover; }
+.cover-overlay { position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.22),transparent 60%); }
+.cover-edit-btn { position:absolute;right:12px;top:10px;background:rgba(0,0,0,.35);border:none;border-radius:20px;color:#fff;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;backdrop-filter:blur(8px);font-family:'Nunito',sans-serif;transition:background .2s; }
+.cover-edit-btn:hover { background:rgba(0,0,0,.55); }
+.hero-body { padding:0 18px 20px; }
+.avatar-row { display:flex;align-items:flex-end;justify-content:space-between;margin-top:-42px;margin-bottom:14px; }
+.avatar-wrap { position:relative;width:80px; }
+.avatar-circle { width:80px;height:80px;border-radius:50%;border:3.5px solid var(--surface);background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:800;cursor:pointer;overflow:hidden;box-shadow:var(--shadow-md);transition:transform .2s;position:relative; }
+.avatar-circle:hover { transform:scale(1.04); }
+.avatar-circle img { position:absolute;inset:0;width:100%;height:100%;object-fit:cover; }
+.avatar-cam { position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--accent);border-radius:50%;border:2.5px solid var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:background .2s; }
+.avatar-cam:hover { background:var(--accent-dark); }
+.call-pill { background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:24px;color:#fff;font-size:13px;font-weight:800;padding:10px 22px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,.3);font-family:'Nunito',sans-serif;transition:all .2s; }
+.call-pill:hover { transform:translateY(-2px);box-shadow:0 6px 20px rgba(34,197,94,.4); }
+.profile-name { font-size:22px;font-weight:800;color:var(--text-primary);line-height:1.2; }
+.profile-uid { font-size:12px;color:var(--accent);font-weight:700;margin-top:4px;display:flex;align-items:center;gap:5px; }
+.edit-rows { margin-top:16px;border-top:1px solid var(--border-light); }
+.edit-row { display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border-light);cursor:pointer;transition:all .15s;border-radius:4px; }
+.edit-row:last-child { border-bottom:none; }
+.edit-row:hover { background:var(--surface-2);padding-left:6px;padding-right:6px;border-radius:var(--radius-sm); }
+.edit-row-left { display:flex;align-items:center;gap:12px; }
+.edit-row-icon { width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.edit-row-label { font-size:10px;color:var(--text-muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px; }
+.edit-row-value { font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px; }
+.edit-row-value.ph { color:var(--text-muted);font-style:italic; }
+.soc-stripe { background:var(--accent-light);border-radius:var(--radius-md);padding:13px 14px;margin-top:14px;display:flex;align-items:center;gap:12px;border:1px solid rgba(0,179,134,.18); }
+.soc-icon { width:44px;height:44px;background:var(--accent);border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;flex-shrink:0; }
+.soc-name { font-size:14px;font-weight:800;color:var(--text-primary); }
+.soc-flat { font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px; }
+.role-chip { margin-left:auto;background:var(--accent);color:#fff;border-radius:20px;font-size:11px;font-weight:800;padding:4px 13px;flex-shrink:0;text-transform:uppercase;letter-spacing:.3px; }
+.bio-wrap { margin-top:18px; }
+.bio-section-label { font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px;display:flex;align-items:center;gap:6px; }
+.bio-tags { display:flex;flex-wrap:wrap;gap:7px; }
+.bio-tag { display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;font-weight:700;color:var(--text-secondary);cursor:pointer;transition:all .2s; }
+.bio-tag:hover { border-color:var(--accent);color:var(--accent); }
+.bio-tag.add-tag { color:var(--accent);border:1.5px dashed var(--accent);background:var(--accent-light); }
+.bio-tag.add-tag:hover { background:var(--accent);color:#fff;border-style:solid; }
 
+/* Stats */
+.stats-strip { display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px; }
+.stat-pill { background:var(--surface);border-radius:var(--radius-md);padding:14px 8px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:all .2s; }
+.stat-pill:hover { transform:translateY(-2px);box-shadow:var(--shadow-md); }
+.stat-pill iconify-icon { font-size:22px;margin-bottom:5px;display:block; }
+.stat-pill .sp-val { font-size:22px;font-weight:800;color:var(--text-primary);line-height:1; }
+.stat-pill .sp-label { font-size:10px;color:var(--text-muted);font-weight:700;margin-top:4px;text-transform:uppercase;letter-spacing:.4px; }
 
-.profile-avatar {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 48px;
-    margin: 0 auto 20px;
-}
+/* Sections */
+.prof-section { background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:14px; }
+.prof-section-hdr { padding:15px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-light); }
+.prof-section-hdr h3 { font-size:15px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:10px; }
+.s-icon { width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px; }
+.action-link { font-size:12px;font-weight:800;color:var(--accent);cursor:pointer;background:var(--accent-light);border:none;border-radius:20px;padding:5px 13px;font-family:'Nunito',sans-serif;transition:all .2s; }
+.action-link:hover { background:var(--accent);color:#fff; }
+.s-row { display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .15s; }
+.s-row:last-child { border-bottom:none; }
+.s-row:hover { background:var(--surface-2); }
+.s-row-icon { width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+.s-row-body { flex:1;min-width:0; }
+.s-row-title { font-size:14px;font-weight:700;color:var(--text-primary); }
+.s-row-sub { font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px; }
+.s-row-right { display:flex;align-items:center;gap:8px;flex-shrink:0; }
+.chevron { color:var(--text-muted); }
 
-.profile-info-grid {
-    margin-top: 15px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    text-align: left;
-}
+/* Toggles */
+.tog { width:48px;height:28px;background:var(--border);border-radius:14px;position:relative;cursor:pointer;transition:background .3s;flex-shrink:0;border:none;outline:none; }
+.tog.on { background:var(--accent); }
+.tog-knob { width:22px;height:22px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,.22);pointer-events:none; }
+.tog.on .tog-knob { transform:translateX(20px); }
 
-.info-item {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 10px 12px;
-}
+/* Badges */
+.inline-badge { border-radius:20px;font-size:11px;font-weight:800;padding:3px 10px;white-space:nowrap; }
+.ib-success { background:var(--accent-light);color:var(--accent); }
+.ib-danger  { background:var(--sos-light);color:var(--sos); }
+.ib-pro     { background:#f3e5f5;color:#7b1fa2; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* Household quick */
+.hh-quick { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 18px 10px; }
+.hh-quick-item { background:var(--surface-2);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s; }
+.hh-quick-item:hover { border-color:var(--accent);background:var(--accent-light);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,179,134,.15); }
+.hh-quick-item .hqi-icon { font-size:26px;margin-bottom:7px; }
+.hh-quick-item .hqi-label { font-size:10px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px; }
 
+/* Collapsible */
+.collapsible { max-height:0;overflow:hidden;opacity:0;transition:max-height .38s ease,opacity .3s; }
+.collapsible.open { opacity:1; }
+.expand-btn { width:calc(100% - 36px);margin:0 18px 16px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px;font-size:13px;font-weight:800;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Nunito',sans-serif;transition:all .2s; }
+.expand-btn:hover { border-color:var(--accent);color:var(--accent);background:var(--accent-light); }
 
-        .profile-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            position: relative;
-        }
+/* Household item cards */
+.hh-sub-header { padding:14px 18px 4px;border-top:1px solid var(--border-light); }
+.hh-sub-label { font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px; }
+.hh-item-card { margin:0 18px 8px;background:var(--surface-2);border:1.5px solid var(--border-light);border-radius:var(--radius-md);padding:12px 14px;display:flex;align-items:center;gap:12px; }
+.hh-item-icon { width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+.hh-item-info { flex:1;min-width:0; }
+.hh-item-title { font-size:14px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:7px;flex-wrap:wrap; }
+.hh-item-sub { font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px; }
+.hh-item-delete { background:var(--sos-light);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--sos);cursor:pointer;flex-shrink:0;transition:all .2s; }
+.hh-item-delete:hover { background:var(--sos);color:#fff; }
+.hh-empty { padding:20px 18px;text-align:center;color:var(--text-muted);font-size:13px;font-weight:600; }
+.hh-add-btn { display:flex;align-items:center;justify-content:center;gap:7px;margin:4px 18px 14px;width:calc(100% - 36px);background:var(--accent-light);border:1.5px dashed var(--accent);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-weight:800;color:var(--accent);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s; }
+.hh-add-btn:hover { background:var(--accent);color:#fff;border-style:solid; }
+.mini-badge { font-size:10px;font-weight:800;border-radius:20px;padding:2px 8px;white-space:nowrap; }
 
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ff4757;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-        }
+/* Address */
+.addr-box { padding:16px 18px; }
+.addr-home-row { display:flex;align-items:flex-start;gap:13px; }
+.addr-home-icon { width:44px;height:44px;background:var(--sos-light);border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:21px; }
+.addr-label { font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px; }
+.addr-text { font-size:14px;font-weight:600;color:var(--text-primary);line-height:1.7; }
+.addr-btns { display:flex;gap:8px;margin-top:14px; }
+.addr-btn { flex:1;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;font-size:12px;font-weight:800;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-family:'Nunito',sans-serif;transition:all .2s; }
+.addr-btn:hover { background:var(--accent-light);border-color:var(--accent);transform:translateY(-1px); }
+.addr-btn.copied { background:var(--accent-light);color:var(--accent);border-color:var(--accent); }
 
-        .profile-header {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
+/* Flat chips */
+.flat-bar { padding:12px 18px;display:flex;gap:10px;flex-wrap:wrap; }
+.flat-chip { display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 14px;font-size:13px;font-weight:700;transition:all .2s; }
+.flat-chip.active { border-color:var(--accent);background:var(--accent-light);color:var(--accent); }
+.flat-dot { width:8px;height:8px;border-radius:50%;background:var(--accent); }
+.flat-add { display:flex;align-items:center;gap:8px;border:1.5px dashed var(--accent);background:var(--accent-light);border-radius:var(--radius-sm);padding:9px 14px;font-size:13px;font-weight:800;color:var(--accent);cursor:pointer;transition:all .2s; }
+.flat-add:hover { background:var(--accent);color:#fff;border-style:solid; }
 
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-            margin: 0 auto 20px;
-        }
+/* Logout */
+.logout-row { display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--sos-light);border:1.5px solid #fca5a5;border-radius:var(--radius-md);padding:16px;font-size:15px;font-weight:800;color:var(--sos);cursor:pointer;text-decoration:none;margin-top:14px;transition:all .2s;font-family:'Nunito',sans-serif; }
+.logout-row:hover { background:var(--sos);color:#fff;border-color:var(--sos); }
+.terms-footer { text-align:center;font-size:11px;color:var(--text-muted);margin:16px 0 4px;line-height:1.9; }
+.terms-footer a { color:var(--accent);text-decoration:none;font-weight:700; }
 
-        .profile-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
+/* Icon bg helpers */
+.ib-green{background:var(--accent-light)} .ib-red{background:var(--sos-light)} .ib-blue{background:#e3f2fd} .ib-purple{background:#f3e5f5} .ib-orange{background:#fff3e0} .ib-teal{background:#e0f7fa} .ib-yellow{background:#fffde7} .ib-grey{background:var(--surface-2)} .ib-pink{background:#fce4ec}
 
-        .profile-apartment {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .profile-email {
-            font-size: 14px;
-            color: #999;
-        }
-
-        .edit-profile-btn {
-            margin-top: 20px;
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .edit-profile-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 25px 0 15px;
-            color: #333;
-        }
-
-        .settings-card {
-            background: white;
-            border-radius: 12px;
-            padding: 0;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .setting-item {
-            padding: 18px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .setting-item:last-child {
-            border-bottom: none;
-        }
-
-        .setting-item:hover {
-            background: #f8f9fa;
-        }
-
-        .setting-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .setting-icon {
-            width: 45px;
-            height: 45px;
-            background: #f0f3ff;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .setting-info h4 {
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-
-        .setting-info p {
-            font-size: 13px;
-            color: #666;
-        }
-
-        .setting-right {
-            color: #999;
-            font-size: 20px;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 26px;
-            background: #ccc;
-            border-radius: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .toggle-switch.active {
-            background: #28a745;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-        }
-
-        .toggle-switch.active .toggle-slider {
-            transform: translateX(24px);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .logout-btn {
-            width: 100%;
-            padding: 16px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-        }
-
-        .nav-item.active {
-            color: #667eea;
-        }
-
-        .profile-info-grid {
-            margin-top: 15px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            text-align: left;
-        }
-
-        .info-item {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px 12px;
-        }
-
-        .info-item strong {
-            display: block;
-            font-size: 12px;
-            color: #777;
-            margin-bottom: 3px;
-        }
-
-        .info-item span {
-            font-size: 14px;
-            color: #333;
-            font-weight: 600;
-        }
+/* Modals */
+.modal-bg { display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px); }
+.modal-bg.open { display:flex; }
+.modal-sheet { background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:6px 20px 34px;max-height:92vh;overflow-y:auto;animation:sheetUp .3s cubic-bezier(0.34,1.2,0.64,1); }
+@keyframes sheetUp { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal-handle { width:40px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 20px; }
+.modal-title { font-size:18px;font-weight:800;color:var(--text-primary);margin-bottom:20px; }
+.modal-form-group { margin-bottom:14px; }
+.modal-form-group label { font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:7px; }
+.modal-form-group .form-control { width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-primary);background:var(--surface-2);transition:border .2s;outline:none;box-sizing:border-box; }
+.modal-form-group .form-control:focus { border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(0,179,134,.10); }
+.modal-save { width:100%;background:var(--accent);border:none;border-radius:var(--radius-md);padding:15px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(0,179,134,.25);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px; }
+.modal-save:hover { background:var(--accent-dark);transform:translateY(-1px); }
+.modal-save:disabled { opacity:.7;cursor:not-allowed;transform:none; }
+.modal-cancel { width:100%;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;margin-top:9px;font-family:'Nunito',sans-serif;transition:all .2s; }
+.modal-cancel:hover { border-color:var(--sos);color:var(--sos); }
+.photo-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px; }
+.photo-opt { background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:20px 12px;text-align:center;cursor:pointer;transition:all .2s; }
+.photo-opt:hover { border-color:var(--accent);background:var(--accent-light);transform:translateY(-2px); }
+.photo-opt .po-icon { font-size:32px;margin-bottom:9px; }
+.photo-opt .po-label { font-size:13px;font-weight:800;color:var(--text-secondary); }
+.alert-item { display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border-light); }
+.alert-item:last-child { border-bottom:none; }
+.alert-item-icon { width:42px;height:42px;border-radius:13px;background:var(--sos-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--sos); }
+.alert-item-title { font-size:14px;font-weight:700;color:var(--text-primary); }
+.alert-item-sub { font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px; }
+.modal-info-banner { background:#e3f2fd;border-left:3px solid #1976d2;border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;font-weight:600;color:#1565c0;display:flex;align-items:flex-start;gap:9px;margin-bottom:16px; }
+.form-row-2 { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+</style>
 {% endblock %}
+
 
 {% block content %}
+<div class="pg-wrap">
 
-<div class="profile-header">
+  {% if messages %}
+  <div class="flash-stack">
+    {% for message in messages %}
+    <div class="flash-msg {{ message.tags }}">
+      <iconify-icon icon="{% if 'success' in message.tags %}mdi:check-circle-outline{% else %}mdi:alert-circle-outline{% endif %}" width="20"></iconify-icon>
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-    <span
-        onclick="window.history.back()"
-        style="
-            font-size:20px;
-            cursor:pointer;
-            padding:6px 10px;
-            border-radius:8px;
-            background: rgba(255,255,255,0.2);
-        "
-        title="Back"
-    >
-        ←
-    </span>
-    <div class="profile-avatar">
-        {{ request.user.username|slice:":1"|upper }}
+  <!-- ══════ HERO ══════ -->
+  <div class="hero-card">
+    <div class="cover-strip" onclick="openModal('coverModal')">
+      {% if profile.cover_photo %}<img class="cover-img" src="{{ profile.cover_photo.url }}" alt="Cover">{% endif %}
+      <div class="cover-overlay"></div>
+      <button class="cover-edit-btn"><iconify-icon icon="mdi:camera-outline" width="14"></iconify-icon> Edit Cover</button>
+    </div>
+    <div class="hero-body">
+      <div class="avatar-row">
+        <div class="avatar-wrap">
+          <div class="avatar-circle" onclick="openModal('avatarModal')">
+            {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="Profile">{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}
+          </div>
+          <div class="avatar-cam" onclick="openModal('avatarModal')"><iconify-icon icon="mdi:camera" width="13"></iconify-icon></div>
+        </div>
+        {% if profile.phone %}
+        <button class="call-pill" onclick="window.location.href='tel:{{ profile.phone }}'"><iconify-icon icon="mdi:phone" width="16"></iconify-icon>Call</button>
+        {% endif %}
+      </div>
+      <div class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+      <div class="profile-uid"><iconify-icon icon="mdi:fingerprint" width="14"></iconify-icon>#MS{{ request.user.id|stringformat:"06d" }}</div>
+      <div class="edit-rows">
+        <div class="edit-row" onclick="openModal('editProfileModal')">
+          <div class="edit-row-left"><div class="edit-row-icon ib-green"><iconify-icon icon="mdi:account-outline" width="20" style="color:var(--accent);"></iconify-icon></div><div><div class="edit-row-label">Full Name</div><div class="edit-row-value">{{ request.user.get_full_name|default:request.user.username }}</div></div></div>
+          <iconify-icon icon="mdi:chevron-right" class="chevron" width="22"></iconify-icon>
+        </div>
+        <div class="edit-row" onclick="openModal('editProfileModal')">
+          <div class="edit-row-left"><div class="edit-row-icon ib-blue"><iconify-icon icon="mdi:email-outline" width="20" style="color:#1976d2;"></iconify-icon></div><div><div class="edit-row-label">Email</div><div class="edit-row-value {% if not request.user.email %}ph{% endif %}">{{ request.user.email|default:"Tap to add email" }}</div></div></div>
+          <iconify-icon icon="mdi:chevron-right" class="chevron" width="22"></iconify-icon>
+        </div>
+        <div class="edit-row" onclick="openModal('editProfileModal')">
+          <div class="edit-row-left"><div class="edit-row-icon ib-green"><iconify-icon icon="mdi:phone-outline" width="20" style="color:var(--accent);"></iconify-icon></div><div><div class="edit-row-label">Mobile</div><div class="edit-row-value {% if not profile.phone %}ph{% endif %}">{{ profile.phone|default:"Tap to add phone" }}</div></div></div>
+          <iconify-icon icon="mdi:chevron-right" class="chevron" width="22"></iconify-icon>
+        </div>
+      </div>
+      <div class="soc-stripe">
+        <div class="soc-icon"><iconify-icon icon="mdi:home-city-outline" width="22"></iconify-icon></div>
+        <div><div class="soc-name">{{ profile.apartment.society.name }}</div><div class="soc-flat">{{ profile.apartment.flat_number }}, Block {{ profile.apartment.block }}</div></div>
+        <div class="role-chip">{{ profile.role|title }}</div>
+      </div>
+      <div class="bio-wrap">
+        <div class="bio-section-label"><iconify-icon icon="mdi:briefcase-outline" width="14" style="color:#1976d2;"></iconify-icon>Work &amp; Hometown</div>
+        <div class="bio-tags">
+          {% if profile.work %}<div class="bio-tag" onclick="openModal('editBioModal')"><iconify-icon icon="mdi:briefcase-outline" width="13" style="color:var(--accent);"></iconify-icon>{{ profile.work }}</div>{% endif %}
+          {% if profile.hometown %}<div class="bio-tag" onclick="openModal('editBioModal')"><iconify-icon icon="mdi:map-marker-outline" width="13" style="color:var(--sos);"></iconify-icon>{{ profile.hometown }}</div>{% endif %}
+          <div class="bio-tag add-tag" onclick="openModal('editBioModal')"><iconify-icon icon="mdi:plus" width="14"></iconify-icon>{% if profile.work %}Edit{% else %}Add Work/Hometown{% endif %}</div>
+        </div>
+        <div class="bio-section-label" style="margin-top:13px;"><iconify-icon icon="mdi:heart-outline" width="14" style="color:#e91e63;"></iconify-icon>Interests</div>
+        <div class="bio-tags">
+          {% for i in profile.interests_list %}<div class="bio-tag"><iconify-icon icon="mdi:star-outline" width="13" style="color:#f59e0b;"></iconify-icon>{{ i }}</div>{% endfor %}
+          <div class="bio-tag add-tag" onclick="openModal('editBioModal')"><iconify-icon icon="mdi:plus" width="14"></iconify-icon>{% if profile.interests %}Edit{% else %}Add Interest{% endif %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STATS ══════ -->
+  <div class="stats-strip">
+    <div class="stat-pill"><iconify-icon icon="mdi:account-clock-outline" width="24" style="color:var(--accent);"></iconify-icon><div class="sp-val">{{ visitors_count }}</div><div class="sp-label">Visitors</div></div>
+    <div class="stat-pill"><iconify-icon icon="mdi:broom" width="24" style="color:#7b1fa2;"></iconify-icon><div class="sp-val">{{ active_services_count }}</div><div class="sp-label">Services</div></div>
+    <div class="stat-pill"><iconify-icon icon="mdi:package-variant-closed" width="24" style="color:#f57c00;"></iconify-icon><div class="sp-val">{{ deliveries_count }}</div><div class="sp-label">Deliveries</div></div>
+    <div class="stat-pill"><iconify-icon icon="mdi:forum-outline" width="24" style="color:#1976d2;"></iconify-icon><div class="sp-val">{{ posts_count }}</div><div class="sp-label">Posts</div></div>
+  </div>
+
+  <!-- ══════ HOUSEHOLD ══════ -->
+  <div class="prof-section">
+    <div class="prof-section-hdr">
+      <h3><span class="s-icon ib-green"><iconify-icon icon="mdi:home-variant-outline" width="18" style="color:var(--accent);"></iconify-icon></span>Household</h3>
+      <button class="action-link" onclick="toggleHousehold()">Manage ›</button>
+    </div>
+    <div class="hh-quick">
+      <div class="hh-quick-item" onclick="openModal('familyModal')"><div class="hqi-icon"><iconify-icon icon="mdi:account-group-outline" width="26" style="color:#7b1fa2;"></iconify-icon></div><div class="hqi-label">Family</div></div>
+      <div class="hh-quick-item" onclick="openModal('helpModal')"><div class="hqi-icon"><iconify-icon icon="mdi:broom" width="26" style="color:var(--accent);"></iconify-icon></div><div class="hqi-label">Daily Help</div></div>
+      <div class="hh-quick-item" onclick="openModal('vehicleModal')"><div class="hqi-icon"><iconify-icon icon="mdi:car-outline" width="26" style="color:#1976d2;"></iconify-icon></div><div class="hqi-label">Vehicles</div></div>
+      <div class="hh-quick-item" onclick="openModal('petModal')"><div class="hqi-icon"><iconify-icon icon="mdi:paw-outline" width="26" style="color:#f57c00;"></iconify-icon></div><div class="hqi-label">Pets</div></div>
     </div>
 
-    <h2>{{ request.user.get_full_name|default:request.user.username }}</h2>
+    <div class="collapsible" id="hhBody">
 
-
-    <form method="post" id="profileForm">
-    {% csrf_token %}
-    <div class="profile-info-grid">
-
-        <div class="info-item">
-            <strong>Apartment</strong>
-            <span>
-                {{ profile.apartment.flat_number }},
-                Block {{ profile.apartment.block }}
-            </span>
+      <!-- FAMILY -->
+      <div class="hh-sub-header">
+        <div class="hh-sub-label"><iconify-icon icon="mdi:account-group-outline" width="14" style="color:#7b1fa2;"></iconify-icon>Family Members</div>
+        {% if family_members %}{% for m in family_members %}
+        <div class="hh-item-card">
+          <div class="hh-item-icon ib-purple"><iconify-icon icon="mdi:account-outline" width="22" style="color:#7b1fa2;"></iconify-icon></div>
+          <div class="hh-item-info">
+            <div class="hh-item-title">{{ m.name }}<span class="mini-badge" style="background:#f3e5f5;color:#7b1fa2;">{{ m.relation }}</span></div>
+            <div class="hh-item-sub">{% if m.mobile %}{{ m.mobile }}{% else %}No mobile{% endif %}</div>
+          </div>
+          <form method="post" action="{% url 'profile' %}" style="margin:0;">{% csrf_token %}<input type="hidden" name="form_type" value="delete_family"><input type="hidden" name="member_id" value="{{ m.id }}"><button type="submit" class="hh-item-delete" onclick="return confirm('Remove {{ m.name }}?')"><iconify-icon icon="mdi:trash-can-outline" width="16"></iconify-icon></button></form>
         </div>
+        {% endfor %}{% else %}
+        <div class="hh-empty"><iconify-icon icon="mdi:account-plus-outline" width="30" style="color:var(--text-muted);display:block;margin:0 auto 8px;"></iconify-icon>No family members added</div>
+        {% endif %}
+      </div>
+      <button class="hh-add-btn" onclick="openModal('familyModal')"><iconify-icon icon="mdi:plus" width="16"></iconify-icon>Add Family Member</button>
 
-        <div class="info-item">
-            <strong>Email</strong>
-            {{ user_form.email }}
+      <!-- VEHICLES -->
+      <div class="hh-sub-header">
+        <div class="hh-sub-label"><iconify-icon icon="mdi:car-outline" width="14" style="color:#1976d2;"></iconify-icon>Vehicles</div>
+        {% if vehicles %}{% for v in vehicles %}
+        <div class="hh-item-card">
+          <div class="hh-item-icon ib-blue"><iconify-icon icon="{% if v.vehicle_type == '2wheeler' %}mdi:motorbike{% elif v.vehicle_type == 'bicycle' %}mdi:bike{% else %}mdi:car-side{% endif %}" width="22" style="color:#1976d2;"></iconify-icon></div>
+          <div class="hh-item-info">
+            <div class="hh-item-title">{{ v.registration_number }}<span class="mini-badge" style="background:#e3f2fd;color:#1976d2;">{{ v.get_vehicle_type_display }}</span></div>
+            <div class="hh-item-sub">{{ v.brand }} {{ v.model }}{% if v.color %} · {{ v.color }}{% endif %}{% if v.parking_slot %} · Slot {{ v.parking_slot }}{% endif %}</div>
+          </div>
+          <form method="post" action="{% url 'profile' %}" style="margin:0;">{% csrf_token %}<input type="hidden" name="form_type" value="delete_vehicle"><input type="hidden" name="vehicle_id" value="{{ v.id }}"><button type="submit" class="hh-item-delete" onclick="return confirm('Remove {{ v.registration_number }}?')"><iconify-icon icon="mdi:trash-can-outline" width="16"></iconify-icon></button></form>
         </div>
+        {% endfor %}{% else %}
+        <div class="hh-empty"><iconify-icon icon="mdi:car-off" width="30" style="color:var(--text-muted);display:block;margin:0 auto 8px;"></iconify-icon>No vehicles registered</div>
+        {% endif %}
+      </div>
+      <button class="hh-add-btn" onclick="openModal('vehicleModal')"><iconify-icon icon="mdi:plus" width="16"></iconify-icon>Add Vehicle</button>
 
-        <div class="info-item">
-            <strong>Phone</strong>
-            {{ profile_form.phone }}
+      <!-- DAILY HELP -->
+      <div class="hh-sub-header">
+        <div class="hh-sub-label"><iconify-icon icon="mdi:broom" width="14" style="color:var(--accent);"></iconify-icon>Daily Help</div>
+        {% if daily_helps %}{% for h in daily_helps %}
+        <div class="hh-item-card">
+          <div class="hh-item-icon ib-green"><iconify-icon icon="mdi:broom" width="22" style="color:var(--accent);"></iconify-icon></div>
+          <div class="hh-item-info">
+            <div class="hh-item-title">{{ h.name }}<span class="mini-badge" style="background:var(--accent-light);color:var(--accent);">{{ h.service.name }}</span></div>
+            <div class="hh-item-sub">{{ h.timing }} · {{ h.days }}</div>
+          </div>
+          <form method="post" action="{% url 'profile' %}" style="margin:0;">{% csrf_token %}<input type="hidden" name="form_type" value="delete_help"><input type="hidden" name="help_id" value="{{ h.id }}"><button type="submit" class="hh-item-delete" onclick="return confirm('Remove {{ h.name }}?')"><iconify-icon icon="mdi:trash-can-outline" width="16"></iconify-icon></button></form>
         </div>
+        {% endfor %}{% else %}
+        <div class="hh-empty"><iconify-icon icon="mdi:broom" width="30" style="color:var(--text-muted);display:block;margin:0 auto 8px;"></iconify-icon>No daily help added</div>
+        {% endif %}
+      </div>
+      <button class="hh-add-btn" onclick="openModal('helpModal')"><iconify-icon icon="mdi:plus" width="16"></iconify-icon>Add Daily Help</button>
 
-        <div class="info-item">
-            <strong>Address</strong>
-            {{ profile_form.address }}
+      <!-- PETS -->
+      <div class="hh-sub-header">
+        <div class="hh-sub-label"><iconify-icon icon="mdi:paw-outline" width="14" style="color:#f57c00;"></iconify-icon>Pets</div>
+        {% if pets %}{% for p in pets %}
+        <div class="hh-item-card">
+          <div class="hh-item-icon ib-orange"><iconify-icon icon="{% if p.pet_type == 'dog' %}mdi:dog{% elif p.pet_type == 'cat' %}mdi:cat{% elif p.pet_type == 'bird' %}mdi:bird{% else %}mdi:paw{% endif %}" width="22" style="color:#f57c00;"></iconify-icon></div>
+          <div class="hh-item-info">
+            <div class="hh-item-title">{{ p.name }}<span class="mini-badge" style="background:#fff3e0;color:#f57c00;">{{ p.pet_type|title }}</span></div>
+            <div class="hh-item-sub">{% if p.breed %}{{ p.breed }}{% endif %}{% if p.description %} · {{ p.description }}{% endif %}</div>
+          </div>
+          <form method="post" action="{% url 'profile' %}" style="margin:0;">{% csrf_token %}<input type="hidden" name="form_type" value="delete_pet"><input type="hidden" name="pet_id" value="{{ p.id }}"><button type="submit" class="hh-item-delete" onclick="return confirm('Remove {{ p.name }}?')"><iconify-icon icon="mdi:trash-can-outline" width="16"></iconify-icon></button></form>
         </div>
+        {% endfor %}{% else %}
+        <div class="hh-empty"><iconify-icon icon="mdi:paw-outline" width="30" style="color:var(--text-muted);display:block;margin:0 auto 8px;"></iconify-icon>No pets added</div>
+        {% endif %}
+      </div>
+      <button class="hh-add-btn" onclick="openModal('petModal')"><iconify-icon icon="mdi:plus" width="16"></iconify-icon>Add Pet</button>
 
-        <div class="info-item">
-            <strong>Society</strong>
-            <span>{{ profile.apartment.society.name }}</span>
+    </div><!-- /collapsible -->
+    <button class="expand-btn" id="hhBtn" onclick="toggleHousehold()">
+      <iconify-icon icon="mdi:chevron-down" width="18" id="hhArrow"></iconify-icon>
+      <span id="hhLabel">Show All Members</span>
+    </button>
+  </div>
+
+  <!-- ══════ ADDRESS ══════ -->
+  <div class="prof-section">
+    <div class="prof-section-hdr"><h3><span class="s-icon ib-red"><iconify-icon icon="mdi:map-marker-outline" width="18" style="color:var(--sos);"></iconify-icon></span>My Address</h3></div>
+    <div class="addr-box">
+      <div class="addr-home-row">
+        <div class="addr-home-icon"><iconify-icon icon="mdi:home-outline" width="22" style="color:var(--sos);"></iconify-icon></div>
+        <div>
+          <div class="addr-label">Home</div>
+          <div class="addr-text">Flat {{ profile.apartment.flat_number }}, Block {{ profile.apartment.block }}<br>{{ profile.apartment.society.name }}<br>{{ profile.apartment.society.address }}<br>{{ profile.apartment.society.city }}, {{ profile.apartment.society.state }}</div>
         </div>
-
-        <div class="info-item">
-            <strong>Role</strong>
-            <span>{{ profile.role|title }}</span>
-        </div>
-
+      </div>
+      <div class="addr-btns">
+        <button class="addr-btn" id="copyBtn" onclick="copyAddress(this)"><iconify-icon icon="mdi:content-copy" width="16"></iconify-icon>Copy</button>
+        <button class="addr-btn" onclick="shareAddress()"><iconify-icon icon="mdi:share-variant-outline" width="16"></iconify-icon>Share</button>
+        <button class="addr-btn" onclick="openMaps()"><iconify-icon icon="mdi:map-outline" width="16"></iconify-icon>Maps</button>
+      </div>
     </div>
+  </div>
+
+  <!-- ══════ SECURITY & NOTIFICATIONS ══════ -->
+  <div class="prof-section">
+    <div class="prof-section-hdr"><h3><span class="s-icon ib-green"><iconify-icon icon="mdi:shield-check-outline" width="18" style="color:var(--accent);"></iconify-icon></span>Security &amp; Notifications</h3></div>
+    <div class="s-row"><div class="s-row-icon ib-green"><iconify-icon icon="mdi:bell-outline" width="24" style="color:var(--accent);"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Push Notifications</div><div class="s-row-sub">Visitor &amp; delivery alerts</div></div><button class="tog on" onclick="toggleSwitch(this)"><div class="tog-knob"></div></button></div>
+    <div class="s-row"><div class="s-row-icon ib-blue"><iconify-icon icon="mdi:email-outline" width="24" style="color:#1976d2;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Email Notifications</div><div class="s-row-sub">Daily summary &amp; alerts</div></div><button class="tog on" onclick="toggleSwitch(this)"><div class="tog-knob"></div></button></div>
+    <div class="s-row"><div class="s-row-icon ib-yellow"><iconify-icon icon="mdi:alert-outline" width="24" style="color:#f59e0b;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Emergency Alerts</div><div class="s-row-sub">Fire, medical, security</div></div><button class="tog on" onclick="toggleSwitch(this)"><div class="tog-knob"></div></button></div>
+    <div class="s-row"><div class="s-row-icon ib-purple"><iconify-icon icon="mdi:forum-outline" width="24" style="color:#7b1fa2;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Community Updates</div><div class="s-row-sub">Posts, polls &amp; announcements</div></div><button class="tog" onclick="toggleSwitch(this)"><div class="tog-knob"></div></button></div>
+    <div class="s-row"><div class="s-row-icon ib-grey"><iconify-icon icon="mdi:moon-waning-crescent" width="24" style="color:#475569;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Do Not Disturb</div><div class="s-row-sub">Mute all · 10 PM – 7 AM</div></div><button class="tog" onclick="toggleSwitch(this)"><div class="tog-knob"></div></button></div>
+    <div class="s-row" onclick="openModal('alertsModal')"><div class="s-row-icon ib-red"><iconify-icon icon="mdi:bell-cancel-outline" width="24" style="color:var(--sos);"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Security Alert History</div><div class="s-row-sub">View past security events</div></div><div class="s-row-right">{% if security_alerts_count %}<span class="inline-badge ib-danger">{{ security_alerts_count }}</span>{% endif %}<iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+    <div class="s-row"><div class="s-row-icon ib-green"><iconify-icon icon="mdi:lock-outline" width="24" style="color:var(--accent);"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Two-Factor Auth</div><div class="s-row-sub">Extra security layer</div></div><button class="tog" onclick="toggleSwitch(this)"><div class="tog-knob"></div></button></div>
+  </div>
+
+  <!-- ══════ PURCHASES ══════ -->
+  <div class="prof-section">
+    <div class="prof-section-hdr"><h3><span class="s-icon ib-orange"><iconify-icon icon="mdi:shopping-outline" width="18" style="color:#f57c00;"></iconify-icon></span>Purchases</h3></div>
+    <div class="s-row"><div class="s-row-icon ib-orange"><iconify-icon icon="mdi:package-variant-closed" width="24" style="color:#f57c00;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">My Orders</div><div class="s-row-sub">Track deliveries &amp; packages</div></div><div class="s-row-right">{% if deliveries_count %}<span class="inline-badge" style="background:#fff3e0;color:#f57c00;">{{ deliveries_count }}</span>{% endif %}<iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+    <div class="s-row"><div class="s-row-icon ib-purple"><iconify-icon icon="mdi:crown-outline" width="24" style="color:#7b1fa2;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">My Plans</div><div class="s-row-sub">Subscriptions &amp; memberships</div></div><div class="s-row-right"><span class="inline-badge ib-pro">PRO</span><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+    <div class="s-row"><div class="s-row-icon ib-teal"><iconify-icon icon="mdi:credit-card-outline" width="24" style="color:#00838f;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Payment Methods</div><div class="s-row-sub">Cards, UPI &amp; wallets</div></div><div class="s-row-right"><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+  </div>
+
+  <!-- ══════ MANAGE FLATS ══════ -->
+  <div class="prof-section">
+    <div class="prof-section-hdr"><h3><span class="s-icon ib-blue"><iconify-icon icon="mdi:office-building-outline" width="18" style="color:#1976d2;"></iconify-icon></span>Manage Flats</h3><button class="action-link" onclick="openModal('addFlatModal')">+ Add Flat</button></div>
+    <div class="flat-bar">
+      <div class="flat-chip active"><div class="flat-dot"></div>{{ profile.apartment.flat_number }}, Block {{ profile.apartment.block }}</div>
+      <div class="flat-add" onclick="openModal('addFlatModal')"><iconify-icon icon="mdi:plus" width="16"></iconify-icon>Add Flat</div>
+    </div>
+    <div class="s-row"><div class="s-row-icon ib-blue"><iconify-icon icon="mdi:door-open" width="24" style="color:#1976d2;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">{{ profile.apartment.flat_number }}, Block {{ profile.apartment.block }}</div><div class="s-row-sub">{{ profile.apartment.society.name }} · {{ profile.role|title }}</div></div><div class="s-row-right"><span class="inline-badge ib-success">Active</span><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+  </div>
+
+  <!-- ══════ GENERAL SETTINGS ══════ -->
+  <div class="prof-section">
+    <div class="prof-section-hdr"><h3><span class="s-icon ib-grey"><iconify-icon icon="mdi:cog-outline" width="18" style="color:#64748b;"></iconify-icon></span>General Settings</h3></div>
+    <div class="s-row"><div class="s-row-icon ib-blue"><iconify-icon icon="mdi:help-circle-outline" width="24" style="color:#1976d2;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Support &amp; Feedback</div><div class="s-row-sub">Help centre &amp; report issues</div></div><div class="s-row-right"><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+    <div class="s-row" onclick="shareApp()"><div class="s-row-icon ib-green"><iconify-icon icon="mdi:share-variant-outline" width="24" style="color:var(--accent);"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Tell a Friend about MySociety</div><div class="s-row-sub">Share &amp; invite your neighbours</div></div><div class="s-row-right"><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+    <div class="s-row"><div class="s-row-icon ib-purple"><iconify-icon icon="mdi:information-outline" width="24" style="color:#7b1fa2;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Account Info</div><div class="s-row-sub">#MS{{ request.user.id|stringformat:"06d" }} · MySociety v1.0</div></div><div class="s-row-right"><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+    <div class="s-row"><div class="s-row-icon ib-grey"><iconify-icon icon="mdi:key-outline" width="24" style="color:#475569;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Change Password</div><div class="s-row-sub">Update login credentials</div></div><div class="s-row-right"><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+    <div class="s-row"><div class="s-row-icon ib-yellow"><iconify-icon icon="mdi:shield-account-outline" width="24" style="color:#f59e0b;"></iconify-icon></div><div class="s-row-body"><div class="s-row-title">Privacy Settings</div><div class="s-row-sub">Control your data &amp; visibility</div></div><div class="s-row-right"><iconify-icon icon="mdi:chevron-right" class="chevron" width="20"></iconify-icon></div></div>
+  </div>
+
+  <a href="{% url 'logout' %}" class="logout-row"><iconify-icon icon="mdi:logout-variant" width="20"></iconify-icon>Logout</a>
+  <div class="terms-footer"><a href="#">Terms &amp; Conditions</a> &middot; <a href="#">Privacy Policy</a> &middot; <a href="#">Cookie Policy</a><br>MySociety v1.0 &copy; 2025 · All rights reserved</div>
+
+</div>
 
 
-    <button class="btn btn-primary" onclick="enableEdit()" type="button">
-        Edit Profile
-    </button>
-    <button type="submit"
-            id="saveBtn"
-            class="btn btn-success"
-            style="width:100%;margin-top:15px;display:none">
-        Save Changes
-    </button>
+<!-- ═══════════════════════ MODALS ═══════════════════════ -->
 
+<!-- Avatar -->
+<div class="modal-bg" id="avatarModal" onclick="closeModalBg(event,'avatarModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Update Profile Photo</div>
+    <form method="post" enctype="multipart/form-data" action="{% url 'profile' %}">
+      {% csrf_token %}<input type="hidden" name="form_type" value="photo">
+      <div class="photo-grid">
+        <label class="photo-opt" for="avCam"><div class="po-icon"><iconify-icon icon="mdi:camera-outline" width="30" style="color:#1976d2;"></iconify-icon></div><div class="po-label">Camera</div></label>
+        <label class="photo-opt" for="avGal"><div class="po-icon"><iconify-icon icon="mdi:image-multiple-outline" width="30" style="color:var(--accent);"></iconify-icon></div><div class="po-label">Gallery</div></label>
+      </div>
+      <input type="file" id="avCam" accept="image/*" capture="environment" style="display:none;" onchange="mirrorCam(this,'avGal','avPrev','avPrevImg')">
+      <div class="modal-form-group"><label>Photo File</label><input type="file" class="form-control" name="photo" id="avGal" accept="image/*" onchange="prevFile(this,'avPrev','avPrevImg')"></div>
+      <div id="avPrev" style="text-align:center;margin-bottom:12px;display:none;"><img id="avPrevImg" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);"></div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:upload" width="18"></iconify-icon>Upload Photo</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('avatarModal')">Cancel</button>
     </form>
-
+  </div>
 </div>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-value">{{ visitors_count }}</div>
-        <div class="stat-label">Total Visitors</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ active_services_count }}</div>
-        <div class="stat-label">Active Services</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ deliveries_count }}</div>
-        <div class="stat-label">Deliveries</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ posts_count }}</div>
-        <div class="stat-label">Community Posts</div>
-    </div>
+<!-- Cover -->
+<div class="modal-bg" id="coverModal" onclick="closeModalBg(event,'coverModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Update Cover Photo</div>
+    <form method="post" enctype="multipart/form-data" action="{% url 'profile' %}">
+      {% csrf_token %}<input type="hidden" name="form_type" value="cover_photo">
+      <div class="photo-grid">
+        <label class="photo-opt" for="cvCam"><div class="po-icon"><iconify-icon icon="mdi:camera-outline" width="30" style="color:#1976d2;"></iconify-icon></div><div class="po-label">Camera</div></label>
+        <label class="photo-opt" for="cvGal"><div class="po-icon"><iconify-icon icon="mdi:image-multiple-outline" width="30" style="color:var(--accent);"></iconify-icon></div><div class="po-label">Gallery</div></label>
+      </div>
+      <input type="file" id="cvCam" accept="image/*" capture="environment" style="display:none;" onchange="mirrorCam(this,'cvGal','cvPrev','cvPrevImg')">
+      <div class="modal-form-group"><label>Cover File</label><input type="file" class="form-control" name="cover_photo" id="cvGal" accept="image/*" onchange="prevFile(this,'cvPrev','cvPrevImg')"></div>
+      <div id="cvPrev" style="margin-bottom:12px;display:none;"><img id="cvPrevImg" style="width:100%;height:80px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid var(--accent);"></div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:upload" width="18"></iconify-icon>Upload Cover</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('coverModal')">Cancel</button>
+    </form>
+  </div>
 </div>
 
-        <div class="section-title">Apartment Details</div>
-        <div class="settings-card">
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">🏠</div>
-                    <div class="setting-info">
-                        <h4>Apartment Number</h4>
-                        <p>
-                            {{ request.user.userprofile.apartment.flat_number }},
-                            Block {{ request.user.userprofile.apartment.block }}
-                        </p>
+<!-- Edit Profile -->
+<div class="modal-bg" id="editProfileModal" onclick="closeModalBg(event,'editProfileModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Profile</div>
+    <form method="post" action="{% url 'profile' %}" onsubmit="setLoading(this)">
+      {% csrf_token %}<input type="hidden" name="form_type" value="profile">
+      <div class="form-row-2">
+        <div class="modal-form-group"><label>First Name</label><input class="form-control" type="text" name="first_name" value="{{ request.user.first_name }}" placeholder="First name"></div>
+        <div class="modal-form-group"><label>Last Name</label><input class="form-control" type="text" name="last_name" value="{{ request.user.last_name }}" placeholder="Last name"></div>
+      </div>
+      <div class="modal-form-group"><label>Email</label><input class="form-control" type="email" name="email" value="{{ request.user.email }}" placeholder="your@email.com"></div>
+      <div class="modal-form-group"><label>Mobile</label><input class="form-control" type="tel" name="phone" value="{{ profile.phone }}" placeholder="+91 XXXXX XXXXX"></div>
+      <div class="modal-form-group"><label>Address</label><input class="form-control" type="text" name="address" value="{{ profile.address }}" placeholder="Your address"></div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:content-save-outline" width="18"></iconify-icon>Save Changes</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('editProfileModal')">Cancel</button>
+    </form>
+  </div>
+</div>
 
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">👥</div>
-                    <div class="setting-info">
-                        <h4>Family Members</h4>
-                        <p>4 Members</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">🚗</div>
-                    <div class="setting-info">
-                        <h4>Vehicles</h4>
-                        <p>2 Vehicles Registered</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
+<!-- Edit Bio -->
+<div class="modal-bg" id="editBioModal" onclick="closeModalBg(event,'editBioModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Bio &amp; Interests</div>
+    <form method="post" action="{% url 'profile' %}" onsubmit="setLoading(this)">
+      {% csrf_token %}<input type="hidden" name="form_type" value="bio">
+      <div class="modal-form-group"><label>Work / Profession</label><input class="form-control" type="text" name="work" value="{{ profile.work|default:'' }}" placeholder="e.g. Software Engineer at Google"></div>
+      <div class="modal-form-group"><label>Hometown</label><input class="form-control" type="text" name="hometown" value="{{ profile.hometown|default:'' }}" placeholder="e.g. Mumbai, India"></div>
+      <div class="modal-form-group"><label>Interests <span style="text-transform:none;font-weight:600;letter-spacing:0;">(comma separated)</span></label><input class="form-control" type="text" name="interests" value="{{ profile.interests|default:'' }}" placeholder="e.g. Music, Travel, Cricket"></div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:content-save-outline" width="18"></iconify-icon>Save Bio</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('editBioModal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- ─── FAMILY MODAL ─── -->
+<div class="modal-bg" id="familyModal" onclick="closeModalBg(event,'familyModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Family Member</div>
+    <form method="post" action="{% url 'profile' %}" onsubmit="setLoading(this)">
+      {% csrf_token %}<input type="hidden" name="form_type" value="add_family">
+      <div class="modal-form-group"><label>Full Name</label><input class="form-control" type="text" name="name" placeholder="Member's full name" required></div>
+      <div class="modal-form-group"><label>Relation</label>
+        <select class="form-control" name="relation" required>
+          <option value="">Select relation…</option>
+          <option value="Spouse">Spouse</option><option value="Child">Child</option>
+          <option value="Parent">Parent</option><option value="Sibling">Sibling</option>
+          <option value="Grandparent">Grandparent</option><option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="modal-form-group"><label>Mobile <span style="text-transform:none;font-weight:600;letter-spacing:0;">(optional)</span></label><input class="form-control" type="tel" name="mobile" placeholder="+91 XXXXX XXXXX"></div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:account-plus-outline" width="18"></iconify-icon>Add Family Member</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('familyModal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- ─── VEHICLE MODAL ─── -->
+<div class="modal-bg" id="vehicleModal" onclick="closeModalBg(event,'vehicleModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Vehicle</div>
+    <form method="post" action="{% url 'profile' %}" onsubmit="setLoading(this)">
+      {% csrf_token %}<input type="hidden" name="form_type" value="add_vehicle">
+      <div class="modal-form-group"><label>Registration Number</label><input class="form-control" type="text" name="registration_number" placeholder="MH12AB1234" style="text-transform:uppercase;letter-spacing:2px;" required oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="modal-form-group"><label>Vehicle Type</label>
+        <select class="form-control" name="vehicle_type" required>
+          <option value="">Select type…</option>
+          <option value="4wheeler">Four Wheeler</option>
+          <option value="2wheeler">Two Wheeler</option>
+          <option value="bicycle">Bicycle</option>
+          <option value="truck">Truck</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-row-2">
+        <div class="modal-form-group"><label>Brand</label><input class="form-control" type="text" name="brand" placeholder="e.g. Honda"></div>
+        <div class="modal-form-group"><label>Model</label><input class="form-control" type="text" name="model" placeholder="e.g. City"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="modal-form-group"><label>Color</label><input class="form-control" type="text" name="color" placeholder="e.g. White"></div>
+        <div class="modal-form-group"><label>Parking Slot</label><input class="form-control" type="text" name="parking_slot" placeholder="e.g. A-12"></div>
+      </div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:car-outline" width="18"></iconify-icon>Add Vehicle</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('vehicleModal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- ─── DAILY HELP MODAL ─── -->
+<div class="modal-bg" id="helpModal" onclick="closeModalBg(event,'helpModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Daily Help</div>
+    <form method="post" action="{% url 'profile' %}" onsubmit="setLoading(this)">
+      {% csrf_token %}<input type="hidden" name="form_type" value="add_help">
+      <div class="modal-form-group"><label>Helper's Name</label><input class="form-control" type="text" name="name" placeholder="e.g. Sunita" required></div>
+      <div class="modal-form-group"><label>Service Type</label>
+        <select class="form-control" name="service_id" required>
+          <option value="">Select service…</option>
+          {% for svc in services %}<option value="{{ svc.id }}">{{ svc.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="modal-form-group"><label>Mobile Number</label><input class="form-control" type="tel" name="mobile" placeholder="+91 XXXXX XXXXX" required></div>
+      <div class="form-row-2">
+        <div class="modal-form-group"><label>Timing</label><input class="form-control" type="text" name="timing" placeholder="8 AM – 10 AM" required></div>
+        <div class="modal-form-group"><label>Working Days</label><input class="form-control" type="text" name="days" placeholder="Mon–Sat" required></div>
+      </div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:broom" width="18"></iconify-icon>Add Helper</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('helpModal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- ─── PET MODAL ─── -->
+<div class="modal-bg" id="petModal" onclick="closeModalBg(event,'petModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Pet</div>
+    <form method="post" action="{% url 'profile' %}" onsubmit="setLoading(this)">
+      {% csrf_token %}<input type="hidden" name="form_type" value="add_pet">
+      <div class="form-row-2">
+        <div class="modal-form-group"><label>Pet Name</label><input class="form-control" type="text" name="pet_name" placeholder="e.g. Bruno" required></div>
+        <div class="modal-form-group"><label>Pet Type</label>
+          <select class="form-control" name="pet_type" required>
+            <option value="">Select…</option>
+            <option value="dog">🐕 Dog</option>
+            <option value="cat">🐈 Cat</option>
+            <option value="bird">🐦 Bird</option>
+            <option value="fish">🐟 Fish</option>
+            <option value="rabbit">🐇 Rabbit</option>
+            <option value="other">Other</option>
+          </select>
         </div>
+      </div>
+      <div class="modal-form-group"><label>Breed <span style="text-transform:none;font-weight:600;letter-spacing:0;">(optional)</span></label><input class="form-control" type="text" name="breed" placeholder="e.g. Golden Retriever"></div>
+      <div class="modal-form-group"><label>Color / Description</label><input class="form-control" type="text" name="description" placeholder="e.g. Golden, friendly, vaccinated"></div>
+      <button type="submit" class="modal-save"><iconify-icon icon="mdi:paw-outline" width="18"></iconify-icon>Add Pet</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('petModal')">Cancel</button>
+    </form>
+  </div>
+</div>
 
-        <div class="section-title">Preferences</div>
-        <div class="settings-card">
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">🔔</div>
-                    <div class="setting-info">
-                        <h4>Push Notifications</h4>
-                        <p>Get notified about visitors</p>
-                    </div>
-                </div>
-                <div class="toggle-switch active" onclick="toggleSwitch(this)">
-                    <div class="toggle-slider"></div>
-                </div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">📧</div>
-                    <div class="setting-info">
-                        <h4>Email Notifications</h4>
-                        <p>Receive updates via email</p>
-                    </div>
-                </div>
-                <div class="toggle-switch active" onclick="toggleSwitch(this)">
-                    <div class="toggle-slider"></div>
-                </div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">🌙</div>
-                    <div class="setting-info">
-                        <h4>Dark Mode</h4>
-                        <p>Switch to dark theme</p>
-                    </div>
-                </div>
-                <div class="toggle-switch" onclick="toggleSwitch(this)">
-                    <div class="toggle-slider"></div>
-                </div>
-            </div>
-        </div>
+<!-- Add Flat -->
+<div class="modal-bg" id="addFlatModal" onclick="closeModalBg(event,'addFlatModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Another Flat</div>
+    <div class="modal-info-banner"><iconify-icon icon="mdi:information-outline" width="18" style="flex-shrink:0;margin-top:1px;"></iconify-icon>Enter the 8-character society code from your admin to link a new flat.</div>
+    <div class="modal-form-group"><label>Society Code</label><input class="form-control" type="text" placeholder="XXXXXXXX" maxlength="8" style="text-transform:uppercase;letter-spacing:4px;font-size:16px;" oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="form-row-2">
+      <div class="modal-form-group"><label>Flat Number</label><input class="form-control" type="text" placeholder="e.g. B-204"></div>
+      <div class="modal-form-group"><label>Block</label><input class="form-control" type="text" placeholder="e.g. B"></div>
+    </div>
+    <button class="modal-save"><iconify-icon icon="mdi:home-plus-outline" width="18"></iconify-icon>Request Access</button>
+    <button class="modal-cancel" onclick="closeModal('addFlatModal')">Cancel</button>
+  </div>
+</div>
 
-        <div class="section-title">Account</div>
-        <div class="settings-card">
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">🔐</div>
-                    <div class="setting-info">
-                        <h4>Change Password</h4>
-                        <p>Update your password</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">🔒</div>
-                    <div class="setting-info">
-                        <h4>Privacy Settings</h4>
-                        <p>Manage your privacy</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">💳</div>
-                    <div class="setting-info">
-                        <h4>Payment Methods</h4>
-                        <p>Manage payment options</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-        </div>
-
-        <div class="section-title">Support</div>
-        <div class="settings-card">
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">❓</div>
-                    <div class="setting-info">
-                        <h4>Help & FAQ</h4>
-                        <p>Get help and support</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">📱</div>
-                    <div class="setting-info">
-                        <h4>Contact Support</h4>
-                        <p>Reach out to our team</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-left">
-                    <div class="setting-icon">ℹ️</div>
-                    <div class="setting-info">
-                        <h4>About MyGate</h4>
-                        <p>Version 3.2.1</p>
-                    </div>
-                </div>
-                <div class="setting-right">›</div>
-            </div>
-        </div>
-<a href="{% url 'logout' %}" class="btn btn-danger" style="width:100%;margin-top:20px">
-    Logout
-</a>
-{% block scripts %}
-<script>
-function enableEdit() {
-    document
-        .querySelectorAll("#profileForm input[readonly], #profileForm textarea[readonly]")
-        .forEach(el => {
-            el.removeAttribute("readonly");
-            el.style.border = "2px solid #667eea";
-            el.style.background = "#fff";
-        });
-
-    document.getElementById("saveBtn").style.display = "block";
-}
-</script>
+<!-- Alerts -->
+<div class="modal-bg" id="alertsModal" onclick="closeModalBg(event,'alertsModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Security Alert History</div>
+    {% for item in security_alerts %}
+    <div class="alert-item">
+      <div class="alert-item-icon"><iconify-icon icon="mdi:alert-circle-outline" width="20"></iconify-icon></div>
+      <div><div class="alert-item-title">{{ item.title }}</div><div class="alert-item-sub">{{ item.reported_at|timesince }} ago · {{ item.get_incident_type_display }}</div></div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:44px 20px;color:var(--text-muted);">
+      <iconify-icon icon="mdi:shield-check-outline" width="56" style="color:var(--accent);display:block;margin:0 auto 14px;"></iconify-icon>
+      <div style="font-weight:800;font-size:16px;color:var(--text-secondary);">No security alerts</div>
+      <div style="font-size:13px;margin-top:6px;">You're all safe! 🎉</div>
+    </div>
+    {% endfor %}
+    <button class="modal-cancel" onclick="closeModal('alertsModal')" style="margin-top:16px;">Close</button>
+  </div>
+</div>
 {% endblock %}
 
+
+{% block scripts %}
+<script>
+function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeModalBg(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
+
+let hhOpen=false;
+function toggleHousehold(){
+  const body=document.getElementById('hhBody'), label=document.getElementById('hhLabel'), arrow=document.getElementById('hhArrow');
+  hhOpen=!hhOpen;
+  if(hhOpen){ body.style.maxHeight=body.scrollHeight+'px'; body.classList.add('open'); label.textContent='Show Less ‹'; arrow.setAttribute('icon','mdi:chevron-up'); }
+  else { body.style.maxHeight='0'; body.classList.remove('open'); label.textContent='Show All Members'; arrow.setAttribute('icon','mdi:chevron-down'); }
+}
+
+function toggleSwitch(el){ el.classList.toggle('on'); showToast(el.classList.contains('on')?'✅ Setting enabled':'🔕 Setting disabled','success'); }
+
+const ADDR=`Flat {{ profile.apartment.flat_number }}, Block {{ profile.apartment.block }}, {{ profile.apartment.society.name }}, {{ profile.apartment.society.address }}, {{ profile.apartment.society.city }}, {{ profile.apartment.society.state }}`;
+function copyAddress(btn){
+  navigator.clipboard.writeText(ADDR).then(()=>{
+    const o=btn.innerHTML; btn.innerHTML='<iconify-icon icon="mdi:check" width="16"></iconify-icon> Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.innerHTML=o; btn.classList.remove('copied'); },2000);
+  });
+}
+function shareAddress(){ navigator.share ? navigator.share({title:'Home Address',text:ADDR}) : navigator.clipboard.writeText(ADDR).then(()=>showToast('📋 Copied!')); }
+function openMaps(){ window.open('https://maps.google.com/?q='+encodeURIComponent('{{ profile.apartment.society.name }}, {{ profile.apartment.society.city }}'),'_blank'); }
+function shareApp(){ navigator.share ? navigator.share({title:'MySociety',text:'Manage your society the smart way!',url:window.location.origin}) : showToast('🔗 Link copied!'); }
+
+function prevFile(input,wrapId,imgId){
+  if(input.files&&input.files[0]){ const r=new FileReader(); r.onload=e=>{ document.getElementById(imgId).src=e.target.result; document.getElementById(wrapId).style.display='block'; }; r.readAsDataURL(input.files[0]); }
+}
+function mirrorCam(cam,galId,wrapId,imgId){
+  if(cam.files.length){ const dt=new DataTransfer(); dt.items.add(cam.files[0]); const g=document.getElementById(galId); g.files=dt.files; prevFile(g,wrapId,imgId); }
+}
+function setLoading(form){ const b=form.querySelector('.modal-save'); if(b){ b.innerHTML='<iconify-icon icon="mdi:loading" width="18" style="animation:spin .7s linear infinite;display:inline-block;"></iconify-icon> Saving…'; b.disabled=true; } }
+
+function showToast(msg,type='success'){
+  const c={success:'#00b386',danger:'#e53935',info:'#1976d2'};
+  const t=document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:${c[type]||c.success};color:#fff;padding:12px 22px;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:9999;animation:toastIn .3s ease;white-space:nowrap;`;
+  t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); },2700);
+}
+document.querySelectorAll('.modal-sheet select,.modal-sheet textarea').forEach(el=>el.classList.add('form-control'));
+</script>
+<style>
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 {% endblock %}
