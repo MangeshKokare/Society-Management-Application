@@ -359,4 +359,52 @@ path(
     # Guard leave history JSON
     path("guard/leaves/json/",         views.guard_leave_history_json,   name="guard_leave_history_json"),
 
+
+    # Main marketplace page
+    path('marketplace/',                    views.marketplace,               name='marketplace'),
+
+    # ── Static sub-paths FIRST (before the slug wildcard) ──────────────────
+
+    # All listings (search / filter across all societies)
+    path('marketplace/all/',               views.all_listings,              name='all_listings'),
+
+    # My listings
+    path('marketplace/my/',                views.my_listings,               name='my_listings'),
+
+    # Shortlists
+    path('marketplace/shortlists/',        views.my_shortlists,             name='my_shortlists'),
+
+    # Post a regular listing
+    path('marketplace/post/',              views.post_listing,              name='post_listing'),
+
+    # Post a property (must be before slug too)
+    path('marketplace/post/property/',     views.post_property,             name='post_property'),
+
+    # AJAX partials
+    path('marketplace/item/<int:listing_id>/detail/',   views.listing_detail_partial,  name='listing_detail'),
+    path('marketplace/prop/<int:prop_id>/detail/',      views.property_detail_partial, name='property_detail'),
+
+    # Shortlist toggle (AJAX POST)
+    path('marketplace/shortlist/<int:listing_id>/toggle/', views.toggle_shortlist,     name='toggle_shortlist'),
+
+    # Manage own listings
+    path('marketplace/item/<int:listing_id>/sold/',    views.mark_sold,      name='mark_sold'),
+    path('marketplace/item/<int:listing_id>/delete/',  views.delete_listing, name='delete_listing'),
+
+    # ── Slug wildcard LAST — catches /marketplace/furniture/, /marketplace/electronics/ etc ──
+    path('marketplace/<slug:slug>/',       views.marketplace_category,       name='marketplace_category'),
+
+    path('chat/<int:user_id>/', views.direct_chat, name='direct_chat'),
+
+    path('api/marketplace/<int:listing_id>/message/',
+        views.send_marketplace_message,
+        name='send_marketplace_message'),
+
+    path('api/marketplace/<int:listing_id>/thread/<int:other_user_id>/',
+        views.marketplace_thread_messages,
+        name='marketplace_thread_messages'),
+
+    path('api/marketplace/<int:listing_id>/thread/<int:other_user_id>/read/',
+        views.mark_marketplace_thread_read,
+        name='mark_marketplace_thread_read'),
 ]

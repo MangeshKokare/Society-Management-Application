@@ -563,6 +563,13 @@
                 </div>
                 <span>Home</span>
             </a>
+            <a href="{% url 'marketplace' %}"
+            class="nav-item {% block nav_marketplace %}{% endblock %}">
+                <div class="nav-icon">
+                    <span class="iconify" data-icon="mdi:storefront-outline"></span>
+                </div>
+                <span>Buy &amp; Sell</span>
+            </a>
             <a href="{% url 'resident_visitors' %}"
                class="nav-item {% block nav_visitors %}{% endblock %}">
                 <div class="nav-icon">

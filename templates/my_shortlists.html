@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% block title %}Shortlisted Items · MySociety{% endblock %}
+{% block nav_marketplace %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+:root {
+  --accent:#00b386; --accent-dark:#008f6a; --accent-light:#e6f7f3;
+  --sos:#ef4444; --sos-light:#fef2f2;
+  --text-primary:#1a1a2e; --text-secondary:#4b5563; --text-muted:#9ca3af;
+  --surface:#ffffff; --surface-2:#f8fafc;
+  --border:#e5e7eb; --border-light:#f3f4f6;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.06); --shadow-md:0 4px 16px rgba(0,0,0,0.10);
+  --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;}
+.sl-page{padding:0 0 100px;max-width:520px;margin:0 auto;}
+
+/* TOP BAR */
+.sl-topbar{display:flex;align-items:center;gap:12px;padding:16px 16px 0;margin-bottom:14px;}
+.back-btn{width:40px;height:40px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;color:var(--text-secondary);transition:all 0.2s;box-shadow:var(--shadow-sm);flex-shrink:0;}
+.back-btn:hover{border-color:var(--sos);color:var(--sos);background:var(--sos-light);}
+.sl-topbar-title h2{font-size:22px;font-weight:900;color:var(--text-primary);letter-spacing:-0.4px;}
+.sl-topbar-title p{font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px;}
+.sl-count-badge{background:var(--sos);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:900;margin-left:auto;}
+
+/* SEARCH */
+.sl-search{display:flex;gap:8px;padding:0 16px;margin-bottom:12px;}
+.sl-search-wrap{flex:1;position:relative;}
+.sl-search-wrap iconify-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:18px;pointer-events:none;}
+.sl-search-wrap input{width:100%;padding:12px 12px 12px 40px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-primary);background:var(--surface);outline:none;transition:all 0.2s;box-shadow:var(--shadow-sm);}
+.sl-search-wrap input:focus{border-color:var(--sos);box-shadow:0 0 0 3px rgba(239,68,68,0.12);}
+.sl-filter-btn{width:48px;height:48px;flex-shrink:0;background:var(--sos);border:none;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:all 0.2s;}
+.sl-filter-btn:hover{background:#dc2626;}
+
+/* CATEGORY PILLS */
+.cat-pills{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;margin-bottom:12px;}
+.cat-pills::-webkit-scrollbar{display:none;}
+.cat-pill{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:800;color:var(--text-secondary);cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all 0.2s;flex-shrink:0;box-shadow:var(--shadow-sm);text-decoration:none;}
+.cat-pill.active,.cat-pill:hover{background:var(--sos);border-color:var(--sos);color:#fff;}
+
+/* COUNT STRIP */
+.count-strip{display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:12px;}
+.count-strip .count-label{font-size:13px;font-weight:700;color:var(--text-muted);}
+.count-strip .count-num{font-size:13px;font-weight:900;color:var(--text-primary);}
+
+/* GRID */
+.sl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;}
+
+/* CARD */
+.sl-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);transition:all 0.22s;position:relative;cursor:pointer;}
+.sl-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--sos);}
+.sl-card.removing{opacity:0;transform:scale(0.92);transition:all 0.25s;}
+.lc-img{width:100%;height:130px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.lc-img img{width:100%;height:100%;object-fit:cover;}
+.lc-placeholder{width:100%;height:130px;display:flex;align-items:center;justify-content:center;font-size:40px;}
+.lc-badge-free{position:absolute;top:8px;left:8px;background:#22c55e;color:#fff;border-radius:6px;font-size:10px;font-weight:800;padding:3px 8px;z-index:1;}
+.lc-badge-sold{position:absolute;top:8px;left:8px;background:var(--sos);color:#fff;border-radius:6px;font-size:10px;font-weight:800;padding:3px 8px;z-index:1;}
+
+/* SHORTLIST / REMOVE BUTTON */
+.sl-remove-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(239,68,68,0.92);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.15);z-index:1;}
+.sl-remove-btn:hover{background:var(--sos);transform:scale(1.15);}
+.sl-remove-btn iconify-icon{color:#fff;}
+
+.lc-body{padding:11px;}
+.lc-price{font-size:16px;font-weight:900;color:var(--accent);letter-spacing:-0.4px;line-height:1;}
+.lc-title{font-size:12px;font-weight:700;color:var(--text-primary);margin:4px 0 2px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lc-meta{font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.lc-seller{display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid var(--border-light);}
+.lc-seller-av{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lc-seller-name{font-size:10px;font-weight:700;color:var(--text-secondary);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lc-society{font-size:9px;color:var(--text-muted);font-weight:600;}
+
+/* EMPTY */
+.sl-empty{text-align:center;padding:60px 20px;color:var(--text-muted);}
+.sl-empty iconify-icon{font-size:56px;display:block;margin:0 auto 12px;}
+.sl-empty h3{font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:6px;}
+.sl-empty p{font-size:13px;font-weight:600;}
+.sl-empty .empty-btn{display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-md);padding:12px 24px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(0,179,134,0.3);transition:all 0.2s;text-decoration:none;}
+
+/* TOAST */
+.bs-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 22px;border-radius:25px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity 0.25s;pointer-events:none;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,0.22);font-family:'Nunito',sans-serif;}
+.bs-toast.show{opacity:1;}
+
+/* DETAIL MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:2000;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.modal-bg.open{display:flex;}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:8px 20px 36px;max-height:92vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.1,0.64,1);}
+@keyframes slideUp{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 18px;}
+.modal-cancel{width:100%;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.2s;margin-top:8px;}
+.detail-modal-img{width:100%;height:200px;border-radius:var(--radius-md);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:16px;overflow:hidden;}
+.detail-modal-img img{width:100%;height:100%;object-fit:cover;}
+.detail-price{font-size:28px;font-weight:900;color:var(--accent);letter-spacing:-0.6px;margin-bottom:4px;}
+.detail-title{font-size:18px;font-weight:900;color:var(--text-primary);margin-bottom:8px;}
+.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.detail-tag{background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--text-secondary);}
+.detail-desc{font-size:14px;font-weight:600;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;}
+.detail-seller{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;border:1px solid var(--border-light);}
+.detail-seller-av{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.detail-seller-name{font-size:15px;font-weight:800;color:var(--text-primary);}
+.detail-seller-flat{font-size:12px;color:var(--text-muted);font-weight:600;}
+.detail-btns{display:flex;gap:10px;}
+.detail-btn{flex:1;padding:14px;border-radius:var(--radius-md);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Nunito',sans-serif;transition:all 0.2s;border:none;text-decoration:none;}
+.detail-btn.call{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,179,134,0.28);}
+.detail-btn.chat{background:#e3f2fd;color:#1565c0;}
+.detail-btn.shortlist{background:var(--sos-light);color:var(--sos);width:52px;flex:none;border:1.5px solid #fca5a5;}
+.detail-btn.shortlist.active iconify-icon{color:var(--sos);}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spin{animation:spin 0.9s linear infinite;display:inline-block;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sl-page">
+
+  <!-- TOP BAR -->
+  <div class="sl-topbar">
+    <a href="{% url 'marketplace' %}" class="back-btn" aria-label="Back">
+      <iconify-icon icon="mdi:arrow-left" width="20"></iconify-icon>
+    </a>
+    <div class="sl-topbar-title" style="flex:1;">
+      <h2>Shortlisted ❤️</h2>
+      <p>{{ society_name }}</p>
+    </div>
+    {% if shortlist_count %}
+    <div class="sl-count-badge">{{ shortlist_count }}</div>
+    {% endif %}
+  </div>
+
+  <!-- SEARCH + FILTER -->
+  <form method="get" id="searchForm" class="sl-search">
+    <div class="sl-search-wrap">
+      <iconify-icon icon="mdi:magnify"></iconify-icon>
+      <input type="text" name="q" value="{{ search_query }}"
+             placeholder="Search shortlisted items…"
+             oninput="debounceSearch(this)">
+    </div>
+    {% if current_category %}
+    <input type="hidden" name="category" value="{{ current_category }}">
+    {% endif %}
+    <button type="button" class="sl-filter-btn" onclick="openModal('filterModal')" aria-label="Filter">
+      <iconify-icon icon="mdi:tune-variant" width="22"></iconify-icon>
+    </button>
+  </form>
+
+  <!-- CATEGORY PILLS -->
+  <div class="cat-pills">
+    <a class="cat-pill {% if not current_category %}active{% endif %}"
+       href="?q={{ search_query }}">All</a>
+    {% for cat in categories %}
+    <a class="cat-pill {% if current_category == cat.slug %}active{% endif %}"
+       href="?category={{ cat.slug }}&q={{ search_query }}">{{ cat.name }}</a>
+    {% empty %}
+    <a class="cat-pill {% if current_category == 'furniture'   %}active{% endif %}" href="?category=furniture&q={{ search_query }}">Furniture</a>
+    <a class="cat-pill {% if current_category == 'food'        %}active{% endif %}" href="?category=food&q={{ search_query }}">Food</a>
+    <a class="cat-pill {% if current_category == 'services'    %}active{% endif %}" href="?category=services&q={{ search_query }}">Services</a>
+    <a class="cat-pill {% if current_category == 'home-decor'  %}active{% endif %}" href="?category=home-decor&q={{ search_query }}">Home Decor</a>
+    <a class="cat-pill {% if current_category == 'electronics' %}active{% endif %}" href="?category=electronics&q={{ search_query }}">Electronics</a>
+    <a class="cat-pill {% if current_category == 'vehicles'    %}active{% endif %}" href="?category=vehicles&q={{ search_query }}">Vehicles</a>
+    <a class="cat-pill {% if current_category == 'kids-items'  %}active{% endif %}" href="?category=kids-items&q={{ search_query }}">Kids</a>
+    <a class="cat-pill {% if current_category == 'others'      %}active{% endif %}" href="?category=others&q={{ search_query }}">Others</a>
+    {% endfor %}
+  </div>
+
+  <!-- COUNT -->
+  <div class="count-strip">
+    <span class="count-label">
+      {% if search_query %}Results for "{{ search_query }}"
+      {% elif current_category %}{{ current_category|title }} items
+      {% else %}All shortlisted{% endif %}
+    </span>
+    <span class="count-num" id="countNum">{{ shortlists|length }}</span>
+  </div>
+
+  <!-- GRID -->
+  {% if shortlists %}
+  <div class="sl-grid" id="shortlistGrid">
+    {% for sl in shortlists %}
+    {% with item=sl.listing %}
+    <div class="sl-card" id="slcard-{{ item.id }}" onclick="openDetailModal({{ item.id }})">
+      <div class="lc-img">
+        {% if item.image %}
+          <img src="{{ item.image.url }}" alt="{{ item.title }}">
+        {% else %}
+          <div class="lc-placeholder"
+               style="background:{% if item.category == 'furniture' %}#fff3e0{% elif item.category == 'food' %}#e8f5e9{% elif item.category == 'services' %}#e3f2fd{% elif item.category == 'home-decor' %}#fce4ec{% elif item.category == 'electronics' %}#ede7f6{% elif item.category == 'vehicles' %}#e0f7fa{% elif item.category == 'kids-items' %}#f3e5f5{% else %}#f5f5f5{% endif %};">
+            {{ item.category_emoji }}
+          </div>
+        {% endif %}
+        {% if item.is_free or item.price == 0 %}
+          <div class="lc-badge-free">FREE</div>
+        {% elif item.status == 'sold' %}
+          <div class="lc-badge-sold">SOLD</div>
+        {% endif %}
+        <!-- ❤️ Remove from shortlist button -->
+        <button class="sl-remove-btn" data-lid="{{ item.id }}"
+                onclick="event.stopPropagation(); removeShortlist(this, {{ item.id }});"
+                title="Remove from shortlist">
+          <iconify-icon icon="mdi:heart" width="16"></iconify-icon>
+        </button>
+      </div>
+      <div class="lc-body">
+        <div class="lc-price">
+          {% if item.is_free or item.price == 0 %}FREE
+          {% else %}₹{{ item.price|floatformat:0 }}{% endif %}
+          {% if item.is_negotiable %}<span style="font-size:10px;color:var(--text-muted);font-weight:600;"> · Nego</span>{% endif %}
+        </div>
+        <div class="lc-title">{{ item.title }}</div>
+        <div class="lc-meta">
+          <iconify-icon icon="mdi:tag-outline" width="11"></iconify-icon>
+          {{ item.get_category_display }}
+        </div>
+        <div class="lc-seller">
+          <div class="lc-seller-av">{{ item.seller.username|slice:":1"|upper }}</div>
+          <div>
+            <div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div>
+            {% if item.society %}
+            <div class="lc-society">🏘 {{ item.society.name }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="sl-empty">
+    <iconify-icon icon="mdi:heart-off-outline" width="56" style="color:#fca5a5;"></iconify-icon>
+    <h3>
+      {% if search_query %}No results for "{{ search_query }}"
+      {% elif current_category %}No {{ current_category|title }} shortlisted
+      {% else %}No shortlisted items{% endif %}
+    </h3>
+    <p>
+      {% if search_query or current_category %}Try a different filter
+      {% else %}Tap the ❤️ on any listing to save it here{% endif %}
+    </p>
+    <a href="{% url 'marketplace' %}" class="empty-btn">
+      <iconify-icon icon="mdi:storefront-outline" width="18"></iconify-icon>
+      Browse Marketplace
+    </a>
+  </div>
+  {% endif %}
+
+</div><!-- /sl-page -->
+
+<div class="bs-toast" id="bsToast"></div>
+
+<!-- FILTER MODAL -->
+<div class="modal-bg" id="filterModal" onclick="closeBg(event,'filterModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="font-size:19px;font-weight:900;color:var(--text-primary);margin-bottom:18px;">⚙️ Filter Shortlists</div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Category</label>
+      <select id="filterCat" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-primary);background:var(--surface-2);outline:none;">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+        {% empty %}
+        <option value="furniture">Furniture</option>
+        <option value="food">Food</option>
+        <option value="services">Services</option>
+        <option value="home-decor">Home Decor</option>
+        <option value="electronics">Electronics</option>
+        <option value="vehicles">Vehicles</option>
+        <option value="kids-items">Kids Items</option>
+        <option value="others">Others</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button style="width:100%;background:var(--sos);border:none;border-radius:var(--radius-md);padding:15px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:6px;" onclick="applyFilter()">Apply</button>
+    <button class="modal-cancel" onclick="closeModal('filterModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL (AJAX) -->
+<div class="modal-bg" id="itemDetailModal" onclick="closeBg(event,'itemDetailModal')">
+  <div class="modal-sheet" id="itemDetailContent">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+      <iconify-icon icon="mdi:loading" width="40" class="spin" style="color:var(--accent);display:block;margin:0 auto 10px;"></iconify-icon>
+      <p style="font-size:13px;font-weight:700;">Loading…</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const URL_ITEM = id => `/marketplace/item/${id}/detail/`;
+const URL_SL   = id => `/marketplace/shortlist/${id}/toggle/`;
+
+function getCSRF(){
+  return (document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))||'').split('=')[1]||'';
+}
+
+/* TOAST */
+let _t;
+function showToast(msg,ms=2600){ const el=document.getElementById('bsToast'); el.textContent=msg; el.classList.add('show'); clearTimeout(_t); _t=setTimeout(()=>el.classList.remove('show'),ms); }
+
+/* MODAL */
+function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeBg(e,id){ if(e.target.id===id) closeModal(id); }
+
+/* DETAIL MODAL */
+function openDetailModal(id){
+  document.getElementById('itemDetailContent').innerHTML=`<div class="modal-handle"></div><div style="text-align:center;padding:50px 20px;color:var(--text-muted);"><iconify-icon icon="mdi:loading" width="40" class="spin" style="color:var(--accent);display:block;margin:0 auto 10px;"></iconify-icon><p style="font-size:13px;font-weight:700;">Loading…</p></div>`;
+  openModal('itemDetailModal');
+  fetch(URL_ITEM(id),{headers:{'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>{if(!r.ok) throw new Error(r.status); return r.text();})
+    .then(html=>{document.getElementById('itemDetailContent').innerHTML=html;})
+    .catch(err=>{
+      document.getElementById('itemDetailContent').innerHTML=`<div class="modal-handle"></div><div class="sl-empty" style="padding:40px 20px;"><iconify-icon icon="mdi:alert-circle-outline" width="48"></iconify-icon><p>Could not load (${err.message})</p></div><button class="modal-cancel" onclick="closeModal('itemDetailModal')">Close</button>`;
+    });
+}
+
+/* REMOVE FROM SHORTLIST (with card removal animation) */
+function removeShortlist(btn, id){
+  fetch(URL_SL(id),{method:'POST',headers:{'X-CSRFToken':getCSRF(),'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>{if(!r.ok) throw new Error(r.status); return r.json();})
+    .then(data=>{
+      if(!data.shortlisted){
+        // Animate card out
+        const card = document.getElementById(`slcard-${id}`);
+        if(card){
+          card.classList.add('removing');
+          setTimeout(()=>{
+            card.remove();
+            // Update count
+            const remaining = document.querySelectorAll('.sl-card').length;
+            const cnt = document.getElementById('countNum');
+            if(cnt) cnt.textContent = remaining;
+            // Show empty state if none left
+            if(remaining === 0){
+              document.getElementById('shortlistGrid').remove();
+              const page = document.querySelector('.sl-page');
+              page.insertAdjacentHTML('beforeend',`
+                <div class="sl-empty">
+                  <iconify-icon icon="mdi:heart-off-outline" width="56" style="color:#fca5a5;"></iconify-icon>
+                  <h3>No shortlisted items</h3>
+                  <p>Tap the ❤️ on any listing to save it here</p>
+                  <a href="{% url 'marketplace' %}" class="empty-btn">
+                    <iconify-icon icon="mdi:storefront-outline" width="18"></iconify-icon>
+                    Browse Marketplace
+                  </a>
+                </div>`);
+            }
+          }, 260);
+        }
+        showToast('💔 Removed from shortlist');
+      }
+    })
+    .catch(()=>{ showToast('⚠️ Something went wrong. Please try again.'); });
+}
+
+/* Also support toggle from the detail modal (calls same endpoint) */
+function toggleShortlist(btn, id){
+  const icon = btn.querySelector('iconify-icon');
+  const was  = btn.classList.contains('active');
+  btn.classList.toggle('active');
+  if(icon) icon.setAttribute('icon', was ? 'mdi:heart-outline' : 'mdi:heart');
+  fetch(URL_SL(id),{method:'POST',headers:{'X-CSRFToken':getCSRF(),'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>{if(!r.ok) throw new Error(r.status); return r.json();})
+    .then(data=>{
+      showToast(data.shortlisted ? '❤️ Added to shortlist' : '💔 Removed from shortlist');
+      if(!data.shortlisted){
+        // Remove card from this shortlist page too
+        const card = document.getElementById(`slcard-${id}`);
+        if(card){ card.classList.add('removing'); setTimeout(()=>card.remove(), 260); }
+      }
+    })
+    .catch(()=>{
+      btn.classList.toggle('active');
+      if(icon) icon.setAttribute('icon', was ? 'mdi:heart' : 'mdi:heart-outline');
+      showToast('⚠️ Something went wrong.');
+    });
+}
+
+/* DEBOUNCE SEARCH */
+let _searchTimer;
+function debounceSearch(input){
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(()=>{ document.getElementById('searchForm').submit(); }, 500);
+}
+
+/* APPLY FILTER */
+function applyFilter(){
+  const p = new URLSearchParams();
+  const cat = document.getElementById('filterCat').value;
+  const q   = document.querySelector('input[name="q"]').value;
+  if(cat) p.set('category', cat);
+  if(q)   p.set('q', q);
+  closeModal('filterModal');
+  window.location.href = window.location.pathname + '?' + p.toString();
+}
+
+/* STAGGER ANIMATION */
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.sl-card').forEach((el,i)=>{
+    el.style.cssText += `opacity:0;transform:translateY(10px);transition:opacity 0.3s ${Math.min(i*0.04,0.6)}s,transform 0.3s ${Math.min(i*0.04,0.6)}s`;
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform=''; }, 32+i*25);
+  });
+});
+</script>
+{% endblock %}

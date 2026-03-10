@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+{% block title %}All Listings · MySociety{% endblock %}
+{% block nav_marketplace %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+:root {
+  --accent:#00b386; --accent-dark:#008f6a; --accent-light:#e6f7f3;
+  --sos:#ef4444; --sos-light:#fef2f2;
+  --text-primary:#1a1a2e; --text-secondary:#4b5563; --text-muted:#9ca3af;
+  --surface:#ffffff; --surface-2:#f8fafc;
+  --border:#e5e7eb; --border-light:#f3f4f6;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.06); --shadow-md:0 4px 16px rgba(0,0,0,0.10);
+  --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;}
+.al-page{padding:0 0 100px;max-width:520px;margin:0 auto;}
+
+/* TOP BAR */
+.al-topbar{display:flex;align-items:center;gap:12px;padding:16px 16px 0;margin-bottom:14px;}
+.back-btn{width:40px;height:40px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;color:var(--text-secondary);transition:all 0.2s;box-shadow:var(--shadow-sm);flex-shrink:0;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+.al-topbar-title{flex:1;}
+.al-topbar-title h2{font-size:22px;font-weight:900;color:var(--text-primary);letter-spacing:-0.4px;}
+.al-topbar-title p{font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px;}
+
+/* SEARCH */
+.al-search{display:flex;gap:8px;padding:0 16px;margin-bottom:12px;}
+.al-search-wrap{flex:1;position:relative;}
+.al-search-wrap iconify-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:18px;pointer-events:none;}
+.al-search-wrap input{width:100%;padding:12px 12px 12px 40px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-primary);background:var(--surface);outline:none;transition:all 0.2s;box-shadow:var(--shadow-sm);}
+.al-search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,179,134,0.12);}
+.al-filter-btn{width:48px;height:48px;flex-shrink:0;background:var(--accent);border:none;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,179,134,0.3);}
+.al-filter-btn:hover{background:var(--accent-dark);}
+
+/* ACTIVE FILTERS STRIP */
+.active-filters{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px;margin-bottom:10px;}
+.filter-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1.5px solid var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;color:var(--accent);cursor:pointer;}
+.filter-chip:hover{background:var(--accent);color:#fff;}
+.filter-chip iconify-icon{font-size:14px;}
+
+/* CATEGORY PILLS */
+.cat-pills{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;margin-bottom:10px;}
+.cat-pills::-webkit-scrollbar{display:none;}
+.cat-pill{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:800;color:var(--text-secondary);cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all 0.2s;flex-shrink:0;box-shadow:var(--shadow-sm);text-decoration:none;}
+.cat-pill.active,.cat-pill:hover{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(0,179,134,0.28);}
+
+/* SORT PILLS */
+.sort-pills{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;margin-bottom:12px;}
+.sort-pills::-webkit-scrollbar{display:none;}
+.sort-pill{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:800;color:var(--text-secondary);cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all 0.2s;flex-shrink:0;box-shadow:var(--shadow-sm);text-decoration:none;}
+.sort-pill.active,.sort-pill:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* COUNT STRIP */
+.count-strip{display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:12px;}
+.count-label{font-size:13px;font-weight:700;color:var(--text-muted);}
+.count-num{font-size:13px;font-weight:900;color:var(--text-primary);}
+
+/* GRID */
+.al-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;}
+
+/* CARD */
+.listing-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.22s;}
+.listing-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--accent);}
+.lc-img{width:100%;height:130px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.lc-img img{width:100%;height:100%;object-fit:cover;}
+.lc-placeholder{width:100%;height:130px;display:flex;align-items:center;justify-content:center;font-size:40px;}
+.lc-badge{position:absolute;top:8px;left:8px;border-radius:6px;font-size:10px;font-weight:800;padding:3px 8px;text-transform:uppercase;letter-spacing:0.3px;z-index:1;}
+.lc-badge.free{background:#22c55e;color:#fff;}
+.lc-badge.sold{background:var(--sos);color:#fff;}
+.lc-badge.newt{background:#7c3aed;color:#fff;}
+.lc-shortlist{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.92);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,0.12);z-index:1;}
+.lc-shortlist:hover{background:#fff;transform:scale(1.12);}
+.lc-shortlist.active iconify-icon{color:var(--sos);}
+.lc-body{padding:11px;}
+.lc-price{font-size:16px;font-weight:900;color:var(--accent);letter-spacing:-0.4px;line-height:1;}
+.lc-price .price-unit{font-size:11px;font-weight:600;color:var(--text-muted);}
+.lc-title{font-size:12px;font-weight:700;color:var(--text-primary);margin:4px 0 2px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lc-meta{font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.lc-seller{display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid var(--border-light);}
+.lc-seller-av{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lc-seller-name{font-size:10px;font-weight:700;color:var(--text-secondary);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lc-seller-time{font-size:9px;color:var(--text-muted);flex-shrink:0;}
+
+/* SOCIETY BADGE on card */
+.lc-society{font-size:9px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:3px;margin-top:2px;}
+
+/* EMPTY */
+.al-empty{text-align:center;padding:60px 20px;color:var(--text-muted);}
+.al-empty iconify-icon{font-size:52px;display:block;margin:0 auto 12px;}
+.al-empty h3{font-size:16px;font-weight:900;color:var(--text-primary);margin-bottom:6px;}
+.al-empty p{font-size:13px;font-weight:600;}
+.al-empty .clear-btn{display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-md);padding:12px 24px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:none;}
+
+/* ALERTS */
+.alert{margin:0 16px 12px;padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.alert-success{background:var(--accent-light);color:var(--accent-dark);border:1px solid #a7f3d0;}
+.alert-error{background:var(--sos-light);color:var(--sos);border:1px solid #fca5a5;}
+
+/* TOAST */
+.bs-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 22px;border-radius:25px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity 0.25s;pointer-events:none;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,0.22);font-family:'Nunito',sans-serif;}
+.bs-toast.show{opacity:1;}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:2000;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.modal-bg.open{display:flex;}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:8px 20px 36px;max-height:92vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.1,0.64,1);}
+@keyframes slideUp{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 18px;}
+.modal-title{font-size:19px;font-weight:900;color:var(--text-primary);margin-bottom:18px;letter-spacing:-0.3px;}
+.mfg{margin-bottom:14px;}
+.mfg label{font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;}
+.mfg .form-control{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-primary);background:var(--surface-2);outline:none;transition:border 0.2s;}
+.mfg .form-control:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(0,179,134,0.1);}
+.modal-save{width:100%;background:var(--accent);border:none;border-radius:var(--radius-md);padding:15px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(0,179,134,0.3);transition:all 0.2s;margin-top:6px;}
+.modal-save:hover{background:var(--accent-dark);}
+.modal-cancel{width:100%;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.2s;margin-top:8px;}
+
+/* DETAIL MODAL */
+.detail-modal-img{width:100%;height:200px;border-radius:var(--radius-md);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:16px;overflow:hidden;}
+.detail-modal-img img{width:100%;height:100%;object-fit:cover;}
+.detail-price{font-size:28px;font-weight:900;color:var(--accent);letter-spacing:-0.6px;margin-bottom:4px;}
+.detail-title{font-size:18px;font-weight:900;color:var(--text-primary);margin-bottom:8px;}
+.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.detail-tag{background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--text-secondary);}
+.detail-desc{font-size:14px;font-weight:600;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;}
+.detail-seller{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;border:1px solid var(--border-light);}
+.detail-seller-av{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.detail-seller-name{font-size:15px;font-weight:800;color:var(--text-primary);}
+.detail-seller-flat{font-size:12px;color:var(--text-muted);font-weight:600;}
+.detail-btns{display:flex;gap:10px;}
+.detail-btn{flex:1;padding:14px;border-radius:var(--radius-md);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Nunito',sans-serif;transition:all 0.2s;border:none;text-decoration:none;}
+.detail-btn.call{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,179,134,0.28);}
+.detail-btn.chat{background:#e3f2fd;color:#1565c0;}
+.detail-btn.shortlist{background:var(--sos-light);color:var(--sos);width:52px;flex:none;border:1.5px solid #fca5a5;}
+.detail-btn:hover{transform:translateY(-1px);}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spin{animation:spin 0.9s linear infinite;display:inline-block;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="al-page">
+
+  <!-- TOP BAR -->
+  <div class="al-topbar">
+    <a href="{% url 'marketplace' %}" class="back-btn" aria-label="Back">
+      <iconify-icon icon="mdi:arrow-left" width="20"></iconify-icon>
+    </a>
+    <div class="al-topbar-title">
+      <h2>All Listings</h2>
+      <p>{{ society_name }}</p>
+    </div>
+    <a href="{% url 'my_shortlists' %}" style="display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:8px 12px;cursor:pointer;text-decoration:none;color:var(--text-secondary);box-shadow:var(--shadow-sm);">
+      <iconify-icon icon="mdi:heart-outline" style="color:var(--sos);font-size:20px;"></iconify-icon>
+      <span style="font-size:10px;font-weight:800;">Saved</span>
+    </a>
+  </div>
+
+  <!-- ALERTS -->
+  {% if messages %}{% for message in messages %}
+  <div class="alert alert-{{ message.tags }}">
+    <iconify-icon icon="mdi:check-circle-outline" width="18"></iconify-icon>
+    {{ message }}
+  </div>
+  {% endfor %}{% endif %}
+
+  <!-- SEARCH BAR -->
+  <form method="get" action="{% url 'all_listings' %}" id="searchForm" class="al-search">
+    <div class="al-search-wrap">
+      <iconify-icon icon="mdi:magnify"></iconify-icon>
+      <input type="text" name="q" id="searchInput"
+             value="{{ search_query }}"
+             placeholder="Search all listings…"
+             autocomplete="off">
+    </div>
+    <!-- Preserve other active filters when searching -->
+    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+    {% if current_sort    %}<input type="hidden" name="sort"     value="{{ current_sort }}">{% endif %}
+    {% if min_price       %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+    {% if max_price       %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+    <button type="button" class="al-filter-btn" onclick="openModal('filterModal')" aria-label="Filter">
+      <iconify-icon icon="mdi:tune-variant" width="22"></iconify-icon>
+    </button>
+  </form>
+
+  <!-- ACTIVE FILTER CHIPS (show what's currently applied) -->
+  <div class="active-filters">
+    {% if search_query %}
+    <a href="?category={{ current_category }}&sort={{ current_sort }}&min_price={{ min_price }}&max_price={{ max_price }}" class="filter-chip">
+      "{{ search_query }}" <iconify-icon icon="mdi:close" width="14"></iconify-icon>
+    </a>
+    {% endif %}
+    {% if current_category %}
+    <a href="?q={{ search_query }}&sort={{ current_sort }}&min_price={{ min_price }}&max_price={{ max_price }}" class="filter-chip">
+      {{ current_category|title }} <iconify-icon icon="mdi:close" width="14"></iconify-icon>
+    </a>
+    {% endif %}
+    {% if min_price or max_price %}
+    <a href="?q={{ search_query }}&category={{ current_category }}&sort={{ current_sort }}" class="filter-chip">
+      ₹{{ min_price|default:'0' }}–{{ max_price|default:'∞' }} <iconify-icon icon="mdi:close" width="14"></iconify-icon>
+    </a>
+    {% endif %}
+    {% if search_query or current_category or min_price or max_price %}
+    <a href="{% url 'all_listings' %}" class="filter-chip" style="background:var(--sos-light);border-color:var(--sos);color:var(--sos);">
+      Clear all <iconify-icon icon="mdi:close-circle" width="14"></iconify-icon>
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- CATEGORY PILLS -->
+  <div class="cat-pills">
+    <a class="cat-pill {% if not current_category %}active{% endif %}"
+       href="?q={{ search_query }}&sort={{ current_sort }}">All</a>
+    <a class="cat-pill {% if current_category == 'free' %}active{% endif %}"
+       href="?q={{ search_query }}&sort={{ current_sort }}&category=free">Free 🎁</a>
+    {% for cat in categories %}
+    <a class="cat-pill {% if current_category == cat.slug %}active{% endif %}"
+       href="?q={{ search_query }}&sort={{ current_sort }}&category={{ cat.slug }}">{{ cat.name }}</a>
+    {% empty %}
+    <a class="cat-pill {% if current_category == 'furniture'   %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=furniture">Furniture</a>
+    <a class="cat-pill {% if current_category == 'food'        %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=food">Food</a>
+    <a class="cat-pill {% if current_category == 'services'    %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=services">Services</a>
+    <a class="cat-pill {% if current_category == 'home-decor'  %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=home-decor">Home Decor</a>
+    <a class="cat-pill {% if current_category == 'electronics' %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=electronics">Electronics</a>
+    <a class="cat-pill {% if current_category == 'vehicles'    %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=vehicles">Vehicles</a>
+    <a class="cat-pill {% if current_category == 'kids-items'  %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=kids-items">Kids Items</a>
+    <a class="cat-pill {% if current_category == 'others'      %}active{% endif %}" href="?q={{ search_query }}&sort={{ current_sort }}&category=others">Others</a>
+    {% endfor %}
+  </div>
+
+  <!-- SORT PILLS -->
+  <div class="sort-pills">
+    <a class="sort-pill {% if current_sort == 'newest' or not current_sort %}active{% endif %}"
+       href="?q={{ search_query }}&category={{ current_category }}&sort=newest&min_price={{ min_price }}&max_price={{ max_price }}">Newest</a>
+    <a class="sort-pill {% if current_sort == 'price_asc' %}active{% endif %}"
+       href="?q={{ search_query }}&category={{ current_category }}&sort=price_asc&min_price={{ min_price }}&max_price={{ max_price }}">Price ↑</a>
+    <a class="sort-pill {% if current_sort == 'price_desc' %}active{% endif %}"
+       href="?q={{ search_query }}&category={{ current_category }}&sort=price_desc&min_price={{ min_price }}&max_price={{ max_price }}">Price ↓</a>
+    <a class="sort-pill {% if current_sort == 'free' %}active{% endif %}"
+       href="?q={{ search_query }}&category={{ current_category }}&sort=free">Free 🎁</a>
+  </div>
+
+  <!-- COUNT STRIP -->
+  <div class="count-strip">
+    <span class="count-label">
+      {% if search_query %}Results for "{{ search_query }}"
+      {% elif current_category %}{{ current_category|title }} listings
+      {% else %}All listings{% endif %}
+    </span>
+    <span class="count-num">{{ listings|length }}</span>
+  </div>
+
+  <!-- LISTINGS GRID -->
+  {% if listings %}
+  <div class="al-grid" id="listingsGrid">
+    {% for item in listings %}
+    <div class="listing-card"
+         data-search="{{ item.title|lower }} {{ item.get_category_display|lower }}"
+         onclick="openDetailModal({{ item.id }})">
+      <div class="lc-img">
+        {% if item.image %}
+          <img src="{{ item.image.url }}" alt="{{ item.title }}">
+        {% else %}
+          <div class="lc-placeholder"
+               style="background:{% if item.category == 'furniture' %}#fff3e0{% elif item.category == 'food' %}#e8f5e9{% elif item.category == 'services' %}#e3f2fd{% elif item.category == 'home-decor' %}#fce4ec{% elif item.category == 'electronics' %}#ede7f6{% elif item.category == 'vehicles' %}#e0f7fa{% elif item.category == 'kids-items' %}#f3e5f5{% else %}#f5f5f5{% endif %};">
+            {{ item.category_emoji }}
+          </div>
+        {% endif %}
+
+        {% if item.is_free or item.price == 0 %}
+          <div class="lc-badge free">FREE</div>
+        {% elif item.status == 'sold' %}
+          <div class="lc-badge sold">SOLD</div>
+        {% elif item.is_new %}
+          <div class="lc-badge newt">NEW</div>
+        {% endif %}
+
+        <button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}"
+                data-lid="{{ item.id }}"
+                onclick="event.stopPropagation(); toggleShortlist(this, {{ item.id }})">
+          <iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon>
+        </button>
+      </div>
+
+      <div class="lc-body">
+        <div class="lc-price">
+          {% if item.is_free or item.price == 0 %}FREE
+          {% else %}₹{{ item.price|floatformat:0 }}{% endif %}
+          {% if item.is_negotiable %}<span class="price-unit"> · Nego</span>{% endif %}
+        </div>
+        <div class="lc-title">{{ item.title }}</div>
+        <div class="lc-meta">
+          <iconify-icon icon="mdi:tag-outline" width="11"></iconify-icon>
+          {{ item.get_category_display }}
+        </div>
+        {% if item.society %}
+        <div class="lc-society">
+          <iconify-icon icon="mdi:home-city-outline" width="10"></iconify-icon>
+          {{ item.society.name }}
+        </div>
+        {% endif %}
+        <div class="lc-seller">
+          <div class="lc-seller-av">{{ item.seller.username|slice:":1"|upper }}</div>
+          <div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div>
+          <div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- EMPTY STATE -->
+  <div class="al-empty">
+    <iconify-icon icon="mdi:tag-off-outline" width="52" style="color:var(--border);"></iconify-icon>
+    <h3>
+      {% if search_query %}No results for "{{ search_query }}"
+      {% elif current_category %}No {{ current_category|title }} listings
+      {% else %}No listings yet{% endif %}
+    </h3>
+    <p>
+      {% if search_query or current_category %}Try a different search or filter
+      {% else %}Be the first to post something!{% endif %}
+    </p>
+    {% if search_query or current_category or min_price or max_price %}
+    <a href="{% url 'all_listings' %}" class="al-empty .clear-btn">
+      <iconify-icon icon="mdi:refresh" width="18"></iconify-icon>
+      Clear filters
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div><!-- /al-page -->
+
+<div class="bs-toast" id="bsToast"></div>
+
+<!-- ═══════════ FILTER MODAL ═══════════ -->
+<div class="modal-bg" id="filterModal" onclick="closeBg(event,'filterModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Filter &amp; Sort</div>
+
+    <div class="mfg">
+      <label>Category</label>
+      <select class="form-control" id="filterCat">
+        <option value="">All Categories</option>
+        <option value="free" {% if current_category == 'free' %}selected{% endif %}>Free Items 🎁</option>
+        {% for cat in categories %}
+        <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+        {% empty %}
+        <option value="furniture"   {% if current_category == 'furniture'   %}selected{% endif %}>Furniture</option>
+        <option value="food"        {% if current_category == 'food'        %}selected{% endif %}>Food</option>
+        <option value="services"    {% if current_category == 'services'    %}selected{% endif %}>Services</option>
+        <option value="home-decor"  {% if current_category == 'home-decor'  %}selected{% endif %}>Home Decor</option>
+        <option value="electronics" {% if current_category == 'electronics' %}selected{% endif %}>Electronics</option>
+        <option value="vehicles"    {% if current_category == 'vehicles'    %}selected{% endif %}>Vehicles</option>
+        <option value="kids-items"  {% if current_category == 'kids-items'  %}selected{% endif %}>Kids Items</option>
+        <option value="others"      {% if current_category == 'others'      %}selected{% endif %}>Others</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mfg">
+      <label>Price Range (₹)</label>
+      <div style="display:flex;gap:8px;">
+        <input class="form-control" type="number" placeholder="Min ₹" id="filterMin" min="0" value="{{ min_price }}">
+        <input class="form-control" type="number" placeholder="Max ₹" id="filterMax" min="0" value="{{ max_price }}">
+      </div>
+    </div>
+
+    <div class="mfg">
+      <label>Sort By</label>
+      <select class="form-control" id="filterSort">
+        <option value="newest"     {% if current_sort == 'newest' or not current_sort %}selected{% endif %}>Newest First</option>
+        <option value="price_asc"  {% if current_sort == 'price_asc'  %}selected{% endif %}>Price: Low to High</option>
+        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+        <option value="free"       {% if current_sort == 'free'       %}selected{% endif %}>Free Items Only</option>
+      </select>
+    </div>
+
+    <button class="modal-save" onclick="applyFilter()">Apply Filters</button>
+    <button class="modal-cancel" onclick="closeModal('filterModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════ ITEM DETAIL MODAL (AJAX) ═══════════ -->
+<div class="modal-bg" id="itemDetailModal" onclick="closeBg(event,'itemDetailModal')">
+  <div class="modal-sheet" id="itemDetailContent">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+      <iconify-icon icon="mdi:loading" width="40" class="spin"
+                    style="color:var(--accent);display:block;margin:0 auto 10px;"></iconify-icon>
+      <p style="font-size:13px;font-weight:700;">Loading…</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const URL_ITEM = id => `/marketplace/item/${id}/detail/`;
+const URL_SL   = id => `/marketplace/shortlist/${id}/toggle/`;
+
+function getCSRF(){
+  return (document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))||'').split('=')[1]||'';
+}
+
+/* ── TOAST ── */
+let _t;
+function showToast(msg, ms=2600){
+  const el = document.getElementById('bsToast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_t); _t = setTimeout(()=>el.classList.remove('show'), ms);
+}
+
+/* ── MODAL ── */
+function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeBg(e,id){ if(e.target.id===id) closeModal(id); }
+
+/* ── DETAIL MODAL ── */
+function openDetailModal(id){
+  document.getElementById('itemDetailContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+      <iconify-icon icon="mdi:loading" width="40" class="spin"
+                    style="color:var(--accent);display:block;margin:0 auto 10px;"></iconify-icon>
+      <p style="font-size:13px;font-weight:700;">Loading…</p>
+    </div>`;
+  openModal('itemDetailModal');
+  fetch(URL_ITEM(id), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
+    .then(html => { document.getElementById('itemDetailContent').innerHTML = html; })
+    .catch(err => {
+      document.getElementById('itemDetailContent').innerHTML = `
+        <div class="modal-handle"></div>
+        <div class="al-empty" style="padding:40px 20px;">
+          <iconify-icon icon="mdi:alert-circle-outline" width="48"></iconify-icon>
+          <p>Could not load details (${err.message})</p>
+        </div>
+        <button class="modal-cancel" onclick="closeModal('itemDetailModal')">Close</button>`;
+    });
+}
+
+/* ── SHORTLIST TOGGLE ── */
+function toggleShortlist(btn, id){
+  const icon = btn.querySelector('iconify-icon');
+  const was  = btn.classList.contains('active');
+  btn.classList.toggle('active');
+  if(icon) icon.setAttribute('icon', was ? 'mdi:heart-outline' : 'mdi:heart');
+
+  fetch(URL_SL(id), {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCSRF(), 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(data => {
+    showToast(data.shortlisted ? '❤️ Added to shortlist' : '💔 Removed from shortlist');
+    // Sync all heart buttons for this listing on the page
+    document.querySelectorAll(`.lc-shortlist[data-lid="${id}"]`).forEach(b => {
+      b.classList.toggle('active', data.shortlisted);
+      const ic = b.querySelector('iconify-icon');
+      if(ic) ic.setAttribute('icon', data.shortlisted ? 'mdi:heart' : 'mdi:heart-outline');
+    });
+  })
+  .catch(() => {
+    // Revert optimistic update on failure
+    btn.classList.toggle('active');
+    if(icon) icon.setAttribute('icon', was ? 'mdi:heart' : 'mdi:heart-outline');
+    showToast('⚠️ Something went wrong. Please try again.');
+  });
+}
+
+/* ── APPLY FILTER MODAL ── */
+function applyFilter(){
+  const p = new URLSearchParams();
+  const cat  = document.getElementById('filterCat').value;
+  const sort = document.getElementById('filterSort').value;
+  const minP = document.getElementById('filterMin').value;
+  const maxP = document.getElementById('filterMax').value;
+  const q    = document.getElementById('searchInput').value.trim();
+
+  if(cat)  p.set('category',  cat);
+  if(sort) p.set('sort',      sort);
+  if(minP) p.set('min_price', minP);
+  if(maxP) p.set('max_price', maxP);
+  if(q)    p.set('q',         q);
+
+  closeModal('filterModal');
+  window.location.href = window.location.pathname + '?' + p.toString();
+}
+
+/* ── SEARCH: submit form on Enter or after debounce ── */
+let _searchTimer;
+document.getElementById('searchInput').addEventListener('input', function(){
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(()=>{ document.getElementById('searchForm').submit(); }, 600);
+});
+document.getElementById('searchForm').addEventListener('submit', function(){
+  clearTimeout(_searchTimer);
+});
+
+/* ── STAGGERED CARD REVEAL ── */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.listing-card').forEach((el, i) => {
+    el.style.cssText += `opacity:0;transform:translateY(10px);transition:opacity 0.3s ${Math.min(i*0.04,0.6)}s,transform 0.3s ${Math.min(i*0.04,0.6)}s`;
+    setTimeout(() => { el.style.opacity='1'; el.style.transform=''; }, 32+i*25);
+  });
+});
+</script>
+{% endblock %}

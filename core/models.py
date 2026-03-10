@@ -1592,3 +1592,202 @@ class Pet(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_pet_type_display()}) – {self.apartment}"
 
+
+
+
+# ── CATEGORY ──────────────────────────────────────────────────
+class MarketplaceCategory(models.Model):
+    """Master list of marketplace categories."""
+    name       = models.CharField(max_length=80)
+    slug       = models.SlugField(unique=True)
+    icon       = models.CharField(max_length=80, default='mdi:tag-outline',
+                                  help_text="Iconify icon name e.g. mdi:sofa-outline")
+    icon_color = models.CharField(max_length=20, default='#616161')
+    bg_color   = models.CharField(max_length=20, default='#f5f5f5')
+    emoji      = models.CharField(max_length=4, blank=True,
+                                  help_text="Fallback emoji for placeholder images")
+    order      = models.PositiveSmallIntegerField(default=0)
+    is_active  = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+# ── LISTING ───────────────────────────────────────────────────
+class Listing(models.Model):
+    """Buy/sell listing posted by a resident."""
+
+    CATEGORY_CHOICES = [
+        ('furniture',   'Furniture'),
+        ('food',        'Food'),
+        ('services',    'Services'),
+        ('home-decor',  'Home Decor'),
+        ('electronics', 'Electronics'),
+        ('vehicles',    'Vehicles'),
+        ('kids-items',  'Kids Items'),
+        ('others',      'Others'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active',   'Active'),
+        ('sold',     'Sold'),
+        ('inactive', 'Inactive'),
+    ]
+
+    society  = models.ForeignKey('Society',   on_delete=models.CASCADE, related_name='listings')
+    seller   = models.ForeignKey(User,        on_delete=models.CASCADE, related_name='listings')
+    apartment = models.ForeignKey('Apartment', on_delete=models.SET_NULL, null=True, blank=True, related_name='listings')
+
+    category      = models.CharField(max_length=30, choices=CATEGORY_CHOICES, db_index=True)
+    title         = models.CharField(max_length=200)
+    description   = models.TextField(blank=True)
+    price         = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_free       = models.BooleanField(default=False)
+    is_negotiable = models.BooleanField(default=False)
+    contact_number = models.CharField(max_length=15, blank=True)
+
+    image  = models.ImageField(upload_to='marketplace/', null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', db_index=True)
+
+    views_count     = models.PositiveIntegerField(default=0)
+    shortlist_count = models.PositiveIntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes  = [
+            models.Index(fields=['society', 'status']),
+            models.Index(fields=['category', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} – ₹{self.price} ({self.seller.username})"
+
+    @property
+    def display_price(self):
+        if self.is_free or self.price == 0:
+            return 'FREE'
+        return f'₹{int(self.price):,}'
+
+    @property
+    def category_emoji(self):
+        emojis = {
+            'furniture':   '🛋️',
+            'food':        '🍱',
+            'services':    '🔧',
+            'home-decor':  '🪴',
+            'electronics': '💻',
+            'vehicles':    '🚗',
+            'kids-items':  '🧸',
+            'others':      '📦',
+        }
+        return emojis.get(self.category, '📦')
+
+    @property
+    def category_color(self):
+        colors = {
+            'furniture':   '#fff3e0',
+            'food':        '#e8f5e9',
+            'services':    '#e3f2fd',
+            'home-decor':  '#fce4ec',
+            'electronics': '#ede7f6',
+            'vehicles':    '#e0f7fa',
+            'kids-items':  '#f3e5f5',
+            'others':      '#f5f5f5',
+        }
+        return colors.get(self.category, '#f5f5f5')
+
+    @property
+    def is_new(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        return self.created_at >= timezone.now() - timedelta(days=3)
+
+
+# ── PROPERTY LISTING ──────────────────────────────────────────
+class PropertyListing(models.Model):
+    """Homes available to buy or rent."""
+
+    LISTING_TYPE_CHOICES = [
+        ('buy',  'Buy'),
+        ('rent', 'Rent'),
+    ]
+
+    society   = models.ForeignKey('Society',   on_delete=models.CASCADE, related_name='property_listings')
+    seller    = models.ForeignKey(User,        on_delete=models.CASCADE, related_name='property_listings')
+    apartment = models.ForeignKey('Apartment', on_delete=models.SET_NULL, null=True, blank=True)
+
+    listing_type   = models.CharField(max_length=10, choices=LISTING_TYPE_CHOICES, default='buy')
+    title          = models.CharField(max_length=200)
+    description    = models.TextField(blank=True)
+    price          = models.DecimalField(max_digits=14, decimal_places=2)
+    bedrooms       = models.PositiveSmallIntegerField(null=True, blank=True)
+    bathrooms      = models.PositiveSmallIntegerField(null=True, blank=True)
+    area_sqft      = models.PositiveIntegerField(null=True, blank=True)
+    location       = models.CharField(max_length=200, blank=True)
+    contact_number = models.CharField(max_length=15, blank=True)
+    image          = models.ImageField(upload_to='properties/', null=True, blank=True)
+
+    is_active  = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_listing_type_display()} – {self.title} ₹{self.price}"
+
+
+# ── SHORTLIST ─────────────────────────────────────────────────
+class Shortlist(models.Model):
+    """User's shortlisted listings."""
+    user    = models.ForeignKey(User,    on_delete=models.CASCADE, related_name='shortlists')
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='shortlisted_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'listing']
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} → {self.listing.title}"
+
+
+class MarketplaceMessage(models.Model):
+    """
+    Direct messages between buyers and sellers about a listing.
+    Each (listing, buyer) pair forms a "thread".
+    """
+    listing = models.ForeignKey(
+        'Listing',
+        on_delete=models.CASCADE,
+        related_name='marketplace_messages'
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='sent_marketplace_messages'
+    )
+    receiver = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='received_marketplace_messages'
+    )
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['listing', 'sender', 'receiver']),
+            models.Index(fields=['receiver', 'is_read']),
+        ]
+
+    def __str__(self):
+        return f"{self.sender.username} → {self.receiver.username} re: {self.listing.title[:40]}"

@@ -1,0 +1,757 @@
+{% extends "base.html" %}
+{% block title %}MySociety – Buy & Sell{% endblock %}
+{% block nav_marketplace %}active{% endblock %}
+
+{% block extra_styles %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+:root {
+  --accent:#00b386; --accent-dark:#008f6a; --accent-light:#e6f7f3;
+  --sos:#ef4444; --sos-light:#fef2f2;
+  --text-primary:#1a1a2e; --text-secondary:#4b5563; --text-muted:#9ca3af;
+  --surface:#ffffff; --surface-2:#f8fafc;
+  --border:#e5e7eb; --border-light:#f3f4f6;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.06); --shadow-md:0 4px 16px rgba(0,0,0,0.10);
+  --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+.bs-page{padding:0 0 100px;max-width:520px;margin:0 auto;}
+.bs-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 0;margin-bottom:14px;}
+.bs-topbar h2{font-size:24px;font-weight:900;color:var(--text-primary);letter-spacing:-0.5px;}
+.bs-topbar-actions{display:flex;gap:8px;}
+.bs-icon-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:8px 12px;cursor:pointer;text-decoration:none;transition:all 0.2s;color:var(--text-secondary);box-shadow:var(--shadow-sm);}
+.bs-icon-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+.bs-icon-btn iconify-icon{font-size:20px;}
+.bs-icon-btn span{font-size:10px;font-weight:800;white-space:nowrap;}
+.bs-search{display:flex;gap:8px;padding:0 16px;margin-bottom:16px;}
+.bs-search-wrap{flex:1;position:relative;}
+.bs-search-wrap iconify-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:18px;pointer-events:none;}
+.bs-search-wrap input{width:100%;padding:12px 12px 12px 40px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-primary);background:var(--surface);outline:none;transition:all 0.2s;box-shadow:var(--shadow-sm);}
+.bs-search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,179,134,0.12);}
+.bs-filter-btn{width:48px;height:48px;flex-shrink:0;background:var(--accent);border:none;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,179,134,0.3);}
+.bs-filter-btn:hover{background:var(--accent-dark);transform:translateY(-1px);}
+.alert{margin:0 16px 12px;padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.alert-success{background:var(--accent-light);color:var(--accent-dark);border:1px solid #a7f3d0;}
+.alert-error{background:var(--sos-light);color:var(--sos);border:1px solid #fca5a5;}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin:22px 0 12px;}
+.sec-hdr h3{font-size:17px;font-weight:900;color:var(--text-primary);letter-spacing:-0.3px;display:flex;align-items:center;gap:8px;}
+.sec-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;}
+.see-all{font-size:13px;font-weight:800;color:var(--accent);background:var(--accent-light);border:none;border-radius:20px;padding:5px 14px;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif;transition:all 0.2s;}
+.see-all:hover{background:var(--accent);color:#fff;}
+/* property hero */
+.property-hero{background:linear-gradient(135deg,#00b386 0%,#0891b2 55%,#7c3aed 100%);border-radius:var(--radius-lg);padding:20px;margin:0 16px 16px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,179,134,0.28);}
+.property-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.08);}
+.property-hero::after{content:'';position:absolute;bottom:-20px;right:40px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.05);}
+.property-hero h3{font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;}
+.property-hero p{font-size:13px;color:rgba(255,255,255,0.82);margin-bottom:16px;}
+.prop-tabs{display:flex;gap:8px;margin-bottom:16px;}
+.prop-tab{padding:8px 20px;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;border:2px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.8);background:transparent;font-family:'Nunito',sans-serif;transition:all 0.2s;}
+.prop-tab.active,.prop-tab:hover{background:#fff;color:var(--accent);border-color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+.prop-action-row{display:flex;gap:10px;}
+.prop-btn{flex:1;padding:12px;border-radius:var(--radius-md);font-size:13px;font-weight:800;cursor:pointer;border:2px solid rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.prop-btn.primary{background:#fff;color:var(--accent);border-color:#fff;}
+.prop-btn.secondary{background:transparent;color:#fff;}
+.prop-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.2);}
+/* sort pills */
+.sort-pills{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;margin-bottom:12px;}
+.sort-pills::-webkit-scrollbar{display:none;}
+.sort-pill{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:800;color:var(--text-secondary);cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all 0.2s;flex-shrink:0;box-shadow:var(--shadow-sm);}
+.sort-pill.active,.sort-pill:hover{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(0,179,134,0.28);}
+/* horizontal scroll */
+.listing-scroll{display:flex;gap:12px;overflow-x:auto;padding:4px 16px 12px;-webkit-overflow-scrolling:touch;}
+.listing-scroll::-webkit-scrollbar{display:none;}
+/* VERTICAL SCROLL WRAPPER */
+.listing-vscroll-wrap{padding:0 16px;max-height:500px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.listing-vscroll-wrap::-webkit-scrollbar{width:4px;}
+.listing-vscroll-wrap::-webkit-scrollbar-track{background:transparent;}
+.listing-vscroll-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+/* 2-col grid inside vscroll */
+.listing-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+/* property card */
+.prop-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.22s;min-width:240px;flex-shrink:0;}
+.prop-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--accent);}
+.pc-img{width:100%;height:150px;background:linear-gradient(135deg,#e0f7f3,#e3f2fd);display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;overflow:hidden;}
+.pc-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.pc-tag{position:absolute;top:10px;left:10px;border-radius:8px;font-size:11px;font-weight:800;padding:4px 10px;text-transform:uppercase;letter-spacing:0.3px;z-index:1;}
+.pc-tag.buy{background:#e3f2fd;color:#1565c0;}
+.pc-tag.rent{background:var(--accent-light);color:var(--accent-dark);}
+.pc-body{padding:14px;}
+.pc-price{font-size:20px;font-weight:900;color:var(--text-primary);letter-spacing:-0.5px;}
+.pc-price span{font-size:12px;font-weight:600;color:var(--text-muted);}
+.pc-title{font-size:13px;font-weight:700;color:var(--text-primary);margin:4px 0;line-height:1.3;}
+.pc-details{display:flex;gap:10px;flex-wrap:wrap;}
+.pc-detail{font-size:11px;color:var(--text-muted);font-weight:700;display:flex;align-items:center;gap:3px;}
+.pc-loc{font-size:11px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:4px;margin-top:6px;}
+/* shortlist btn */
+.lc-shortlist{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.92);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,0.12);z-index:1;}
+.lc-shortlist:hover{background:#fff;transform:scale(1.12);}
+.lc-shortlist.active iconify-icon{color:var(--sos);}
+/* category grid */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px;}
+.cat-item{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;text-decoration:none;transition:all 0.2s;box-shadow:var(--shadow-sm);}
+.cat-item:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,179,134,0.15);}
+.cat-icon{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;transition:all 0.2s;}
+.cat-item:hover .cat-icon{transform:scale(1.1);}
+.cat-label{font-size:10px;font-weight:800;color:var(--text-secondary);text-align:center;line-height:1.3;text-transform:uppercase;letter-spacing:0.2px;}
+/* listing card — horizontal */
+.listing-card{min-width:195px;max-width:195px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.22s;flex-shrink:0;}
+/* listing card inside vertical grid */
+.listing-grid-2 .listing-card{min-width:unset;max-width:unset;width:100%;flex-shrink:unset;}
+.listing-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--accent);}
+.lc-img{width:100%;height:130px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.lc-img img{width:100%;height:100%;object-fit:cover;}
+.lc-img-placeholder{width:100%;height:130px;display:flex;align-items:center;justify-content:center;font-size:40px;}
+.lc-badge{position:absolute;top:8px;left:8px;border-radius:6px;font-size:10px;font-weight:800;padding:3px 8px;text-transform:uppercase;letter-spacing:0.3px;z-index:1;}
+.lc-badge.free{background:#22c55e;color:#fff;}
+.lc-badge.sold{background:var(--sos);color:#fff;}
+.lc-badge.newt{background:#7c3aed;color:#fff;}
+.lc-body{padding:11px;}
+/* FIX: use --accent for price, never item.category_color which is a bg color */
+.lc-price{font-size:16px;font-weight:900;color:var(--accent);letter-spacing:-0.4px;line-height:1;}
+.lc-price .price-unit{font-size:11px;font-weight:600;color:var(--text-muted);}
+.lc-title{font-size:12px;font-weight:700;color:var(--text-primary);margin:4px 0 2px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.lc-meta{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:4px;}
+.lc-seller{display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid var(--border-light);}
+.lc-seller-av{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lc-seller-name{font-size:10px;font-weight:700;color:var(--text-secondary);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lc-seller-time{font-size:9px;color:var(--text-muted);flex-shrink:0;}
+/* post cta */
+.post-cta{background:linear-gradient(135deg,#fff8e1,#fffde7);border:1.5px solid #fde68a;border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:center;gap:14px;margin:18px 16px;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow-sm);}
+.post-cta:hover{border-color:#f59e0b;box-shadow:0 4px 16px rgba(245,158,11,0.2);transform:translateY(-1px);}
+.post-cta .cta-icon{width:48px;height:48px;border-radius:14px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.post-cta .cta-body{flex:1;}
+.post-cta .cta-title{font-size:15px;font-weight:800;color:var(--text-primary);}
+.post-cta .cta-sub{font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px;}
+.post-cta .cta-arrow{color:#f59e0b;font-size:22px;}
+/* empty */
+.bs-empty{text-align:center;padding:36px 20px;color:var(--text-muted);}
+.bs-empty iconify-icon{font-size:48px;color:var(--border);margin-bottom:10px;display:block;}
+.bs-empty p{font-size:13px;font-weight:700;}
+/* prop add card */
+.prop-add-card{min-width:150px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:var(--surface);border:2px dashed var(--border);border-radius:var(--radius-lg);padding:20px;transition:all 0.2s;}
+.prop-add-card:hover{border-color:var(--accent);background:var(--accent-light);}
+/* toast */
+.bs-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 22px;border-radius:25px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity 0.25s;pointer-events:none;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,0.22);font-family:'Nunito',sans-serif;}
+.bs-toast.show{opacity:1;}
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:2000;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.modal-bg.open{display:flex;}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:8px 20px 36px;max-height:92vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.1,0.64,1);}
+@keyframes slideUp{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 18px;}
+.modal-title{font-size:19px;font-weight:900;color:var(--text-primary);margin-bottom:18px;letter-spacing:-0.3px;}
+.mfg{margin-bottom:14px;}
+.mfg label{font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;}
+.mfg .form-control{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text-primary);background:var(--surface-2);outline:none;transition:border 0.2s;}
+.mfg .form-control:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(0,179,134,0.1);}
+.mfg .img-upload{border:2px dashed var(--border);border-radius:var(--radius-md);padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;display:block;}
+.mfg .img-upload:hover{border-color:var(--accent);background:var(--accent-light);}
+.mfg .img-upload iconify-icon{font-size:32px;color:var(--text-muted);margin-bottom:8px;display:block;}
+.mfg .img-upload p{font-size:13px;font-weight:700;color:var(--text-muted);}
+.modal-save{width:100%;background:var(--accent);border:none;border-radius:var(--radius-md);padding:15px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(0,179,134,0.3);transition:all 0.2s;margin-top:6px;}
+.modal-save:hover{background:var(--accent-dark);transform:translateY(-1px);}
+.modal-save:disabled{opacity:0.65;cursor:not-allowed;transform:none;}
+.modal-cancel{width:100%;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px;color:var(--text-muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.2s;margin-top:8px;}
+.price-type-row{display:flex;gap:8px;margin-bottom:14px;}
+.price-type-btn{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);font-size:13px;font-weight:800;color:var(--text-muted);cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.2s;text-align:center;}
+.price-type-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
+.cat-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.cat-pick{background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 6px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.cat-pick:hover,.cat-pick.active{border-color:var(--accent);background:var(--accent-light);}
+.cat-pick iconify-icon{font-size:22px;display:block;margin-bottom:4px;}
+.cat-pick span{font-size:10px;font-weight:800;color:var(--text-secondary);}
+/* detail modal */
+.detail-modal-img{width:100%;height:200px;border-radius:var(--radius-md);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:16px;overflow:hidden;}
+.detail-modal-img img{width:100%;height:100%;object-fit:cover;}
+.detail-price{font-size:28px;font-weight:900;color:var(--accent);letter-spacing:-0.6px;margin-bottom:4px;}
+.detail-title{font-size:18px;font-weight:900;color:var(--text-primary);margin-bottom:8px;}
+.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.detail-tag{background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--text-secondary);}
+.detail-desc{font-size:14px;font-weight:600;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;}
+.detail-seller{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;border:1px solid var(--border-light);}
+.detail-seller-av{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.detail-seller-name{font-size:15px;font-weight:800;color:var(--text-primary);}
+.detail-seller-flat{font-size:12px;color:var(--text-muted);font-weight:600;}
+.detail-btns{display:flex;gap:10px;}
+.detail-btn{flex:1;padding:14px;border-radius:var(--radius-md);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Nunito',sans-serif;transition:all 0.2s;border:none;text-decoration:none;}
+.detail-btn.call{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,179,134,0.28);}
+.detail-btn.chat{background:#e3f2fd;color:#1565c0;}
+.detail-btn.shortlist{background:var(--sos-light);color:var(--sos);width:52px;flex:none;border:1.5px solid #fca5a5;}
+.detail-btn:hover{transform:translateY(-1px);}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spin{animation:spin 0.9s linear infinite;display:inline-block;}
+.count-chip{display:inline-flex;align-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:800;color:var(--text-muted);margin-left:4px;}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="bs-page">
+
+  <div class="bs-topbar">
+    <h2>Buy &amp; Sell</h2>
+    <div class="bs-topbar-actions">
+      <a href="{% url 'my_listings' %}" class="bs-icon-btn">
+        <iconify-icon icon="mdi:format-list-bulleted"></iconify-icon>
+        <span>My Listings</span>
+      </a>
+      <a href="{% url 'my_shortlists' %}" class="bs-icon-btn">
+        <iconify-icon icon="mdi:heart-outline" style="color:var(--sos);"></iconify-icon>
+        <span>Shortlisted</span>
+      </a>
+    </div>
+  </div>
+
+  <form method="get" action="{% url 'all_listings' %}" id="mainSearchForm" class="bs-search">
+    <div class="bs-search-wrap">
+      <iconify-icon icon="mdi:magnify"></iconify-icon>
+      <input type="text" name="q" id="searchInput"
+             value="{{ search_query }}"
+             placeholder="Search all listings…"
+             oninput="liveSearch(this.value)"
+             onfocus="this.placeholder='Press Enter or wait to search all listings…'"
+             onblur="this.placeholder='Search all listings…'">
+    </div>
+    <button type="button" class="bs-filter-btn" onclick="openModal('filterModal')" aria-label="Filter">
+      <iconify-icon icon="mdi:tune-variant" width="22"></iconify-icon>
+    </button>
+  </form>
+
+
+  {% if messages %}{% for message in messages %}
+  <div class="alert alert-{{ message.tags }}">
+    <iconify-icon icon="mdi:check-circle-outline" width="18"></iconify-icon>
+    {{ message }}
+  </div>
+  {% endfor %}{% endif %}
+
+  <!-- PROPERTY HERO -->
+  <div class="property-hero">
+    <h3>🏠 Homes in {{ society_name }}</h3>
+    <p>Find your next home or list your property for free</p>
+    <div class="prop-tabs">
+      <button class="prop-tab active" onclick="setPropHeroTab(this,'buy')">Buy</button>
+      <button class="prop-tab" onclick="setPropHeroTab(this,'rent')">Rent</button>
+    </div>
+    <div class="prop-action-row">
+      <button class="prop-btn primary" onclick="openModal('explorePropertyModal')"><iconify-icon icon="mdi:compass-outline" width="18"></iconify-icon> Explore Homes</button>
+      <button class="prop-btn secondary" onclick="openModal('postPropertyModal')"><iconify-icon icon="mdi:plus-circle-outline" width="18"></iconify-icon> Post Property</button>
+    </div>
+  </div>
+
+  <div class="sort-pills" id="propPills">
+    <button class="sort-pill active" onclick="filterProps(this,'all')">All</button>
+    <button class="sort-pill" onclick="filterProps(this,'buy')">Buy</button>
+    <button class="sort-pill" onclick="filterProps(this,'rent')">Rent</button>
+    <button class="sort-pill" onclick="filterProps(this,'1')">1 BHK</button>
+    <button class="sort-pill" onclick="filterProps(this,'2')">2 BHK</button>
+    <button class="sort-pill" onclick="filterProps(this,'3')">3 BHK</button>
+  </div>
+
+  <div class="listing-scroll" id="propertyScroll">
+    {% for prop in properties %}
+    <div class="prop-card" data-ptype="{{ prop.listing_type }}" data-beds="{{ prop.bedrooms|default:'' }}" onclick="openDetailModal('prop','{{ prop.id }}')">
+      <div class="pc-img">
+        {% if prop.image %}<img src="{{ prop.image.url }}" alt="{{ prop.title }}">{% else %}🏢{% endif %}
+        <div class="pc-tag {{ prop.listing_type }}">{{ prop.get_listing_type_display }}</div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-price">₹{{ prop.price|floatformat:0 }}{% if prop.listing_type == 'rent' %}<span>/mo</span>{% endif %}</div>
+        <div class="pc-title">{{ prop.title }}</div>
+        <div class="pc-details">
+          {% if prop.bedrooms %}<div class="pc-detail"><iconify-icon icon="mdi:bed-outline" width="13"></iconify-icon>{{ prop.bedrooms }} BHK</div>{% endif %}
+          {% if prop.bathrooms %}<div class="pc-detail"><iconify-icon icon="mdi:shower" width="13"></iconify-icon>{{ prop.bathrooms }} Bath</div>{% endif %}
+          {% if prop.area_sqft %}<div class="pc-detail"><iconify-icon icon="mdi:ruler-square" width="13"></iconify-icon>{{ prop.area_sqft }} sqft</div>{% endif %}
+        </div>
+        <div class="pc-loc"><iconify-icon icon="mdi:map-marker-outline" width="12"></iconify-icon>{{ prop.location|default:society_name }}</div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="prop-card" style="min-width:220px;"><div class="bs-empty" style="padding:40px 20px;"><iconify-icon icon="mdi:home-search-outline" width="48" style="margin-bottom:8px;"></iconify-icon><p>No properties yet</p></div></div>
+    {% endfor %}
+    <div class="prop-add-card" onclick="openModal('postPropertyModal')">
+      <div style="text-align:center;">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+          <iconify-icon icon="mdi:plus" width="28" style="color:var(--accent);"></iconify-icon>
+        </div>
+        <div style="font-size:12px;font-weight:800;color:var(--accent);">Post Property</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="sec-hdr"><h3><span class="sec-dot"></span> What are you looking for?</h3></div>
+  <div class="cat-grid">
+    {% for cat in categories %}
+    <a href="{% url 'marketplace_category' cat.slug %}" class="cat-item">
+      <div class="cat-icon" style="background:{{ cat.bg_color }};"><iconify-icon icon="{{ cat.icon }}" width="26" style="color:{{ cat.icon_color }};"></iconify-icon></div>
+      <div class="cat-label">{{ cat.name }}</div>
+    </a>
+    {% empty %}
+    <a href="{% url 'marketplace_category' 'furniture' %}" class="cat-item"><div class="cat-icon" style="background:#fff3e0;"><iconify-icon icon="mdi:sofa-outline" width="26" style="color:#f57c00;"></iconify-icon></div><div class="cat-label">Furniture</div></a>
+    <a href="{% url 'marketplace_category' 'food' %}" class="cat-item"><div class="cat-icon" style="background:#e8f5e9;"><iconify-icon icon="mdi:food-outline" width="26" style="color:#2e7d32;"></iconify-icon></div><div class="cat-label">Food</div></a>
+    <a href="{% url 'marketplace_category' 'services' %}" class="cat-item"><div class="cat-icon" style="background:#e3f2fd;"><iconify-icon icon="mdi:wrench-outline" width="26" style="color:#1565c0;"></iconify-icon></div><div class="cat-label">Services</div></a>
+    <a href="{% url 'marketplace_category' 'home-decor' %}" class="cat-item"><div class="cat-icon" style="background:#fce4ec;"><iconify-icon icon="mdi:lamp-outline" width="26" style="color:#c2185b;"></iconify-icon></div><div class="cat-label">Home Decor</div></a>
+    <a href="{% url 'marketplace_category' 'electronics' %}" class="cat-item"><div class="cat-icon" style="background:#ede7f6;"><iconify-icon icon="mdi:laptop" width="26" style="color:#512da8;"></iconify-icon></div><div class="cat-label">Electronics</div></a>
+    <a href="{% url 'marketplace_category' 'vehicles' %}" class="cat-item"><div class="cat-icon" style="background:#e0f7fa;"><iconify-icon icon="mdi:car-outline" width="26" style="color:#00695c;"></iconify-icon></div><div class="cat-label">Vehicles</div></a>
+    <a href="{% url 'marketplace_category' 'kids-items' %}" class="cat-item"><div class="cat-icon" style="background:#f3e5f5;"><iconify-icon icon="mdi:baby-carriage" width="26" style="color:#6a1b9a;"></iconify-icon></div><div class="cat-label">Kids Items</div></a>
+    <a href="{% url 'marketplace_category' 'others' %}" class="cat-item"><div class="cat-icon" style="background:#f5f5f5;"><iconify-icon icon="mdi:dots-horizontal-circle-outline" width="26" style="color:#616161;"></iconify-icon></div><div class="cat-label">Others</div></a>
+    {% endfor %}
+  </div>
+
+  <!-- POST CTA -->
+  <div class="post-cta" onclick="openModal('postListingModal')">
+    <div class="cta-icon"><iconify-icon icon="mdi:storefront-outline" width="26" style="color:#f59e0b;"></iconify-icon></div>
+    <div class="cta-body">
+      <div class="cta-title">Got something to sell?</div>
+      <div class="cta-sub">Post free · Reach your neighbours instantly</div>
+    </div>
+    <iconify-icon icon="mdi:chevron-right" class="cta-arrow" width="24"></iconify-icon>
+  </div>
+
+  <!-- ══ RECENT LISTINGS — vertical scroll 2-col ══ -->
+  <div class="sec-hdr">
+    <h3><span class="sec-dot"></span> Recent Listings <span class="count-chip">{{ recent_listings|length }}</span></h3>
+    <a href="{% url 'all_listings' %}" class="see-all">See All</a>
+  </div>
+  <div class="sort-pills">
+    <button class="sort-pill {% if current_sort == 'newest' or not current_sort %}active{% endif %}" onclick="reloadSort(this,'newest')">Newest</button>
+    <button class="sort-pill {% if current_sort == 'price_asc' %}active{% endif %}" onclick="reloadSort(this,'price_asc')">Price ↑</button>
+    <button class="sort-pill {% if current_sort == 'price_desc' %}active{% endif %}" onclick="reloadSort(this,'price_desc')">Price ↓</button>
+    <button class="sort-pill" onclick="window.location.href='{% url 'all_listings' %}?sort=free'">Free 🎁</button>
+  </div>
+
+  {% if recent_listings %}
+  <div class="listing-vscroll-wrap">
+    <div class="listing-grid-2" id="recentListingsGrid">
+      {% for item in recent_listings %}
+      <div class="listing-card" data-search="{{ item.title|lower }} {{ item.get_category_display|lower }}" onclick="openDetailModal('item','{{ item.id }}')">
+        <div class="lc-img">
+          {% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">
+          {% else %}
+          {% with bg_map="furniture:#fff3e0,food:#e8f5e9,services:#e3f2fd,home-decor:#fce4ec,electronics:#ede7f6,vehicles:#e0f7fa,kids-items:#f3e5f5,others:#f5f5f5" %}
+          <div class="lc-img-placeholder" style="background:{{ item.category_color }};">{{ item.category_emoji }}</div>
+          {% endwith %}
+          {% endif %}
+          {% if item.is_free or item.price == 0 %}<div class="lc-badge free">FREE</div>
+          {% elif item.status == 'sold' %}<div class="lc-badge sold">SOLD</div>
+          {% elif item.is_new %}<div class="lc-badge newt">NEW</div>{% endif %}
+          <button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})">
+            <iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon>
+          </button>
+        </div>
+        <div class="lc-body">
+          <div class="lc-price">
+            {% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}
+            {% if item.is_negotiable %}<span class="price-unit"> · Nego</span>{% endif %}
+          </div>
+          <div class="lc-title">{{ item.title }}</div>
+          <div class="lc-meta"><iconify-icon icon="mdi:tag-outline" width="12"></iconify-icon>{{ item.get_category_display }}</div>
+          <div class="lc-seller">
+            <div class="lc-seller-av">{{ item.seller.username|slice:":1"|upper }}</div>
+            <div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div>
+            <div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="bs-empty">
+    <iconify-icon icon="mdi:tag-off-outline" width="48"></iconify-icon>
+    <p>No listings yet — be the first to post!</p>
+  </div>
+  {% endif %}
+
+  <!-- ══ FREE LISTINGS — vertical scroll 2-col ══ -->
+  <div class="sec-hdr" style="margin-top:24px;">
+    <h3><span class="sec-dot" style="background:#22c55e;"></span> Free Listings 🎁 <span class="count-chip">{{ free_listings|length }}</span></h3>
+    <a href="{% url 'all_listings' %}?sort=free" class="see-all">See All</a>
+  </div>
+
+  {% if free_listings %}
+  <div class="listing-vscroll-wrap">
+    <div class="listing-grid-2">
+      {% for item in free_listings %}
+      <div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')">
+        <div class="lc-img">
+          {% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">
+          {% else %}<div class="lc-img-placeholder" style="background:#e8f5e9;">{{ item.category_emoji|default:'🎁' }}</div>{% endif %}
+          <div class="lc-badge free">FREE</div>
+          <button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})">
+            <iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon>
+          </button>
+        </div>
+        <div class="lc-body">
+          <div class="lc-price" style="color:#22c55e;">FREE</div>
+          <div class="lc-title">{{ item.title }}</div>
+          <div class="lc-meta"><iconify-icon icon="mdi:tag-outline" width="12"></iconify-icon>{{ item.get_category_display }}</div>
+          <div class="lc-seller">
+            <div class="lc-seller-av" style="background:#22c55e;">{{ item.seller.username|slice:":1"|upper }}</div>
+            <div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div>
+            <div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="bs-empty"><iconify-icon icon="mdi:gift-outline" width="48"></iconify-icon><p>No free items right now</p></div>
+  {% endif %}
+
+  {% if furniture_listings %}
+  <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#f57c00;"></span> Furniture</h3><a href="{% url 'marketplace_category' 'furniture' %}" class="see-all">See All</a></div>
+  <div class="listing-scroll">{% for item in furniture_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#fff3e0;">🛋️</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#f57c00;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#f57c00;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  {% endif %}
+
+  {% if home_decor_listings %}
+  <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#c2185b;"></span> Home Decor</h3><a href="{% url 'marketplace_category' 'home-decor' %}" class="see-all">See All</a></div>
+  <div class="listing-scroll">{% for item in home_decor_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#fce4ec;">🪴</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#c2185b;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#c2185b;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  {% endif %}
+
+  {% if electronics_listings %}
+  <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#512da8;"></span> Electronics</h3><a href="{% url 'marketplace_category' 'electronics' %}" class="see-all">See All</a></div>
+  <div class="listing-scroll">{% for item in electronics_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#ede7f6;">💻</div>{% endif %}{% if item.is_new %}<div class="lc-badge newt">NEW</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#512da8;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#512da8;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  {% endif %}
+
+  {% if vehicle_listings %}
+  <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#00695c;"></span> Vehicles</h3><a href="{% url 'marketplace_category' 'vehicles' %}" class="see-all">See All</a></div>
+  <div class="listing-scroll">{% for item in vehicle_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#e0f7fa;">🚗</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#00695c;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#00695c;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  {% endif %}
+
+  {% if kids_listings %}
+  <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#6a1b9a;"></span> Kids Items</h3><a href="{% url 'marketplace_category' 'kids-items' %}" class="see-all">See All</a></div>
+  <div class="listing-scroll">{% for item in kids_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#f3e5f5;">🧸</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#6a1b9a;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#6a1b9a;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div></div></div></div>{% endfor %}</div>
+  {% endif %}
+
+</div>
+<div class="bs-toast" id="bsToast"></div>
+
+<!-- POST LISTING MODAL -->
+<div class="modal-bg" id="postListingModal" onclick="closeBg(event,'postListingModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📦 Post a Listing</div>
+    <form method="post" enctype="multipart/form-data" action="{% url 'post_listing' %}" id="postListingForm" onsubmit="return handleListingSubmit(event)">
+      {% csrf_token %}
+      <div class="mfg">
+        <label>Category *</label>
+        <div class="cat-picker" id="catPicker">
+          <div class="cat-pick active" data-cat="furniture" onclick="selectCat(this)"><iconify-icon icon="mdi:sofa-outline" width="22" style="color:#f57c00;"></iconify-icon><span>Furniture</span></div>
+          <div class="cat-pick" data-cat="food" onclick="selectCat(this)"><iconify-icon icon="mdi:food-outline" width="22" style="color:#2e7d32;"></iconify-icon><span>Food</span></div>
+          <div class="cat-pick" data-cat="services" onclick="selectCat(this)"><iconify-icon icon="mdi:wrench-outline" width="22" style="color:#1565c0;"></iconify-icon><span>Services</span></div>
+          <div class="cat-pick" data-cat="home-decor" onclick="selectCat(this)"><iconify-icon icon="mdi:lamp-outline" width="22" style="color:#c2185b;"></iconify-icon><span>Decor</span></div>
+          <div class="cat-pick" data-cat="electronics" onclick="selectCat(this)"><iconify-icon icon="mdi:laptop" width="22" style="color:#512da8;"></iconify-icon><span>Electronics</span></div>
+          <div class="cat-pick" data-cat="vehicles" onclick="selectCat(this)"><iconify-icon icon="mdi:car-outline" width="22" style="color:#00695c;"></iconify-icon><span>Vehicles</span></div>
+          <div class="cat-pick" data-cat="kids-items" onclick="selectCat(this)"><iconify-icon icon="mdi:baby-carriage" width="22" style="color:#6a1b9a;"></iconify-icon><span>Kids</span></div>
+          <div class="cat-pick" data-cat="others" onclick="selectCat(this)"><iconify-icon icon="mdi:dots-horizontal" width="22" style="color:#616161;"></iconify-icon><span>Others</span></div>
+        </div>
+        <input type="hidden" name="category" id="catInput" value="furniture">
+      </div>
+      <div class="mfg">
+        <label>Title *</label>
+        <input class="form-control" name="title" id="listingTitle" type="text" placeholder="What are you selling?" required maxlength="200">
+      </div>
+      <div class="mfg">
+        <label>Price Type *</label>
+        <div class="price-type-row">
+          <button type="button" class="price-type-btn active" onclick="setPriceType(this,'paid')">₹ Paid</button>
+          <button type="button" class="price-type-btn" onclick="setPriceType(this,'free')">🎁 Free</button>
+          <button type="button" class="price-type-btn" onclick="setPriceType(this,'nego')">🤝 Nego</button>
+        </div>
+        <input class="form-control" name="price" id="priceInput" type="number" placeholder="Enter price (₹)" min="0" step="1">
+        <input type="hidden" name="is_free" id="isFreeInput" value="false">
+        <input type="hidden" name="is_negotiable" id="isNegoInput" value="false">
+      </div>
+      <div class="mfg">
+        <label>Description</label>
+        <textarea class="form-control" name="description" rows="3" placeholder="Condition, age, reason for selling, any defects…"></textarea>
+      </div>
+      <div class="mfg">
+        <label>Photo</label>
+        <label class="img-upload" for="listingImgInput">
+          <iconify-icon icon="mdi:camera-plus-outline" width="32"></iconify-icon>
+          <p id="imgUploadLabel">Tap to add a photo</p>
+        </label>
+        <input type="file" id="listingImgInput" name="image" accept="image/*" style="display:none;" onchange="previewImg(this,'listingImgPreview','imgUploadLabel')">
+        <img id="listingImgPreview" src="" style="display:none;width:100%;border-radius:10px;margin-top:8px;object-fit:cover;max-height:180px;">
+      </div>
+      <div class="mfg">
+        <label>Contact Number <small style="font-weight:600;text-transform:none;">(optional)</small></label>
+        <input class="form-control" name="contact_number" type="tel" placeholder="Leave blank to use your profile number" maxlength="15">
+      </div>
+      <button type="submit" class="modal-save" id="postListingBtn">
+        <iconify-icon icon="mdi:plus-circle-outline" width="18" style="vertical-align:middle;margin-right:6px;"></iconify-icon>Post Listing
+      </button>
+      <button type="button" class="modal-cancel" onclick="closeModal('postListingModal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- POST PROPERTY MODAL -->
+<div class="modal-bg" id="postPropertyModal" onclick="closeBg(event,'postPropertyModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏠 Post Property</div>
+    <form method="post" enctype="multipart/form-data" action="{% url 'post_property' %}">
+      {% csrf_token %}
+      <div class="mfg"><label>Listing Type</label>
+        <div class="price-type-row">
+          <button type="button" class="price-type-btn active" onclick="setPropType(this,'buy')">🏠 Buy</button>
+          <button type="button" class="price-type-btn" onclick="setPropType(this,'rent')">🔑 Rent</button>
+        </div>
+        <input type="hidden" name="listing_type" id="propTypeInput" value="buy">
+      </div>
+      <div class="mfg"><label>Title *</label><input class="form-control" name="title" type="text" placeholder="e.g. 2 BHK Semi-Furnished Flat" required maxlength="200"></div>
+      <div class="mfg"><label>Price (₹) *</label><input class="form-control" name="price" type="number" placeholder="e.g. 4500000" min="0" required></div>
+      <div class="mfg"><label>Bedrooms</label><select class="form-control" name="bedrooms"><option value="">Select BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></div>
+      <div class="mfg"><label>Bathrooms</label><select class="form-control" name="bathrooms"><option value="">Select</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
+      <div class="mfg"><label>Area (sqft)</label><input class="form-control" name="area_sqft" type="number" placeholder="e.g. 1200" min="1"></div>
+      <div class="mfg"><label>Description</label><textarea class="form-control" name="description" rows="3" placeholder="Furnishing, amenities, facing, floor, parking…"></textarea></div>
+      <div class="mfg"><label>Photo</label>
+        <label class="img-upload" for="propImgInput"><iconify-icon icon="mdi:camera-plus-outline" width="32"></iconify-icon><p>Tap to add property photos</p></label>
+        <input type="file" id="propImgInput" name="image" accept="image/*" style="display:none;" onchange="previewImg(this,'propImgPreview',null)">
+        <img id="propImgPreview" src="" style="display:none;width:100%;border-radius:10px;margin-top:8px;max-height:180px;object-fit:cover;">
+      </div>
+      <div class="mfg"><label>Contact Number</label><input class="form-control" name="contact_number" type="tel" placeholder="+91 XXXXX XXXXX" maxlength="15"></div>
+      <button type="submit" class="modal-save">Post Property</button>
+      <button type="button" class="modal-cancel" onclick="closeModal('postPropertyModal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- EXPLORE PROPERTY MODAL -->
+<div class="modal-bg" id="explorePropertyModal" onclick="closeBg(event,'explorePropertyModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏠 Homes in {{ society_name }}</div>
+    <div class="sort-pills" style="padding:0;margin-bottom:16px;">
+      <button class="sort-pill active" onclick="filterExplore(this,'all')">All</button>
+      <button class="sort-pill" onclick="filterExplore(this,'buy')">Buy</button>
+      <button class="sort-pill" onclick="filterExplore(this,'rent')">Rent</button>
+      <button class="sort-pill" onclick="filterExplore(this,'1')">1 BHK</button>
+      <button class="sort-pill" onclick="filterExplore(this,'2')">2 BHK</button>
+      <button class="sort-pill" onclick="filterExplore(this,'3')">3 BHK</button>
+    </div>
+    <div id="explorePropList">
+      {% for prop in properties %}
+      <div class="explore-item" data-ptype="{{ prop.listing_type }}" data-beds="{{ prop.bedrooms|default:'' }}"
+           onclick="closeModal('explorePropertyModal');openDetailModal('prop','{{ prop.id }}')"
+           style="display:flex;gap:12px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;cursor:pointer;">
+        <div style="width:72px;height:72px;border-radius:10px;background:#e0f7f3;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;overflow:hidden;">
+          {% if prop.image %}<img src="{{ prop.image.url }}" style="width:100%;height:100%;object-fit:cover;">{% else %}🏢{% endif %}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+            <span style="font-size:17px;font-weight:900;color:var(--accent);">₹{{ prop.price|floatformat:0 }}</span>
+            {% if prop.listing_type == 'rent' %}<span style="font-size:11px;color:var(--text-muted);font-weight:600;">/mo</span>{% endif %}
+            <span class="pc-tag {{ prop.listing_type }}" style="position:static;font-size:10px;padding:3px 8px;">{{ prop.get_listing_type_display }}</span>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ prop.title }}</div>
+          <div style="font-size:11px;color:var(--text-muted);font-weight:600;display:flex;gap:8px;margin-top:3px;flex-wrap:wrap;">
+            {% if prop.bedrooms %}<span>🛏 {{ prop.bedrooms }} BHK</span>{% endif %}
+            {% if prop.bathrooms %}<span>🚿 {{ prop.bathrooms }} Bath</span>{% endif %}
+            {% if prop.area_sqft %}<span>📐 {{ prop.area_sqft }} sqft</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="bs-empty"><iconify-icon icon="mdi:home-search-outline" width="48"></iconify-icon><p>No properties yet</p></div>
+      {% endfor %}
+    </div>
+    <button class="modal-save" onclick="closeModal('explorePropertyModal');openModal('postPropertyModal')">+ Post Your Property</button>
+    <button class="modal-cancel" onclick="closeModal('explorePropertyModal')">Close</button>
+  </div>
+</div>
+
+<!-- FILTER MODAL -->
+<div class="modal-bg" id="filterModal" onclick="closeBg(event,'filterModal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Filter &amp; Sort</div>
+    <div class="mfg"><label>Category</label>
+      <select class="form-control" id="filterCat">
+        <option value="">All Categories</option>
+        {% for cat in categories %}<option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+        {% empty %}<option value="furniture">Furniture</option><option value="food">Food</option><option value="services">Services</option><option value="home-decor">Home Decor</option><option value="electronics">Electronics</option><option value="vehicles">Vehicles</option><option value="kids-items">Kids Items</option><option value="others">Others</option>{% endfor %}
+      </select>
+    </div>
+    <div class="mfg"><label>Price Range (₹)</label>
+      <div style="display:flex;gap:8px;">
+        <input class="form-control" type="number" placeholder="Min ₹" id="filterMin" min="0">
+        <input class="form-control" type="number" placeholder="Max ₹" id="filterMax" min="0">
+      </div>
+    </div>
+    <div class="mfg"><label>Sort By</label>
+      <select class="form-control" id="filterSort">
+        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+        <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+        <option value="free" {% if current_sort == 'free' %}selected{% endif %}>Free Items</option>
+      </select>
+    </div>
+    <button class="modal-save" onclick="applyFilter()">Apply Filters</button>
+    <button class="modal-cancel" onclick="closeModal('filterModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-bg" id="itemDetailModal" onclick="closeBg(event,'itemDetailModal')">
+  <div class="modal-sheet" id="itemDetailContent">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+      <iconify-icon icon="mdi:loading" width="40" class="spin" style="color:var(--accent);display:block;margin:0 auto 10px;"></iconify-icon>
+      <p style="font-size:13px;font-weight:700;">Loading…</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const URL_ITEM = id => `/marketplace/item/${id}/detail/`;
+const URL_PROP = id => `/marketplace/prop/${id}/detail/`;
+const URL_SL   = id => `/marketplace/shortlist/${id}/toggle/`;
+function getCSRF(){ return (document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))||'').split('=')[1]||''; }
+
+let _tt;
+function showToast(msg,ms=2600){ const el=document.getElementById('bsToast'); el.textContent=msg; el.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),ms); }
+function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeBg(e,id){ if(e.target.id===id) closeModal(id); }
+function activatePill(el){ el.closest('.sort-pills').querySelectorAll('.sort-pill').forEach(p=>p.classList.remove('active')); el.classList.add('active'); }
+
+function selectCat(el){
+  document.querySelectorAll('#catPicker .cat-pick').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('catInput').value = el.getAttribute('data-cat');
+}
+
+function setPriceType(el,type){
+  el.closest('.price-type-row').querySelectorAll('.price-type-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const inp=document.getElementById('priceInput');
+  document.getElementById('isFreeInput').value=(type==='free')?'true':'false';
+  document.getElementById('isNegoInput').value=(type==='nego')?'true':'false';
+  if(type==='free'){ inp.value='0'; inp.disabled=true; inp.placeholder='Free item ✓'; }
+  else{ inp.disabled=false; inp.value=''; inp.placeholder=type==='nego'?'Enter asking price (₹)':'Enter price (₹)'; }
+}
+
+function setPropType(el,type){
+  el.closest('.price-type-row').querySelectorAll('.price-type-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('propTypeInput').value=type;
+}
+
+function previewImg(input,previewId,labelId){
+  if(!input.files||!input.files[0]) return;
+  const r=new FileReader();
+  r.onload=e=>{ const img=document.getElementById(previewId); img.src=e.target.result; img.style.display='block'; };
+  r.readAsDataURL(input.files[0]);
+  if(labelId) document.getElementById(labelId).textContent='✓ '+input.files[0].name;
+}
+
+function handleListingSubmit(e){
+  const title=document.getElementById('listingTitle').value.trim();
+  const cat=document.getElementById('catInput').value;
+  if(!title){ e.preventDefault(); showToast('⚠️ Please enter a title'); return false; }
+  if(!cat){ e.preventDefault(); showToast('⚠️ Please select a category'); return false; }
+  const btn=document.getElementById('postListingBtn');
+  btn.disabled=true;
+  btn.innerHTML='<iconify-icon icon="mdi:loading" class="spin" width="18" style="vertical-align:middle;margin-right:6px;"></iconify-icon>Posting…';
+  return true;
+}
+
+function toggleShortlist(btn,id){
+  const icon=btn.querySelector('iconify-icon');
+  const was=btn.classList.contains('active');
+  btn.classList.toggle('active');
+  if(icon) icon.setAttribute('icon',was?'mdi:heart-outline':'mdi:heart');
+  fetch(URL_SL(id),{method:'POST',headers:{'X-CSRFToken':getCSRF(),'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data=>{
+      showToast(data.shortlisted?'❤️ Added to shortlist':'💔 Removed from shortlist');
+      document.querySelectorAll(`.lc-shortlist[data-lid="${id}"]`).forEach(b=>{
+        b.classList.toggle('active',data.shortlisted);
+        const ic=b.querySelector('iconify-icon');
+        if(ic) ic.setAttribute('icon',data.shortlisted?'mdi:heart':'mdi:heart-outline');
+      });
+    })
+    .catch(()=>{ btn.classList.toggle('active'); if(icon) icon.setAttribute('icon',was?'mdi:heart':'mdi:heart-outline'); showToast('⚠️ Something went wrong'); });
+}
+
+function openDetailModal(type,id){
+  document.getElementById('itemDetailContent').innerHTML=`<div class="modal-handle"></div><div style="text-align:center;padding:50px 20px;color:var(--text-muted);"><iconify-icon icon="mdi:loading" width="40" class="spin" style="color:var(--accent);display:block;margin:0 auto 10px;"></iconify-icon><p style="font-size:13px;font-weight:700;">Loading…</p></div>`;
+  openModal('itemDetailModal');
+  fetch(type==='prop'?URL_PROP(id):URL_ITEM(id),{headers:{'X-Requested-With':'XMLHttpRequest'}})
+    .then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); })
+    .then(html=>{ document.getElementById('itemDetailContent').innerHTML=html; })
+    .catch(err=>{ document.getElementById('itemDetailContent').innerHTML=`<div class="modal-handle"></div><div class="bs-empty"><iconify-icon icon="mdi:alert-circle-outline" width="48"></iconify-icon><p>Could not load (${err.message})</p></div><button class="modal-cancel" onclick="closeModal('itemDetailModal')">Close</button>`; });
+}
+
+let _searchTimer;
+function liveSearch(q){
+  const ql = q.toLowerCase().trim();
+  // Immediate: hide/show visible cards as preview
+  document.querySelectorAll('.listing-card').forEach(card=>{
+    const s=(card.getAttribute('data-search')||card.querySelector('.lc-title')?.textContent||'').toLowerCase();
+    card.style.display=(!ql||s.includes(ql))?'':'none';
+  });
+  // Debounced: if user pauses > 600ms, redirect to server-side all_listings search
+  clearTimeout(_searchTimer);
+  if(ql.length >= 2){
+    _searchTimer = setTimeout(()=>{
+      window.location.href = "{% url 'all_listings' %}?q=" + encodeURIComponent(q.trim());
+    }, 600);
+  }
+}
+
+
+function filterProps(el,val){
+  activatePill(el);
+  document.querySelectorAll('#propertyScroll .prop-card').forEach(c=>{ if(val==='all') c.style.display=''; else if(val==='buy'||val==='rent') c.style.display=c.dataset.ptype===val?'':'none'; else c.style.display=c.dataset.beds===val?'':'none'; });
+}
+function setPropHeroTab(el){ el.closest('.prop-tabs').querySelectorAll('.prop-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); }
+function filterExplore(el,val){
+  activatePill(el);
+  document.querySelectorAll('#explorePropList .explore-item').forEach(i=>{ if(val==='all') i.style.display=''; else if(val==='buy'||val==='rent') i.style.display=i.dataset.ptype===val?'':'none'; else i.style.display=i.dataset.beds===val?'':'none'; });
+}
+function reloadSort(el,sort){ activatePill(el); const u=new URL(window.location.href); u.searchParams.set('sort',sort); window.location.href=u.toString(); }
+function applyFilter(){
+  const p = new URLSearchParams();
+  const cat  = document.getElementById('filterCat').value;
+  const sort = document.getElementById('filterSort').value;
+  const minP = document.getElementById('filterMin').value;
+  const maxP = document.getElementById('filterMax').value;
+  const q    = document.getElementById('searchInput')?.value?.trim() || '';
+
+  if(sort) p.set('sort',      sort);
+  if(minP) p.set('min_price', minP);
+  if(maxP) p.set('max_price', maxP);
+  if(q)    p.set('q',         q);
+
+  closeModal('filterModal');
+
+  if(cat === 'free'){
+    p.set('sort', 'free');
+    window.location.href = "{% url 'all_listings' %}?" + p.toString();
+  } else if(cat){
+    p.set('category', cat);
+    window.location.href = "{% url 'all_listings' %}?" + p.toString();
+  } else {
+    window.location.href = "{% url 'all_listings' %}?" + p.toString();
+  }
+}
+
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.listing-card,.prop-card,.cat-item').forEach((el,i)=>{
+    el.style.cssText+=`opacity:0;transform:translateY(10px);transition:opacity 0.3s ${Math.min(i*0.03,0.5)}s,transform 0.3s ${Math.min(i*0.03,0.5)}s`;
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform=''; },32+i*20);
+  });
+});
+</script>
+{% endblock %}

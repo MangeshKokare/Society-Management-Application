@@ -59,6 +59,11 @@ from .models import (
     GuardAdminChat,
     FamilyMember, 
     Pet,
+    Listing, 
+    PropertyListing,
+    Shortlist,
+    MarketplaceCategory,
+    MarketplaceMessage,
 )
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -1261,6 +1266,7 @@ def api_mark_all_chats_read(request):
         'total_unread': new_count
     })
 
+
 @login_required
 @role_required("resident")
 def resident_notifications(request):
@@ -1268,8 +1274,6 @@ def resident_notifications(request):
     profile = user.userprofile
 
     # ── Alerts / Notifications ─────────────────────────────────
-    # Only notifications addressed to this user (visitor check-ins
-    # for their flat are sent here by the guard check-in view)
     notifications = Notification.objects.filter(
         user=user
     ).order_by('-created_at')
@@ -1277,15 +1281,12 @@ def resident_notifications(request):
     unread_qs = notifications.filter(is_read=False)
     unread_count = unread_qs.count()
 
-    # Mark them read
     if unread_count > 0:
         unread_qs.update(is_read=True)
 
-    # After updating → set unread_count = 0
-    unread_count = 0
+    unread_count = 0   # after marking read
 
-    # ── Bills assigned to this resident ────────────────────────
-    # Auto-mark overdue rows before rendering
+    # ── Bills ──────────────────────────────────────────────────
     today = timezone.now().date()
     BillPayer.objects.filter(
         user=user,
@@ -1301,11 +1302,47 @@ def resident_notifications(request):
     overdue_bill_payers = [bp for bp in all_bp if bp.status == 'overdue']
     paid_bill_payers    = [bp for bp in all_bp if bp.status == 'paid']
 
-    # ── Unread chat messages ────────────────────────────────────
+    # ── Chat (resident ↔ resident) ─────────────────────────────
     total_unread = ChatMessage.objects.filter(
         receiver=user,
         is_read=False
     ).exclude(sender=user).count()
+
+    # ── Marketplace Messages ───────────────────────────────────
+    # Fetch all marketplace messages where user is sender OR receiver
+    all_mp_msgs = MarketplaceMessage.objects.filter(
+        Q(sender=user) | Q(receiver=user)
+    ).select_related('listing', 'listing__seller', 'sender', 'receiver').order_by('listing_id', 'created_at')
+
+    # Group into threads: key = (listing_id, other_user_id)
+    thread_map = {}
+    for msg in all_mp_msgs:
+        # Identify the "other" participant
+        other = msg.receiver if msg.sender == user else msg.sender
+        key = (msg.listing_id, other.id)
+        if key not in thread_map:
+            thread_map[key] = {
+                'listing':      msg.listing,
+                'other_user':   other,
+                'messages':     [],
+                'unread_count': 0,
+                'last_message': None,
+                'last_ts':      None,
+            }
+        thread_map[key]['messages'].append(msg)
+        thread_map[key]['last_message'] = msg
+        thread_map[key]['last_ts']      = msg.created_at
+        if msg.receiver == user and not msg.is_read:
+            thread_map[key]['unread_count'] += 1
+
+    # Sort threads: most recent first
+    marketplace_threads = sorted(
+        thread_map.values(),
+        key=lambda t: t['last_ts'],
+        reverse=True
+    )
+
+    mp_unread_total = sum(t['unread_count'] for t in marketplace_threads)
 
     return render(request, 'resident_notifications.html', {
         'profile':              profile,
@@ -1322,8 +1359,102 @@ def resident_notifications(request):
         'paid_bills_count':     len(paid_bill_payers),
         # Chat
         'total_unread':         total_unread,
+        # Marketplace Messages
+        'marketplace_threads':  marketplace_threads,
+        'mp_unread_total':      mp_unread_total,
     })
 
+@login_required
+@role_required("resident")
+def send_marketplace_message(request, listing_id):
+    """POST /api/marketplace/<listing_id>/message/"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
+
+    try:
+        data    = json.loads(request.body)
+        text    = data.get('message', '').strip()
+        recv_id = data.get('receiver_id')
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+
+    if not text:
+        return JsonResponse({'success': False, 'error': 'Empty message'}, status=400)
+
+    try:
+        listing  = Listing.objects.get(id=listing_id)
+        receiver = User.objects.get(id=recv_id)
+    except (Listing.DoesNotExist, User.DoesNotExist):
+        return JsonResponse({'success': False, 'error': 'Not found'}, status=404)
+
+    msg = MarketplaceMessage.objects.create(
+        listing=listing,
+        sender=request.user,
+        receiver=receiver,
+        message=text,
+    )
+    return JsonResponse({
+        'success':    True,
+        'message_id': msg.id,
+        'timestamp':  msg.created_at.isoformat(),
+    })
+
+@login_required
+@role_required("resident")
+def marketplace_thread_messages(request, listing_id, other_user_id):
+    """GET /api/marketplace/<listing_id>/thread/<other_user_id>/"""
+    user = request.user
+    try:
+        other = User.objects.get(id=other_user_id)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+    msgs = MarketplaceMessage.objects.filter(
+        listing_id=listing_id
+    ).filter(
+        Q(sender=user, receiver=other) | Q(sender=other, receiver=user)
+    ).order_by('created_at')
+
+    # Mark received messages as read
+    msgs.filter(receiver=user, is_read=False).update(is_read=True)
+
+    messages_data = [{
+        'id':           m.id,
+        'text':         m.message,
+        'is_sent_by_me': m.sender == user,
+        'timestamp':    m.created_at.isoformat(),
+        'is_read':      m.is_read,
+    } for m in msgs]
+
+    return JsonResponse({'success': True, 'messages': messages_data})
+
+
+# ── API: mark marketplace thread as read ──────────────────────
+@login_required
+@role_required("resident")
+def mark_marketplace_thread_read(request, listing_id, other_user_id):
+    """POST /api/marketplace/<listing_id>/thread/<other_user_id>/read/"""
+    user = request.user
+    try:
+        other = User.objects.get(id=other_user_id)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+    MarketplaceMessage.objects.filter(
+        listing_id=listing_id,
+        sender=other,
+        receiver=user,
+        is_read=False
+    ).update(is_read=True)
+
+    remaining = MarketplaceMessage.objects.filter(
+        receiver=user,
+        is_read=False
+    ).filter(
+        Q(listing__society=user.userprofile.society)
+    ).count()
+
+    return JsonResponse({'success': True, 'mp_unread_total': remaining})
 
 # ─────────────────────────────────────────
 # POST /api/bills/pay/<bp_id>/
@@ -7684,3 +7815,866 @@ def unread_count_api(request):
         total = 0
 
     return JsonResponse({'count': total})
+
+
+
+@login_required(login_url='login')
+def marketplace_debug(request):
+    lines = []
+    user = request.user
+    lines.append(f"<b>User:</b> {user} (id={user.id})")
+
+    # ── Try UserProfile ──
+    try:
+        from .models import UserProfile
+        profile = UserProfile.objects.get(user=user)
+        lines.append(f"<b>UserProfile:</b> found — pk={profile.pk}")
+
+        # Fields that might lead to society
+        for fname in ['society', 'apartment', 'flat', 'resident']:
+            val = getattr(profile, fname, '__MISSING__')
+            if val != '__MISSING__':
+                lines.append(f"  profile.{fname} = {val!r}")
+
+        # Try apartment → society
+        if hasattr(profile, 'apartment') and profile.apartment:
+            apt = profile.apartment
+            lines.append(f"<b>Apartment:</b> {apt!r}")
+            for fname in ['society', 'block', 'flat_number', 'number']:
+                val = getattr(apt, fname, '__MISSING__')
+                if val != '__MISSING__':
+                    lines.append(f"  apartment.{fname} = {val!r}")
+
+        # Try direct profile.society
+        if hasattr(profile, 'society') and profile.society:
+            lines.append(f"<b>Society via profile.society:</b> {profile.society!r}")
+
+    except Exception as e:
+        lines.append(f"<b>UserProfile error:</b> {e}")
+
+    # ── Try Listing model fields ──
+    try:
+        from .models import Listing
+        sample = Listing.objects.first()
+        if sample:
+            lines.append(f"<b>Sample Listing:</b> pk={sample.pk} title={sample.title!r}")
+            for fname in ['society', 'seller', 'status', 'category']:
+                val = getattr(sample, fname, '__MISSING__')
+                if val != '__MISSING__':
+                    lines.append(f"  listing.{fname} = {val!r}")
+            lines.append(f"  <b>Total active listings in DB:</b> {Listing.objects.filter(status='active').count()}")
+        else:
+            lines.append("<b>Listing table is EMPTY</b> — no listings posted yet")
+    except Exception as e:
+        lines.append(f"<b>Listing model error:</b> {e}")
+
+    html = "<br>".join(lines)
+    return HttpResponse(f"<pre style='font-family:monospace;font-size:14px;padding:20px;'>{html}</pre>")
+
+
+# ── HELPERS ────────────────────────────────────────────────────
+
+def _get_society(user):
+    """
+    Robustly find the Society for a user.
+    Tries every common model shape — fix to match whichever works.
+    """
+    from .models import UserProfile
+
+    try:
+        profile = UserProfile.objects.select_related(
+            'society', 'apartment', 'apartment__society'
+        ).get(user=user)
+    except UserProfile.DoesNotExist:
+        return None
+    except Exception:
+        # UserProfile has no select_related on 'society' — retry bare
+        try:
+            profile = UserProfile.objects.get(user=user)
+        except Exception:
+            return None
+
+    # Shape 1: profile.society  (direct FK)
+    soc = getattr(profile, 'society', None)
+    if soc:
+        return soc
+
+    # Shape 2: profile.apartment.society
+    apt = getattr(profile, 'apartment', None)
+    if apt:
+        soc = getattr(apt, 'society', None)
+        if soc:
+            return soc
+
+    # Shape 3: profile.flat.society  (some apps use 'flat')
+    flat = getattr(profile, 'flat', None)
+    if flat:
+        soc = getattr(flat, 'society', None)
+        if soc:
+            return soc
+
+    return None
+
+
+CATEGORY_META = {
+    'furniture': {
+        'icon': 'mdi:sofa-outline',
+        'icon_color': '#f57c00',
+        'bg_color': '#fff3e0',
+        'emoji': '🛋️'
+    },
+    'food': {
+        'icon': 'mdi:food-outline',
+        'icon_color': '#2e7d32',
+        'bg_color': '#e8f5e9',
+        'emoji': '🍱'
+    },
+    'services': {
+        'icon': 'mdi:wrench-outline',
+        'icon_color': '#1565c0',
+        'bg_color': '#e3f2fd',
+        'emoji': '🔧'
+    },
+    'home-decor': {
+        'icon': 'mdi:lamp-outline',
+        'icon_color': '#c2185b',
+        'bg_color': '#fce4ec',
+        'emoji': '🪴'
+    },
+    'electronics': {
+        'icon': 'mdi:laptop',
+        'icon_color': '#512da8',
+        'bg_color': '#ede7f6',
+        'emoji': '💻'
+    },
+    'vehicles': {
+        'icon': 'mdi:car-outline',
+        'icon_color': '#00695c',
+        'bg_color': '#e0f7fa',
+        'emoji': '🚗'
+    },
+    'kids-items': {
+        'icon': 'mdi:baby-carriage',
+        'icon_color': '#6a1b9a',
+        'bg_color': '#f3e5f5',
+        'emoji': '🧸'
+    },
+    'others': {
+        'icon': 'mdi:dots-horizontal-circle-outline',
+        'icon_color': '#616161',
+        'bg_color': '#f5f5f5',
+        'emoji': '📦'
+    },
+}
+
+def _get_user_profile(user):
+    """Return (profile, society, apartment) for the logged-in user."""
+    try:
+        from .models import UserProfile
+        profile   = UserProfile.objects.select_related('society', 'apartment').get(user=user)
+        society   = profile.society
+        apartment = profile.apartment
+        if not society and apartment:
+            society = getattr(apartment, 'society', None)
+        return profile, society, apartment
+    except Exception:
+        return None, None, None
+
+
+CATEGORY_META = {
+    'furniture':   {'icon': 'mdi:sofa-outline',                  'icon_color': '#f57c00', 'bg_color': '#fff3e0', 'emoji': '🛋️'},
+    'food':        {'icon': 'mdi:food-outline',                   'icon_color': '#2e7d32', 'bg_color': '#e8f5e9', 'emoji': '🍱'},
+    'services':    {'icon': 'mdi:wrench-outline',                 'icon_color': '#1565c0', 'bg_color': '#e3f2fd', 'emoji': '🔧'},
+    'home-decor':  {'icon': 'mdi:lamp-outline',                   'icon_color': '#c2185b', 'bg_color': '#fce4ec', 'emoji': '🪴'},
+    'electronics': {'icon': 'mdi:laptop',                         'icon_color': '#512da8', 'bg_color': '#ede7f6', 'emoji': '💻'},
+    'vehicles':    {'icon': 'mdi:car-outline',                    'icon_color': '#00695c', 'bg_color': '#e0f7fa', 'emoji': '🚗'},
+    'kids-items':  {'icon': 'mdi:baby-carriage',                  'icon_color': '#6a1b9a', 'bg_color': '#f3e5f5', 'emoji': '🧸'},
+    'others':      {'icon': 'mdi:dots-horizontal-circle-outline', 'icon_color': '#616161', 'bg_color': '#f5f5f5', 'emoji': '📦'},
+}
+
+
+
+# ── ALL active listings across ALL societies (the main queryset) ──────
+
+def _all_active():
+    from .models import Listing
+    return (
+        Listing.objects
+        .filter(status='active')
+        .select_related('seller', 'society')
+    )
+
+
+CATEGORY_META = {
+    'furniture':   {'icon': 'mdi:sofa-outline',                  'icon_color': '#f57c00', 'bg_color': '#fff3e0', 'emoji': '🛋️'},
+    'food':        {'icon': 'mdi:food-outline',                   'icon_color': '#2e7d32', 'bg_color': '#e8f5e9', 'emoji': '🍱'},
+    'services':    {'icon': 'mdi:wrench-outline',                 'icon_color': '#1565c0', 'bg_color': '#e3f2fd', 'emoji': '🔧'},
+    'home-decor':  {'icon': 'mdi:lamp-outline',                   'icon_color': '#c2185b', 'bg_color': '#fce4ec', 'emoji': '🪴'},
+    'electronics': {'icon': 'mdi:laptop',                         'icon_color': '#512da8', 'bg_color': '#ede7f6', 'emoji': '💻'},
+    'vehicles':    {'icon': 'mdi:car-outline',                    'icon_color': '#00695c', 'bg_color': '#e0f7fa', 'emoji': '🚗'},
+    'kids-items':  {'icon': 'mdi:baby-carriage',                  'icon_color': '#6a1b9a', 'bg_color': '#f3e5f5', 'emoji': '🧸'},
+    'others':      {'icon': 'mdi:dots-horizontal-circle-outline', 'icon_color': '#616161', 'bg_color': '#f5f5f5', 'emoji': '📦'},
+}
+
+def _build_categories():
+    from .models import MarketplaceCategory
+    db_cats = MarketplaceCategory.objects.filter(is_active=True)
+    if db_cats.exists():
+        return db_cats
+
+    class _Cat:
+        def __init__(self, slug, data):
+            self.slug       = slug
+            self.name       = slug.replace('-', ' ').title()
+            self.icon       = data['icon']
+            self.icon_color = data['icon_color']
+            self.bg_color   = data['bg_color']
+    return [_Cat(s, d) for s, d in CATEGORY_META.items()]
+
+
+
+
+def _sort_qs(qs, sort):
+    if sort == 'price_asc':  return qs.order_by('price')
+    if sort == 'price_desc': return qs.order_by('-price')
+    if sort == 'free':       return qs.filter(is_free=True).order_by('-created_at')
+    return qs.order_by('-created_at')
+
+
+def _price_filter(qs, min_price, max_price):
+    if min_price:
+        try: qs = qs.filter(price__gte=float(min_price))
+        except ValueError: pass
+    if max_price:
+        try: qs = qs.filter(price__lte=float(max_price))
+        except ValueError: pass
+    return qs
+# ── MAIN MARKETPLACE ───────────────────────────────────────────
+# URL: path('marketplace/', views.marketplace, name='marketplace')
+
+@login_required(login_url='login')
+def marketplace(request):
+    from .models import PropertyListing, Shortlist
+
+    _profile, user_society, _apt = _get_user_profile(request.user)
+
+    sort      = request.GET.get('sort', 'newest')
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    # NOTE: 'q' is read here so the search bar on buy_sell.html can redirect
+    # to all_listings with the query — see template JS below.
+    q         = request.GET.get('q', '').strip()
+
+    # Base: ALL active listings across ALL societies
+    base = _price_filter(_all_active(), min_price, max_price)
+
+    if q:
+        base = base.filter(Q(title__icontains=q) | Q(description__icontains=q))
+
+    recent_listings      = _sort_qs(base, sort)[:20]
+    free_listings        = base.filter(is_free=True).order_by('-created_at')[:8]
+    furniture_listings   = base.filter(category='furniture').order_by('-created_at')[:10]
+    home_decor_listings  = base.filter(category='home-decor').order_by('-created_at')[:10]
+    electronics_listings = base.filter(category='electronics').order_by('-created_at')[:10]
+    vehicle_listings     = base.filter(category='vehicles').order_by('-created_at')[:10]
+    kids_listings        = base.filter(category='kids-items').order_by('-created_at')[:10]
+
+    properties = (
+        PropertyListing.objects
+        .filter(is_active=True)
+        .select_related('seller', 'society')
+        .order_by('-created_at')[:12]
+    )
+
+    shortlisted_ids = set(
+        Shortlist.objects.filter(user=request.user).values_list('listing_id', flat=True)
+    )
+
+    context = {
+        'society_name':          'All Societies',   # Always show all-society label
+        'user_society_name':     user_society.name if user_society else '',
+        'categories':            _build_categories(),
+        'recent_listings':       recent_listings,
+        'free_listings':         free_listings,
+        'furniture_listings':    furniture_listings,
+        'home_decor_listings':   home_decor_listings,
+        'electronics_listings':  electronics_listings,
+        'vehicle_listings':      vehicle_listings,
+        'kids_listings':         kids_listings,
+        'properties':            properties,
+        'shortlisted_ids':       shortlisted_ids,
+        'current_category':      request.GET.get('category', ''),
+        'current_sort':          sort,
+        'search_query':          q,
+    }
+    return render(request, 'buy_sell.html', context)
+
+
+
+
+
+
+# ── CATEGORY PAGE ──────────────────────────────────────────────
+# URL: path('marketplace/<slug:slug>/', views.marketplace_category, name='marketplace_category')
+
+@login_required(login_url='login')
+def marketplace_category(request, slug):
+    from .models import Shortlist
+
+    _profile, user_society, _apt = _get_user_profile(request.user)
+
+    sort      = request.GET.get('sort', 'newest')
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    q         = request.GET.get('q', '').strip()
+
+    # ALL societies, this category only
+    qs = _all_active().filter(category=slug)
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
+    qs = _price_filter(qs, min_price, max_price)
+    qs = _sort_qs(qs, sort)
+
+    shortlisted_ids = set(
+        Shortlist.objects.filter(user=request.user).values_list('listing_id', flat=True)
+    )
+
+    meta = CATEGORY_META.get(slug, {})
+    context = {
+        'society_name':    'All Societies',
+        'category_slug':   slug,
+        'category_name':   slug.replace('-', ' ').title(),
+        'category_icon':   meta.get('icon', 'mdi:tag-outline'),
+        'category_color':  meta.get('icon_color', '#616161'),
+        'category_bg':     meta.get('bg_color', '#f5f5f5'),
+        'category_emoji':  meta.get('emoji', '📦'),
+        'listings':        qs,
+        'shortlisted_ids': shortlisted_ids,
+        'current_sort':    sort,
+        'search_query':    q,
+        'categories':      _build_categories(),
+    }
+    return render(request, 'marketplace_category.html', context)
+
+
+
+# ── ALL LISTINGS ───────────────────────────────────────────────
+# URL: path('marketplace/all/', views.all_listings, name='all_listings')
+
+@login_required(login_url='login')
+def all_listings(request):
+    from .models import Shortlist
+
+    _profile, user_society, _apt = _get_user_profile(request.user)
+
+    category  = request.GET.get('category', '')
+    sort      = request.GET.get('sort', 'newest')
+    q         = request.GET.get('q', '').strip()
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+
+    # ALL active listings across ALL societies
+    qs = _all_active()
+
+    if category == 'free':
+        qs = qs.filter(is_free=True)
+    elif category:
+        qs = qs.filter(category=category)
+
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
+
+    qs = _price_filter(qs, min_price, max_price)
+    qs = _sort_qs(qs, sort)
+
+    shortlisted_ids = set(
+        Shortlist.objects.filter(user=request.user).values_list('listing_id', flat=True)
+    )
+
+    context = {
+        'society_name':     'All Societies',
+        'listings':         qs,
+        'shortlisted_ids':  shortlisted_ids,
+        'current_category': category,
+        'current_sort':     sort,
+        'search_query':     q,
+        'min_price':        min_price,
+        'max_price':        max_price,
+        'categories':       _build_categories(),
+    }
+    return render(request, 'all_listings.html', context)
+
+
+
+
+# ── MY LISTINGS ────────────────────────────────────────────────
+# URL: path('marketplace/my/', views.my_listings, name='my_listings')
+
+@login_required(login_url='login')
+def my_listings(request):
+    from .models import Listing
+
+    _profile, user_society, _apt = _get_user_profile(request.user)
+
+    # --- Filters ---
+    q         = request.GET.get('q', '').strip()
+    status    = request.GET.get('status', '')       # 'active' | 'sold' | ''
+    category  = request.GET.get('category', '')
+    sort      = request.GET.get('sort', 'newest')
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+
+    # Base: everything posted by THIS user
+    qs = (
+        Listing.objects
+        .filter(seller=request.user)
+        .select_related('seller', 'society')
+    )
+
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(description__icontains=q))
+
+    if status in ('active', 'sold'):
+        qs = qs.filter(status=status)
+
+    if category:
+        qs = qs.filter(category=category)
+
+    qs = _price_filter(qs, min_price, max_price)
+
+    # Sort
+    if sort == 'price_asc':   qs = qs.order_by('price')
+    elif sort == 'price_desc': qs = qs.order_by('-price')
+    else:                       qs = qs.order_by('-created_at')
+
+    context = {
+        'listings':         qs,
+        'society_name':     user_society.name if user_society else 'Your Society',
+        'search_query':     q,
+        'current_status':   status,
+        'current_category': category,
+        'current_sort':     sort,
+        'min_price':        min_price,
+        'max_price':        max_price,
+        'categories':       _build_categories(),
+        # Summary counts for the UI tabs
+        'total_count':      Listing.objects.filter(seller=request.user).count(),
+        'active_count':     Listing.objects.filter(seller=request.user, status='active').count(),
+        'sold_count':       Listing.objects.filter(seller=request.user, status='sold').count(),
+        'CATEGORY_META':    CATEGORY_META,
+    }
+    return render(request, 'my_listings.html', context)
+
+
+# ──────────────────────────────────────────────────────────────────────
+#  MY SHORTLISTS
+#  path('marketplace/shortlists/', views.my_shortlists, name='my_shortlists')
+# ──────────────────────────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def my_shortlists(request):
+    from .models import Shortlist
+
+    _profile, user_society, _apt = _get_user_profile(request.user)
+
+    q        = request.GET.get('q', '').strip()
+    category = request.GET.get('category', '')
+
+    shortlists = (
+        Shortlist.objects
+        .filter(user=request.user)
+        .select_related('listing__seller', 'listing__society')
+        .order_by('-created_at')
+    )
+
+    if q:
+        shortlists = shortlists.filter(
+            Q(listing__title__icontains=q) | Q(listing__description__icontains=q)
+        )
+
+    if category:
+        shortlists = shortlists.filter(listing__category=category)
+
+    context = {
+        'shortlists':       shortlists,
+        'society_name':     user_society.name if user_society else 'Your Society',
+        'search_query':     q,
+        'current_category': category,
+        'categories':       _build_categories(),
+        'shortlist_count':  Shortlist.objects.filter(user=request.user).count(),
+    }
+    return render(request, 'my_shortlists.html', context)
+
+# ── POST LISTING ───────────────────────────────────────────────
+# URL: path('marketplace/post/', views.post_listing, name='post_listing')
+
+@login_required(login_url='login')
+def post_listing(request):
+    from .models import Listing, Society
+
+    if request.method != 'POST':
+        return redirect('marketplace')
+
+    title = request.POST.get('title', '').strip()
+    if not title:
+        messages.error(request, 'Title is required.')
+        ref = request.META.get('HTTP_REFERER', '/marketplace/')
+        return redirect(ref)
+
+    _profile, society, apartment = _get_user_profile(request.user)
+
+    if not society:
+        society = Society.objects.first()
+
+    if not society:
+        messages.error(request, 'No society found. Please contact your admin.')
+        return redirect('marketplace')
+
+    is_free_raw = request.POST.get('is_free', 'false').strip().lower()
+    is_nego_raw = request.POST.get('is_negotiable', 'false').strip().lower()
+    is_free = is_free_raw in ('true', '1', 'yes')
+    is_nego = is_nego_raw in ('true', '1', 'yes')
+
+    try:
+        price = float(request.POST.get('price') or '0')
+    except (ValueError, TypeError):
+        price = 0.0
+
+    if is_free:
+        price = 0.0
+
+    VALID_SLUGS = {'furniture', 'food', 'services', 'home-decor',
+                   'electronics', 'vehicles', 'kids-items', 'others'}
+    category = request.POST.get('category', 'others').strip().lower()
+    if category not in VALID_SLUGS:
+        category = 'others'
+
+    listing = Listing(
+        society        = society,
+        seller         = request.user,
+        apartment      = apartment,
+        category       = category,
+        title          = title,
+        description    = request.POST.get('description', '').strip(),
+        price          = price,
+        is_free        = is_free,
+        is_negotiable  = is_nego,
+        contact_number = request.POST.get('contact_number', '').strip(),
+        status         = 'active',
+    )
+    if 'image' in request.FILES:
+        listing.image = request.FILES['image']
+
+    try:
+        listing.save()
+        messages.success(request, f'✅ "{listing.title}" posted successfully!')
+    except Exception as e:
+        messages.error(request, f'Could not save listing: {e}')
+
+    return redirect('marketplace_category', slug=category)
+
+
+
+# ── POST PROPERTY ──────────────────────────────────────────────
+# URL: path('marketplace/post/property/', views.post_property, name='post_property')
+
+@login_required(login_url='login')
+def post_property(request):
+    from .models import PropertyListing, Society
+
+    if request.method != 'POST':
+        return redirect('marketplace')
+
+    title = request.POST.get('title', '').strip()
+    if not title:
+        messages.error(request, 'Title is required.')
+        return redirect('marketplace')
+
+    _profile, society, apartment = _get_user_profile(request.user)
+
+    if not society:
+        society = Society.objects.first()
+
+    if not society:
+        messages.error(request, 'No society found. Please contact your admin.')
+        return redirect('marketplace')
+
+    def _int_or_none(val):
+        try: return int(val) if val else None
+        except ValueError: return None
+
+    try:
+        price = float(request.POST.get('price', '0') or '0')
+    except ValueError:
+        price = 0.0
+
+    prop = PropertyListing(
+        society        = society,
+        seller         = request.user,
+        apartment      = apartment,
+        listing_type   = request.POST.get('listing_type', 'buy'),
+        title          = title,
+        description    = request.POST.get('description', '').strip(),
+        price          = price,
+        bedrooms       = _int_or_none(request.POST.get('bedrooms')),
+        bathrooms      = _int_or_none(request.POST.get('bathrooms')),
+        area_sqft      = _int_or_none(request.POST.get('area_sqft')),
+        contact_number = request.POST.get('contact_number', '').strip(),
+    )
+    if 'image' in request.FILES:
+        prop.image = request.FILES['image']
+
+    try:
+        prop.save()
+        messages.success(request, f'✅ Property "{prop.title}" posted!')
+    except Exception as e:
+        messages.error(request, f'Could not save property: {e}')
+
+    return redirect('marketplace')
+
+
+# ──────────────────────────────────────────────────────────────────────
+#  SHORTLIST TOGGLE  (AJAX POST)
+#  path('marketplace/shortlist/<int:listing_id>/toggle/', name='toggle_shortlist')
+# ──────────────────────────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def toggle_shortlist(request, listing_id):
+    from .models import Listing, Shortlist
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+
+    listing = get_object_or_404(Listing, id=listing_id)
+    obj, created = Shortlist.objects.get_or_create(user=request.user, listing=listing)
+
+    if not created:
+        obj.delete()
+        listing.shortlist_count = max(0, listing.shortlist_count - 1)
+        listing.save(update_fields=['shortlist_count'])
+        return JsonResponse({
+            'shortlisted': False,
+            'count': listing.shortlist_count,
+        })
+
+    listing.shortlist_count += 1
+    listing.save(update_fields=['shortlist_count'])
+    return JsonResponse({
+        'shortlisted': True,
+        'count': listing.shortlist_count,
+    })
+
+
+# ──────────────────────────────────────────────────────────────────────
+#  LISTING DETAIL PARTIAL  (AJAX)
+#  path('marketplace/item/<int:listing_id>/detail/', name='listing_detail')
+# ──────────────────────────────────────────────────────────────────────
+@login_required(login_url='login')
+def listing_detail_partial(request, listing_id):
+    from .models import Listing, Shortlist, UserProfile
+
+    listing = get_object_or_404(Listing, id=listing_id)
+    listing.views_count += 1
+    listing.save(update_fields=['views_count'])
+
+    is_shortlisted = Shortlist.objects.filter(user=request.user, listing=listing).exists()
+
+    seller_flat  = 'Society Member'
+    seller_phone = listing.contact_number or ''
+    try:
+        sp = UserProfile.objects.select_related('apartment').get(user=listing.seller)
+        if sp.apartment:
+            seller_flat = f"Flat {sp.apartment.flat_number}, Block {sp.apartment.block}"
+        if not seller_phone and sp.phone:
+            seller_phone = sp.phone
+    except Exception:
+        pass
+
+    society_badge = ''
+    if listing.society:
+        society_badge = f'<span class="detail-tag">🏘 {listing.society.name}</span>'
+
+    seller_initial = listing.seller.username[0].upper()
+    seller_name    = listing.seller.get_full_name() or listing.seller.username
+    price_html     = listing.display_price
+    nego_html      = '<span style="font-size:14px;color:var(--text-muted);font-weight:600;"> · Negotiable</span>' if listing.is_negotiable else ''
+    sold_tag       = "<span class='detail-tag' style='color:var(--sos);border-color:#fca5a5;'>Sold</span>" if listing.status == 'sold' else ''
+
+    img_html = (
+        f'<img src="{listing.image.url}" style="width:100%;height:100%;object-fit:cover;" alt="{listing.title}">'
+        if listing.image
+        else f'<span style="font-size:60px;">{listing.category_emoji}</span>'
+    )
+
+    call_btn = (
+        f'<a href="tel:{seller_phone}" class="detail-btn call">'
+        f'<iconify-icon icon="mdi:phone" width="18"></iconify-icon> Call Seller</a>'
+        if seller_phone else ''
+    )
+
+    sl_icon = 'mdi:heart' if is_shortlisted else 'mdi:heart-outline'
+    sl_cls  = 'active'    if is_shortlisted else ''
+
+    html = f"""
+<div class="modal-handle"></div>
+<div class="detail-modal-img" style="background:{listing.category_color};">{img_html}</div>
+<div class="detail-price">{price_html}{nego_html}</div>
+<div class="detail-title">{listing.title}</div>
+<div class="detail-tags">
+  <span class="detail-tag">{listing.get_category_display()}</span>
+  {society_badge}
+  <span class="detail-tag">{listing.created_at.strftime('%d %b %Y')}</span>
+  <span class="detail-tag"><iconify-icon icon="mdi:eye-outline" width="12"></iconify-icon> {listing.views_count} views</span>
+  {sold_tag}
+</div>
+{"<p class='detail-desc'>" + listing.description + "</p>" if listing.description else ""}
+<div class="detail-seller">
+  <div class="detail-seller-av">{seller_initial}</div>
+  <div>
+    <div class="detail-seller-name">{seller_name}</div>
+    <div class="detail-seller-flat">{seller_flat}</div>
+  </div>
+</div>
+<div class="detail-btns">
+  {call_btn}
+  <button class="detail-btn chat" onclick="window.location.href='/chat/{listing.seller.id}/'">
+    <iconify-icon icon="mdi:chat-outline" width="18"></iconify-icon> Chat
+  </button>
+  <button class="detail-btn shortlist {sl_cls}" data-lid="{listing.id}" onclick="toggleShortlist(this,{listing.id})">
+    <iconify-icon icon="{sl_icon}" width="18"></iconify-icon>
+  </button>
+</div>
+<button class="modal-cancel" onclick="closeModal('itemDetailModal')" style="margin-top:12px;">Close</button>
+"""
+    return HttpResponse(html)
+
+
+# ── PROPERTY DETAIL PARTIAL (AJAX) ────────────────────────────
+# URL: path('marketplace/prop/<int:prop_id>/detail/', ..., name='property_detail')
+
+@login_required(login_url='login')
+def property_detail_partial(request, prop_id):
+    from .models import PropertyListing, UserProfile
+
+    prop = get_object_or_404(PropertyListing, id=prop_id)
+
+    seller_flat  = 'Society Member'
+    seller_phone = prop.contact_number or ''
+    try:
+        sp = UserProfile.objects.select_related('apartment').get(user=prop.seller)
+        if sp.apartment:
+            seller_flat = f"Flat {sp.apartment.flat_number}, Block {sp.apartment.block}"
+        if not seller_phone and sp.phone:
+            seller_phone = sp.phone
+    except Exception:
+        pass
+
+    seller_initial = prop.seller.username[0].upper()
+    seller_name    = prop.seller.get_full_name() or prop.seller.username
+    price_str      = f"₹{int(prop.price):,}"
+    per_mo         = '<span style="font-size:14px;color:var(--text-muted);">/mo</span>' if prop.listing_type == 'rent' else ''
+
+    img_html = (
+        f'<img src="{prop.image.url}" style="width:100%;height:100%;object-fit:cover;" alt="{prop.title}">'
+        if prop.image else '<span style="font-size:60px;">🏢</span>'
+    )
+
+    tags = f'<span class="detail-tag">{prop.get_listing_type_display()}</span>'
+    if prop.society:   tags += f'<span class="detail-tag">🏘 {prop.society.name}</span>'
+    if prop.bedrooms:  tags += f'<span class="detail-tag">🛏 {prop.bedrooms} BHK</span>'
+    if prop.bathrooms: tags += f'<span class="detail-tag">🚿 {prop.bathrooms} Bath</span>'
+    if prop.area_sqft: tags += f'<span class="detail-tag">📐 {prop.area_sqft} sqft</span>'
+    if prop.location:  tags += f'<span class="detail-tag">📍 {prop.location}</span>'
+
+    call_btn = (
+        f'<a href="tel:{seller_phone}" class="detail-btn call">'
+        f'<iconify-icon icon="mdi:phone" width="18"></iconify-icon> Call Owner</a>'
+        if seller_phone else ''
+    )
+
+    html = f"""
+<div class="modal-handle"></div>
+<div class="detail-modal-img" style="background:linear-gradient(135deg,#e0f7f3,#e3f2fd);">{img_html}</div>
+<div class="detail-price">{price_str}{per_mo}</div>
+<div class="detail-title">{prop.title}</div>
+<div class="detail-tags">{tags}</div>
+{"<p class='detail-desc'>" + prop.description + "</p>" if prop.description else ""}
+<div class="detail-seller">
+  <div class="detail-seller-av">{seller_initial}</div>
+  <div>
+    <div class="detail-seller-name">{seller_name}</div>
+    <div class="detail-seller-flat">{seller_flat}</div>
+  </div>
+</div>
+<div class="detail-btns">
+  {call_btn}
+  <button class="detail-btn chat" onclick="window.location.href='/chat/{prop.seller.id}/'">
+    <iconify-icon icon="mdi:chat-outline" width="18"></iconify-icon> Chat
+  </button>
+</div>
+<button class="modal-cancel" onclick="closeModal('itemDetailModal')" style="margin-top:12px;">Close</button>
+"""
+    return HttpResponse(html)
+
+
+# ──────────────────────────────────────────────────────────────────────
+#  MARK AS SOLD
+#  path('marketplace/item/<int:listing_id>/sold/', name='mark_sold')
+# ──────────────────────────────────────────────────────────────────────
+@login_required(login_url='login')
+def mark_sold(request, listing_id):
+    from .models import Listing
+    listing = get_object_or_404(Listing, id=listing_id, seller=request.user)
+    listing.status = 'sold'
+    listing.save(update_fields=['status'])
+    messages.success(request, f'"{listing.title}" marked as sold!')
+    return redirect('my_listings')
+
+
+# ── DELETE LISTING ─────────────────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def delete_listing(request, listing_id):
+    from .models import Listing
+    listing = get_object_or_404(Listing, id=listing_id, seller=request.user)
+    title = listing.title
+    listing.delete()
+    messages.success(request, f'"{title}" deleted.')
+    return redirect('my_listings')
+
+
+
+
+@login_required(login_url='login')
+def direct_chat(request, user_id):
+    """
+    Opens (or creates) a direct chat with `user_id` and renders the chat UI.
+    Called from the marketplace detail modal: window.location.href='/chat/{seller_id}/'
+    """
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    other_user = get_object_or_404(User, id=user_id)
+
+    # Resolve the Chat object so the template knows which chat to load
+    # Uses the same create_or_get_chat logic your API already has
+    try:
+        from .models import Chat  # adjust import path if needed
+        # Try to find existing chat between these two users
+        chat = (
+            Chat.objects
+            .filter(participants=request.user)
+            .filter(participants=other_user)
+            .first()
+        )
+    except Exception:
+        chat = None
+
+    context = {
+        'other_user':    other_user,
+        'chat':          chat,          # may be None — JS will create it via API
+        'other_user_id': other_user.id,
+        'other_name':    other_user.get_full_name() or other_user.username,
+        'other_initial': (other_user.get_full_name() or other_user.username)[0].upper(),
+    }
+    return render(request, 'direct_chat.html', context)
