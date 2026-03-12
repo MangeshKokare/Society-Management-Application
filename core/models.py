@@ -1791,3 +1791,42 @@ class MarketplaceMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} → {self.receiver.username} re: {self.listing.title[:40]}"
+
+
+class PropertyMessage(models.Model):
+    """
+    Direct messages between a buyer/renter and a seller about a PropertyListing.
+    Each (property_listing, inquiry_user) pair forms one thread.
+    The seller is always property_listing.seller.
+    """
+    property_listing = models.ForeignKey(
+        'PropertyListing',
+        on_delete=models.CASCADE,
+        related_name='property_messages'
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='sent_property_messages'
+    )
+    receiver = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='received_property_messages'
+    )
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['property_listing', 'sender', 'receiver']),
+            models.Index(fields=['receiver', 'is_read']),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.sender.username} → {self.receiver.username} "
+            f"re: {self.property_listing.title[:40]}"
+        )

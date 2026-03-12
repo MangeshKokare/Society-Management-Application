@@ -1235,12 +1235,52 @@ function openMpThread(listingId, otherUserId, listingTitle, otherName, price, em
 
 function loadMpMessages(scrollToBottom) {
     if (!mpCurrentListingId || !mpCurrentOtherUserId) return;
+
     fetch(`/api/marketplace/${mpCurrentListingId}/thread/${mpCurrentOtherUserId}/`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(r => r.json())
-    .then(d => { if (d.success) renderMpMessages(d.messages, scrollToBottom); })
+    .then(d => {
+        if (d.success) {
+            renderMpMessages(d.messages, scrollToBottom);
+
+            // 🔹 Update unread counts dynamically
+            if (typeof d.unread_count !== "undefined") {
+                updateMpUnreadCount(d.unread_count);
+            }
+        }
+    })
     .catch(() => {});
+}
+
+function updateMpUnreadCount(newCount) {
+
+    // Update tab badge
+    const pill = document.querySelector("button[onclick*='pMpChat'] .tab-pill");
+
+    if (newCount > 0) {
+        if (pill) {
+            pill.textContent = newCount;
+        } else {
+            const tabBtn = document.querySelector("button[onclick*='pMpChat']");
+            const span = document.createElement("span");
+            span.className = "tab-pill";
+            span.textContent = newCount;
+            tabBtn.appendChild(span);
+        }
+    } else if (pill) {
+        pill.remove();
+    }
+
+    // Update hero badge
+    const hero = document.querySelector(".hero-badge.teal");
+    if (hero) {
+        if (newCount > 0) {
+            hero.textContent = `🛍️ ${newCount} New Enquiries`;
+        } else {
+            hero.remove();
+        }
+    }
 }
 
 function renderMpMessages(msgs, scroll) {

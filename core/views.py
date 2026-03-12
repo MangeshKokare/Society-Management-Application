@@ -414,6 +414,29 @@ def profile(request):
             messages.success(request, '✅ Pet removed.')
             return redirect('profile')
 
+    # ─────────────────────────────────────
+    # GLOBAL NOTIFICATION COUNT (header bell)
+    # ─────────────────────────────────────
+
+    # Alerts
+    alert_unread = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
+    # Resident chats
+    chat_unread = ChatMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+
+    # Marketplace messages
+    mp_unread = MarketplaceMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
+    notification_count = alert_unread + chat_unread + mp_unread
     # ── Context ───────────────────────────────────────
     context = {
         'profile':               profile_obj,
@@ -429,7 +452,10 @@ def profile(request):
         'vehicles':              vehicles,
         'daily_helps':           daily_helps,
         'pets':                  pets,
-        'services':              services,
+        'services': services,
+
+        # 🔔 Header notification badge
+        'notification_count': notification_count,
     }
     return render(request, 'profile.html', context)
 
@@ -598,6 +624,30 @@ def resident_dashboard(request):
         .order_by("-created_at")[:5]
     )
 
+
+    # ─────────────────────────────────────
+    # GLOBAL NOTIFICATION COUNT (for header bell)
+    # ─────────────────────────────────────
+
+    # Alerts
+    alert_unread = Notification.objects.filter(
+        user=user,
+        is_read=False
+    ).count()
+
+    # Resident chats
+    chat_unread = ChatMessage.objects.filter(
+        receiver=user,
+        is_read=False
+    ).exclude(sender=user).count()
+
+    # Marketplace messages
+    mp_unread = MarketplaceMessage.objects.filter(
+        receiver=user,
+        is_read=False
+    ).count()
+
+    notification_count = alert_unread + chat_unread + mp_unread
     # ─────────────────────────────────────
     # CONTEXT
     # ─────────────────────────────────────
@@ -619,6 +669,9 @@ def resident_dashboard(request):
         # Lists
         "announcements": announcements,
         "recent_activity": recent_activity,
+
+        # 🔔 Header notification badge
+        "notification_count": notification_count,
     }
 
     return render(request, "resident_index.html", context)
@@ -663,16 +716,43 @@ def resident_visitors(request):
         history_visitors
     ))
 
+    # ─────────────────────────────────────
+    # GLOBAL NOTIFICATION COUNT (header bell)
+    # ─────────────────────────────────────
+
+    # Alerts
+    alert_unread = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
+    # Resident chat messages
+    chat_unread = ChatMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+
+    # Marketplace messages
+    mp_unread = MarketplaceMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
+    notification_count = alert_unread + chat_unread + mp_unread
+
     return render(request, "resident_visitors.html", {
         "pending_visitors": pending_visitors,
         "active_visitors": active_visitors,
         "preapproved_visitors": preapproved_visitors,
         "history_visitors": history_visitors,
-        "all_visitors": all_visitors,   # ✅ ADD THIS
+        "all_visitors": all_visitors,   
         "pending_count": pending_visitors.count(),
         "active_count": active_visitors.count(),
         "preapproved_count": preapproved_visitors.count(),
         "history_count": history_visitors.count(),
+
+        # 🔔 Header notification badge
+        "notification_count": notification_count,
     })
 
 @login_required
@@ -973,7 +1053,26 @@ def resident_services(request):
         for hire in HiredService.objects.filter(resident=request.user):
             provider_status_map[hire.service_provider_id] = hire.status
 
+        # ================= HEADER NOTIFICATION COUNT =================
+        # Alerts
+        alert_unread = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).count()
 
+        # Resident chats
+        chat_unread = ChatMessage.objects.filter(
+            receiver=request.user,
+            is_read=False
+        ).exclude(sender=request.user).count()
+
+        # Marketplace messages
+        mp_unread = MarketplaceMessage.objects.filter(
+            receiver=request.user,
+            is_read=False
+        ).count()
+
+        notification_count = alert_unread + chat_unread + mp_unread
         # ================= CONTEXT =================
         context = {
             "services": services,
@@ -990,6 +1089,9 @@ def resident_services(request):
             "selected_service": selected_service,
             "search_area": search_area,
             "search_query": search_query,
+
+            # 🔔 Header notification badge
+            "notification_count": notification_count,
         }
 
         return render(request, "resident_services.html", context)
@@ -1228,7 +1330,29 @@ def resident_notices(request):
             user=request.user,
             post__society=society
         ).values_list('post_id', flat=True)
+        # ─────────────────────────────────────
+        # GLOBAL NOTIFICATION COUNT (header bell)
+        # ─────────────────────────────────────
 
+        # Alerts
+        alert_unread = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).count()
+
+        # Resident chats
+        chat_unread = ChatMessage.objects.filter(
+            receiver=request.user,
+            is_read=False
+        ).exclude(sender=request.user).count()
+
+        # Marketplace messages
+        mp_unread = MarketplaceMessage.objects.filter(
+            receiver=request.user,
+            is_read=False
+        ).count()
+
+        notification_count = alert_unread + chat_unread + mp_unread
         context = {
             'posts': posts,
             'announcements': announcements,
@@ -1238,6 +1362,7 @@ def resident_notices(request):
             'liked_post_ids': list(liked_post_ids),
             'is_admin': profile.role in ['admin', 'society_admin'],
             'user_role': profile.role,
+            'notification_count': notification_count,
         }
 
         
@@ -1343,7 +1468,8 @@ def resident_notifications(request):
     )
 
     mp_unread_total = sum(t['unread_count'] for t in marketplace_threads)
-
+    # ── Total unread for header bell ─────────────────
+    notification_count = unread_count + total_unread + mp_unread_total
     return render(request, 'resident_notifications.html', {
         'profile':              profile,
         'user':                 user,
@@ -1362,6 +1488,9 @@ def resident_notifications(request):
         # Marketplace Messages
         'marketplace_threads':  marketplace_threads,
         'mp_unread_total':      mp_unread_total,
+
+        # 🔔 Header notification badge
+        'notification_count':   notification_count,
     })
 
 @login_required
@@ -6487,13 +6616,38 @@ def resident_vehicles(request):
     apartment = profile.apartment
 
     vehicles = Vehicle.objects.filter(apartment=apartment)
+    # ─────────────────────────────────────
+    # GLOBAL NOTIFICATION COUNT (header bell)
+    # ─────────────────────────────────────
 
+    # Alerts
+    alert_unread = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
+    # Resident chats
+    chat_unread = ChatMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+
+    # Marketplace messages
+    mp_unread = MarketplaceMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
+    notification_count = alert_unread + chat_unread + mp_unread
     context = {
         "vehicles": vehicles,
         "total_vehicles": vehicles.count(),
         "two_wheelers": vehicles.filter(vehicle_type="2wheeler").count(),
         "four_wheelers": vehicles.filter(vehicle_type="4wheeler").count(),
         "parking_slots": vehicles.exclude(parking_slot="").count(),
+
+        # 🔔 Header bell notification count
+        "notification_count": notification_count,
     }
 
     return render(request, "resident_vehicles.html", context)
@@ -8071,13 +8225,13 @@ def marketplace(request):
     if q:
         base = base.filter(Q(title__icontains=q) | Q(description__icontains=q))
 
-    recent_listings      = _sort_qs(base, sort)[:20]
-    free_listings        = base.filter(is_free=True).order_by('-created_at')[:8]
-    furniture_listings   = base.filter(category='furniture').order_by('-created_at')[:10]
-    home_decor_listings  = base.filter(category='home-decor').order_by('-created_at')[:10]
-    electronics_listings = base.filter(category='electronics').order_by('-created_at')[:10]
-    vehicle_listings     = base.filter(category='vehicles').order_by('-created_at')[:10]
-    kids_listings        = base.filter(category='kids-items').order_by('-created_at')[:10]
+    recent_listings      = _sort_qs(base, sort)[:6]
+    free_listings        = base.filter(is_free=True).order_by('-created_at')[:2]
+    furniture_listings   = base.filter(category='furniture').order_by('-created_at')[:2]
+    home_decor_listings  = base.filter(category='home-decor').order_by('-created_at')[:2]
+    electronics_listings = base.filter(category='electronics').order_by('-created_at')[:2]
+    vehicle_listings     = base.filter(category='vehicles').order_by('-created_at')[:2]
+    kids_listings        = base.filter(category='kids-items').order_by('-created_at')[:2]
 
     properties = (
         PropertyListing.objects
@@ -8090,6 +8244,29 @@ def marketplace(request):
         Shortlist.objects.filter(user=request.user).values_list('listing_id', flat=True)
     )
 
+    # ─────────────────────────────────────
+    # GLOBAL NOTIFICATION COUNT (header bell)
+    # ─────────────────────────────────────
+
+    # Alerts
+    alert_unread = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).count()
+
+    # Resident chats
+    chat_unread = ChatMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+
+    # Marketplace messages
+    mp_unread = MarketplaceMessage.objects.filter(
+        receiver=request.user,
+        is_read=False
+    ).count()
+
+    notification_count = alert_unread + chat_unread + mp_unread
     context = {
         'society_name':          'All Societies',   # Always show all-society label
         'user_society_name':     user_society.name if user_society else '',
@@ -8105,7 +8282,10 @@ def marketplace(request):
         'shortlisted_ids':       shortlisted_ids,
         'current_category':      request.GET.get('category', ''),
         'current_sort':          sort,
-        'search_query':          q,
+        'search_query': q,
+
+        # 🔔 Header notification badge
+        'notification_count': notification_count,
     }
     return render(request, 'buy_sell.html', context)
 
@@ -8537,7 +8717,10 @@ def listing_detail_partial(request, listing_id):
 </div>
 <div class="detail-btns">
   {call_btn}
-  <button class="detail-btn chat" onclick="window.location.href='/chat/{listing.seller.id}/'">
+  <button class="detail-btn chat"
+  onclick="window.location.href='/resident/notifications/?tab=pMpChat&listing_id={listing.id}&other_user_id={listing.seller.id}'">
+    <iconify-icon icon="mdi:chat-outline" width="18"></iconify-icon> Chat
+  </button>
     <iconify-icon icon="mdi:chat-outline" width="18"></iconify-icon> Chat
   </button>
   <button class="detail-btn shortlist {sl_cls}" data-lid="{listing.id}" onclick="toggleShortlist(this,{listing.id})">
@@ -8608,7 +8791,7 @@ def property_detail_partial(request, prop_id):
 </div>
 <div class="detail-btns">
   {call_btn}
-  <button class="detail-btn chat" onclick="window.location.href='/chat/{prop.seller.id}/'">
+  <button class="detail-btn chat" onclick="window.location.href='/resident/notifications/?tab=pMpChat&listing_id={prop.id}&other_user_id={prop.seller.id}'">
     <iconify-icon icon="mdi:chat-outline" width="18"></iconify-icon> Chat
   </button>
 </div>

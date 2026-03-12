@@ -160,9 +160,9 @@ body{font-family:'Nunito',sans-serif;background:var(--surface-2);}
 <script>
 // ── CONSTANTS ──────────────────────────────────────────────────────────────
 const OTHER_USER_ID = {{ other_user_id }};
-const OTHER_NAME    = {{ other_name|escapejs|json_script:"__" }}; // fallback below
+const OTHER_NAME = "{{ other_name|escapejs }}";
 const OTHER_INITIAL = "{{ other_initial }}";
-const MY_INITIAL    = "{{ request.user.username|slice:':1'|upper }}";
+const MY_INITIAL = "{{ request.user.username|slice:':1'|upper }}";
 
 const API = {
   createChat:  '/api/chats/create/',

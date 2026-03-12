@@ -15,7 +15,13 @@
   --radius-sm:10px; --radius-md:14px; --radius-lg:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-.bs-page{padding:0 0 100px;max-width:520px;margin:0 auto;}
+.bs-page{
+  padding:0 0 100px;
+  max-width:1200px;
+  margin:auto;
+  width:100%;
+  overflow-x:hidden;
+}
 .bs-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 0;margin-bottom:14px;}
 .bs-topbar h2{font-size:24px;font-weight:900;color:var(--text-primary);letter-spacing:-0.5px;}
 .bs-topbar-actions{display:flex;gap:8px;}
@@ -39,16 +45,29 @@
 .see-all{font-size:13px;font-weight:800;color:var(--accent);background:var(--accent-light);border:none;border-radius:20px;padding:5px 14px;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif;transition:all 0.2s;}
 .see-all:hover{background:var(--accent);color:#fff;}
 /* property hero */
-.property-hero{background:linear-gradient(135deg,#00b386 0%,#0891b2 55%,#7c3aed 100%);border-radius:var(--radius-lg);padding:20px;margin:0 16px 16px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,179,134,0.28);}
+.property-hero{
+  background:linear-gradient(135deg,#00b386 0%,#0891b2 55%,#7c3aed 100%);
+  border-radius:var(--radius-md);
+  padding:14px 16px;
+  margin:0 16px 12px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:var(--shadow-sm);
+}
 .property-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.08);}
 .property-hero::after{content:'';position:absolute;bottom:-20px;right:40px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.05);}
-.property-hero h3{font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;}
+.property-hero h3{
+  font-size:15px;
+  font-weight:800;
+  color:#fff;
+  margin-bottom:2px;
+}
 .property-hero p{font-size:13px;color:rgba(255,255,255,0.82);margin-bottom:16px;}
 .prop-tabs{display:flex;gap:8px;margin-bottom:16px;}
-.prop-tab{padding:8px 20px;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;border:2px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.8);background:transparent;font-family:'Nunito',sans-serif;transition:all 0.2s;}
+.prop-tab{padding:5px 14px;border-radius:16px;font-size:11px;font-weight:800;cursor:pointer;border:2px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.8);background:transparent;font-family:'Nunito',sans-serif;transition:all 0.2s;}
 .prop-tab.active,.prop-tab:hover{background:#fff;color:var(--accent);border-color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.15);}
 .prop-action-row{display:flex;gap:10px;}
-.prop-btn{flex:1;padding:12px;border-radius:var(--radius-md);font-size:13px;font-weight:800;cursor:pointer;border:2px solid rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.prop-btn{flex:1;padding:8px;border-radius:var(--radius-sm);font-size:12px;font-weight:800;cursor:pointer;border:2px solid rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:7px;}
 .prop-btn.primary{background:#fff;color:var(--accent);border-color:#fff;}
 .prop-btn.secondary{background:transparent;color:#fff;}
 .prop-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.2);}
@@ -58,17 +77,59 @@
 .sort-pill{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:800;color:var(--text-secondary);cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all 0.2s;flex-shrink:0;box-shadow:var(--shadow-sm);}
 .sort-pill.active,.sort-pill:hover{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(0,179,134,0.28);}
 /* horizontal scroll */
-.listing-scroll{display:flex;gap:12px;overflow-x:auto;padding:4px 16px 12px;-webkit-overflow-scrolling:touch;}
+.listing-scroll{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  padding:4px 16px 14px;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  cursor:grab;
+  user-select:none;
+}
+
+.listing-scroll.dragging{
+  cursor:grabbing;
+}
+
+.listing-scroll::-webkit-scrollbar{
+  height:6px;
+}
+
+.listing-scroll::-webkit-scrollbar-thumb{
+  background:#d1d5db;
+  border-radius:6px;
+}
 .listing-scroll::-webkit-scrollbar{display:none;}
 /* VERTICAL SCROLL WRAPPER */
-.listing-vscroll-wrap{padding:0 16px;max-height:500px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.listing-vscroll-wrap{
+  padding:0 16px;
+  max-height:none;
+  overflow:visible;
+}
 .listing-vscroll-wrap::-webkit-scrollbar{width:4px;}
 .listing-vscroll-wrap::-webkit-scrollbar-track{background:transparent;}
 .listing-vscroll-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 /* 2-col grid inside vscroll */
-.listing-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.listing-grid-2{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
 /* property card */
-.prop-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.22s;min-width:240px;flex-shrink:0;}
+.prop-card{
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  box-shadow:var(--shadow-sm);
+  cursor:pointer;
+  transition:all 0.22s;
+  min-width:240px;
+  max-width:240px;
+  flex-shrink:0;
+  scroll-snap-align:start;
+}
 .prop-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--accent);}
 .pc-img{width:100%;height:150px;background:linear-gradient(135deg,#e0f7f3,#e3f2fd);display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;overflow:hidden;}
 .pc-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
@@ -87,14 +148,19 @@
 .lc-shortlist:hover{background:#fff;transform:scale(1.12);}
 .lc-shortlist.active iconify-icon{color:var(--sos);}
 /* category grid */
-.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px;}
+.cat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:0 16px;
+}
 .cat-item{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;text-decoration:none;transition:all 0.2s;box-shadow:var(--shadow-sm);}
 .cat-item:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,179,134,0.15);}
 .cat-icon{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;transition:all 0.2s;}
 .cat-item:hover .cat-icon{transform:scale(1.1);}
 .cat-label{font-size:10px;font-weight:800;color:var(--text-secondary);text-align:center;line-height:1.3;text-transform:uppercase;letter-spacing:0.2px;}
 /* listing card — horizontal */
-.listing-card{min-width:195px;max-width:195px;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.22s;flex-shrink:0;}
+.listing-card{width:100%;min-width:0;background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.22s;flex-shrink:0;}
 /* listing card inside vertical grid */
 .listing-grid-2 .listing-card{min-width:unset;max-width:unset;width:100%;flex-shrink:unset;}
 .listing-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--accent);}
@@ -136,7 +202,7 @@
 /* modal */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);z-index:2000;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
 .modal-bg.open{display:flex;}
-.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:8px 20px 36px;max-height:92vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.1,0.64,1);}
+.modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;  max-width:640px;width:100%;padding:8px 20px 36px;max-height:92vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.1,0.64,1);}
 @keyframes slideUp{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 18px;}
 .modal-title{font-size:19px;font-weight:900;color:var(--text-primary);margin-bottom:18px;letter-spacing:-0.3px;}
@@ -181,6 +247,107 @@
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .spin{animation:spin 0.9s linear infinite;display:inline-block;}
 .count-chip{display:inline-flex;align-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:800;color:var(--text-muted);margin-left:4px;}
+
+@media (max-width:600px){
+
+.bs-topbar{
+  flex-direction:column;
+  align-items:flex-start;
+  gap:10px;
+}
+
+.bs-topbar-actions{
+  width:100%;
+  justify-content:space-between;
+}
+
+.bs-icon-btn{
+  flex:1;
+}
+
+}
+@media (max-width:500px){
+
+.bs-search{
+  flex-direction:column;
+}
+
+.bs-filter-btn{
+  width:100%;
+}
+
+}
+@media (max-width:600px){
+
+.prop-action-row{
+  flex-direction:column;
+}
+
+.prop-btn{
+  width:100%;
+}
+
+}
+@media (max-width:768px){
+
+.prop-card{
+  min-width:220px;
+  max-width:220px;
+}
+
+.cat-grid{
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+}
+
+@media (max-width:600px){
+
+.prop-card{
+  min-width:200px;
+  max-width:200px;
+}
+
+}
+
+@media (max-width:390px){
+
+.prop-card{
+  min-width:185px;
+  max-width:185px;
+}
+
+}
+
+@media (min-width:900px){
+
+.bs-page{
+  padding:0 0 80px;
+}
+
+.prop-card{
+  min-width:280px;
+  max-width:280px;
+}
+
+.listing-grid-2{
+  grid-template-columns:repeat(3,1fr);
+}
+
+.cat-grid{
+  grid-template-columns:repeat(8,1fr);
+}
+
+.lc-img{
+  height:150px;
+}
+
+.lc-img-placeholder{
+  height:150px;
+}
+
+}
 </style>
 {% endblock %}
 
@@ -403,27 +570,32 @@
 
   {% if furniture_listings %}
   <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#f57c00;"></span> Furniture</h3><a href="{% url 'marketplace_category' 'furniture' %}" class="see-all">See All</a></div>
-  <div class="listing-scroll">{% for item in furniture_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#fff3e0;">🛋️</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#f57c00;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#f57c00;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  <div class="listing-vscroll-wrap">
+  <div class="listing-grid-2">{% for item in furniture_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#fff3e0;">🛋️</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#f57c00;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#f57c00;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div></div>
   {% endif %}
 
   {% if home_decor_listings %}
   <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#c2185b;"></span> Home Decor</h3><a href="{% url 'marketplace_category' 'home-decor' %}" class="see-all">See All</a></div>
-  <div class="listing-scroll">{% for item in home_decor_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#fce4ec;">🪴</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#c2185b;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#c2185b;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  <div class="listing-vscroll-wrap">
+  <div class="listing-grid-2">{% for item in home_decor_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#fce4ec;">🪴</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#c2185b;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#c2185b;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div></div>
   {% endif %}
 
   {% if electronics_listings %}
   <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#512da8;"></span> Electronics</h3><a href="{% url 'marketplace_category' 'electronics' %}" class="see-all">See All</a></div>
-  <div class="listing-scroll">{% for item in electronics_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#ede7f6;">💻</div>{% endif %}{% if item.is_new %}<div class="lc-badge newt">NEW</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#512da8;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#512da8;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  <div class="listing-vscroll-wrap">
+  <div class="listing-grid-2">{% for item in electronics_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#ede7f6;">💻</div>{% endif %}{% if item.is_new %}<div class="lc-badge newt">NEW</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#512da8;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#512da8;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div></div>
   {% endif %}
 
   {% if vehicle_listings %}
   <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#00695c;"></span> Vehicles</h3><a href="{% url 'marketplace_category' 'vehicles' %}" class="see-all">See All</a></div>
-  <div class="listing-scroll">{% for item in vehicle_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#e0f7fa;">🚗</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#00695c;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#00695c;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div>
+  <div class="listing-vscroll-wrap">
+  <div class="listing-grid-2">{% for item in vehicle_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#e0f7fa;">🚗</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#00695c;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#00695c;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div><div class="lc-seller-time">{{ item.created_at|timesince|slice:":8" }}</div></div></div></div>{% endfor %}</div></div>
   {% endif %}
 
   {% if kids_listings %}
   <div class="sec-hdr" style="margin-top:24px;"><h3><span class="sec-dot" style="background:#6a1b9a;"></span> Kids Items</h3><a href="{% url 'marketplace_category' 'kids-items' %}" class="see-all">See All</a></div>
-  <div class="listing-scroll">{% for item in kids_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#f3e5f5;">🧸</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#6a1b9a;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#6a1b9a;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div></div></div></div>{% endfor %}</div>
+  <div class="listing-vscroll-wrap">
+  <div class="listing-grid-2">{% for item in kids_listings %}<div class="listing-card" onclick="openDetailModal('item','{{ item.id }}')"><div class="lc-img">{% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}">{% else %}<div class="lc-img-placeholder" style="background:#f3e5f5;">🧸</div>{% endif %}<button class="lc-shortlist {% if item.id in shortlisted_ids %}active{% endif %}" data-lid="{{ item.id }}" onclick="event.stopPropagation();toggleShortlist(this,{{ item.id }})"><iconify-icon icon="{% if item.id in shortlisted_ids %}mdi:heart{% else %}mdi:heart-outline{% endif %}"></iconify-icon></button></div><div class="lc-body"><div class="lc-price" style="color:#6a1b9a;">{% if item.is_free or item.price == 0 %}FREE{% else %}₹{{ item.price|floatformat:0 }}{% endif %}</div><div class="lc-title">{{ item.title }}</div><div class="lc-seller"><div class="lc-seller-av" style="background:#6a1b9a;">{{ item.seller.username|slice:":1"|upper }}</div><div class="lc-seller-name">{{ item.seller.get_full_name|default:item.seller.username }}</div></div></div></div>{% endfor %}</div></div>
   {% endif %}
 
 </div>
@@ -596,15 +768,20 @@
     <button class="modal-cancel" onclick="closeModal('filterModal')">Cancel</button>
   </div>
 </div>
-
 <!-- DETAIL MODAL -->
 <div class="modal-bg" id="itemDetailModal" onclick="closeBg(event,'itemDetailModal')">
   <div class="modal-sheet" id="itemDetailContent">
+
     <div class="modal-handle"></div>
+
     <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
-      <iconify-icon icon="mdi:loading" width="40" class="spin" style="color:var(--accent);display:block;margin:0 auto 10px;"></iconify-icon>
+      <iconify-icon icon="mdi:loading" width="40" class="spin"
+        style="color:var(--accent);display:block;margin:0 auto 10px;">
+      </iconify-icon>
+
       <p style="font-size:13px;font-weight:700;">Loading…</p>
     </div>
+
   </div>
 </div>
 
@@ -753,5 +930,40 @@ document.addEventListener('DOMContentLoaded',()=>{
     setTimeout(()=>{ el.style.opacity='1'; el.style.transform=''; },32+i*20);
   });
 });
+// Mouse drag scroll for property cards
+const slider = document.getElementById("propertyScroll");
+
+if(slider){
+
+let isDown = false;
+let startX;
+let scrollLeft;
+
+slider.addEventListener("mousedown", (e) => {
+  isDown = true;
+  slider.classList.add("dragging");
+  startX = e.pageX - slider.offsetLeft;
+  scrollLeft = slider.scrollLeft;
+});
+
+slider.addEventListener("mouseleave", () => {
+  isDown = false;
+  slider.classList.remove("dragging");
+});
+
+slider.addEventListener("mouseup", () => {
+  isDown = false;
+  slider.classList.remove("dragging");
+});
+
+slider.addEventListener("mousemove", (e) => {
+  if(!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - slider.offsetLeft;
+  const walk = (x - startX) * 2;
+  slider.scrollLeft = scrollLeft - walk;
+});
+
+}
 </script>
 {% endblock %}
